@@ -7,10 +7,10 @@ const azureStorage = new AzureStorageService(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  {params}: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const id = (await params).id;
     
     // Base64デコードしてURLを取得
     const blobUrl = Buffer.from(id, 'base64').toString('utf-8');
