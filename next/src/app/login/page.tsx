@@ -4,11 +4,9 @@ import { supabase } from '@/lib/supabase';
 import { Button } from "@/components/ui/button";
 import { Chrome, Github } from "lucide-react";
 
-interface OAuthLoginProps {
-  providers: ('google' | 'github')[];
-}
+export default function LoginPage() {
+  const providers = ['google', 'github'];
 
-export function OAuthLogin({ providers }: OAuthLoginProps) {
   const handleOAuthLogin = async (provider: string) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -29,7 +27,10 @@ export function OAuthLogin({ providers }: OAuthLoginProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="w-full max-w-md p-6 space-y-6">
+        <h1 className="text-2xl font-bold text-center">ログイン</h1>
+        <div className="flex flex-col gap-4">
       {providers.includes('google') && (
         <Button className="w-full" onClick={() => handleOAuthLogin('google')}>
           <Chrome className="w-4 h-4 mr-2" />
@@ -43,15 +44,6 @@ export function OAuthLogin({ providers }: OAuthLoginProps) {
         </Button>
       )}
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-full max-w-md p-6 space-y-6">
-        <h1 className="text-2xl font-bold text-center">ログイン</h1>
-        <OAuthLogin providers={['google', 'github']} />
       </div>
     </div>
   );
