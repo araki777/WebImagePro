@@ -4,7 +4,9 @@ const nextConfig: NextConfig = {
   images: {
     domains: [
       "images.unsplash.com",
-      "webimageprostg.blob.core.windows.net"
+      "webimageprostg.blob.core.windows.net",
+      "webimagepro.vercel.app",
+      "webimageprostg.vercel.app"
     ],
     unoptimized: true
   }
