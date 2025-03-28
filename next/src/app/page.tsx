@@ -5,11 +5,18 @@ import { ImageUpload } from "@/components/image-upload";
 import { ImageGallery } from "@/components/image-gallery";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Image as ImageIcon } from "lucide-react";
+import { supabase } from '@/lib/supabase';
+import { redirect } from "next/navigation";
 
 export default function Home() {
+  const handleOAuthLogOut = async () => {
+      await supabase.auth.signOut();
+      redirect('/login');
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header onLogout={handleOAuthLogOut} />
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="upload" className="space-y-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
