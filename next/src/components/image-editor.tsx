@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PencilLine, Bluetooth as Blur, Type, Eraser, Undo2, Redo2, Save } from "lucide-react";
+import { PencilLine, Bluetooth as Blur, Type, Eraser, Undo2, Redo2, Save, Maximize2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { 
@@ -32,6 +32,93 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   const [fontColor, setFontColor] = useState("#000000");
   const [brushColor, setBrushColor] = useState("#000000");
   const [selectedFont, setSelectedFont] = useState("sans");
+  const [resizeWidth, setResizeWidth] = useState(0);
+  const [resizeHeight, setResizeHeight] = useState(0);
+  const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
+  const [isResizing, setIsResizing] = useState(false);
+
+  // 画像の元のサイズを取得
+  useEffect(() => {
+    const img = new window.Image();
+    img.onload = () => {
+      setResizeWidth(img.width);
+      setResizeHeight(img.height);
+    };
+    img.src = imageUrl;
+  }, [imageUrl]);
+
+  // アスペクト比を維持する場合の処理
+  useEffect(() => {
+    if (maintainAspectRatio) {
+      const img = new window.Image();
+      img.onload = () => {
+        const aspectRatio = img.width / img.height;
+        setResizeHeight(Math.round(resizeWidth / aspectRatio));
+      };
+      img.src = imageUrl;
+    }
+  }, [resizeWidth, maintainAspectRatio, imageUrl]);
+
+  const handleResize = async () => {
+    if (isResizing) return;
+    
+    setIsResizing(true);
+    try {
+      // 画像データを取得
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`画像の取得に失敗しました: ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const imageData = new Uint8Array(arrayBuffer);
+
+      // リサイズ処理を呼び出す
+      const wasm = await import("../../public/wasm/wasm.js");
+      await wasm.default();
+      
+      if (typeof wasm.resize_image !== 'function') {
+        throw new Error('リサイズ関数が見つかりません');
+      }
+
+      const resizedImage = wasm.resize_image(imageData, resizeWidth, resizeHeight);
+      
+      if (!(resizedImage instanceof Uint8Array)) {
+        throw new Error('リサイズ結果が不正な形式です');
+      }
+
+      // Base64に変換
+      const base64String = btoa(
+        resizedImage.reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      
+      onSave(base64String);
+    } catch (error) {
+      console.error('画像のリサイズ処理中にエラーが発生しました:', error);
+    } finally {
+      setIsResizing(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      // 画像データを取得
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const imageData = new Uint8Array(arrayBuffer);
+      
+      // Base64に変換
+      const base64String = btoa(
+        imageData.reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      
+      onSave(base64String);
+    } catch (error) {
+      console.error('画像の保存処理中にエラーが発生しました:', error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
@@ -62,14 +149,14 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                   <Button variant="outline" size="sm" onClick={onClose}>
                     キャンセル
                   </Button>
-                  <Button size="sm" onClick={() => onSave(imageUrl)}>
+                  <Button size="sm" onClick={handleSave}>
                     <Save className="w-4 h-4 mr-2" />
                     保存
                   </Button>
                 </div>
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="draw" className="flex items-center gap-2">
                       <PencilLine className="w-4 h-4" />
                       描画
@@ -81,6 +168,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                     <TabsTrigger value="text" className="flex items-center gap-2">
                       <Type className="w-4 h-4" />
                       テキスト
+                    </TabsTrigger>
+                    <TabsTrigger value="resize" className="flex items-center gap-2">
+                      <Maximize2 className="w-4 h-4" />
+                      リサイズ
                     </TabsTrigger>
                   </TabsList>
 
@@ -185,6 +276,47 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                     </div>
                     <Button className="w-full" onClick={() => {}}>
                       テキストを追加
+                    </Button>
+                  </TabsContent>
+
+                  <TabsContent value="resize" className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Label>アスペクト比を維持</Label>
+                        <input
+                          type="checkbox"
+                          checked={maintainAspectRatio}
+                          onChange={(e) => setMaintainAspectRatio(e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>幅: {resizeWidth}px</Label>
+                        <Slider
+                          value={[resizeWidth]}
+                          onValueChange={([value]) => setResizeWidth(value)}
+                          min={100}
+                          max={2000}
+                          step={10}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>高さ: {resizeHeight}px</Label>
+                        <Slider
+                          value={[resizeHeight]}
+                          onValueChange={([value]) => setResizeHeight(value)}
+                          min={100}
+                          max={2000}
+                          step={10}
+                        />
+                      </div>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleResize}
+                      disabled={isResizing}
+                    >
+                      {isResizing ? '処理中...' : 'リサイズを適用'}
                     </Button>
                   </TabsContent>
                 </Tabs>
