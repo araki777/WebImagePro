@@ -63,14 +63,18 @@ export function ImageGallery() {
     setEditingImage(image);
   };
 
-  const handleSaveEdit = async (editedImageUrl: string) => {
+  const handleSaveEdit = async (editedImageBase64: string) => {
     if (!editingImage) return;
 
     try {
-      // 編集後の画像を新しくアップロード
-      const response = await fetch(editedImageUrl);
-      const blob = await response.blob();
-      const file = new File([blob], editingImage.name, { type: blob.type });
+      // Base64からBlobを作成
+      const binaryString = atob(editedImageBase64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'image/png' });
+      const file = new File([blob], editingImage.name, { type: 'image/png' });
 
       const formData = new FormData();
       formData.append('file', file);
