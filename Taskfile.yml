@@ -1,0 +1,24 @@
+version: 3
+
+tasks:
+  build:wasm:
+    desc: "Rust AssemblyをビルドしてNext.jsに展開"
+    cmds:
+      - mkdir -p next/public/wasm
+      - cd wasm && wasm-pack build --target web --out-dir ../next/public/wasm
+    sources:
+      - wasm/src/**
+    generates:
+      - next/wasm/**
+
+build:
+  desc: "WasmをビルドしてNext.jsをビルド"
+  cmds:
+    - tasks: build:wasm
+    - cd next && npm run build
+
+dev:
+  desc: "WasmをビルドしてビルドしてNext.jsを開発サーバーを起動"
+  cmds:
+    - tasks: build:wasm
+    - cd next && npm run dev
