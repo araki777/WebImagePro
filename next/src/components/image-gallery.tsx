@@ -63,7 +63,7 @@ export function ImageGallery() {
     setEditingImage(image);
   };
 
-  const handleSaveEdit = async (editedImageBase64: string) => {
+  const handleSaveEdit = async (editedImageBase64: string, isNewImage: boolean) => {
     if (!editingImage) return;
 
     try {
@@ -74,8 +74,13 @@ export function ImageGallery() {
         bytes[i] = binaryString.charCodeAt(i);
       }
       const blob = new Blob([bytes], { type: 'image/png' });
-      const file = new File([blob], editingImage.name, { type: 'image/png' });
 
+      // 新規保存の場合、ファイル名を変更
+      const fileName = isNewImage 
+        ? `copy_${editingImage.name}`
+        : editingImage.name;
+
+      const file = new File([blob], fileName, { type: 'image/png' });
       const formData = new FormData();
       formData.append('file', file);
 
@@ -86,16 +91,18 @@ export function ImageGallery() {
 
       if (!uploadResponse.ok) throw new Error('アップロードに失敗しました');
 
-      // 古い画像を削除
-      const encodedUrl = Buffer.from(editingImage.url).toString('base64');
-      await fetch(`/api/images/${encodedUrl}`, { method: 'DELETE' });
+      // 元の画像を更新する場合のみ古い画像を削除
+      if (!isNewImage) {
+        const encodedUrl = Buffer.from(editingImage.url).toString('base64');
+        await fetch(`/api/images/${encodedUrl}`, { method: 'DELETE' });
+      }
 
       // 画像一覧を更新
       await fetchImages();
-      toast.success('画像を更新しました');
+      toast.success(isNewImage ? '新規画像として保存しました' : '画像を更新しました');
     } catch (error: unknown) {
       console.error('画像の更新エラー:', error);
-      toast.error('画像の更新に失敗しました');
+      toast.error(isNewImage ? '新規画像の保存に失敗しました' : '画像の更新に失敗しました');
     } finally {
       setEditingImage(null);
     }
@@ -121,7 +128,6 @@ export function ImageGallery() {
 
   const handleDelete = async (image: ApiImage) => {
     try {
-      // URLをBase64エンコードし、URLとして安全な形式にする
       const encodedUrl = encodeURIComponent(Buffer.from(image.url).toString("base64"));
   
       const response = await fetch(`/api/images/${encodedUrl}`, {
@@ -137,7 +143,6 @@ export function ImageGallery() {
       toast.error("画像の削除に失敗しました");
     }
   };
-  
 
   if (loading) {
     return (
