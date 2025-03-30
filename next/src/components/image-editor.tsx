@@ -74,12 +74,21 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     img.src = imageUrl;
   }, [imageUrl]);
 
-  useEffect(() => {
+  const handleWidthChange = (value: number) => {
+    setResizeWidth(value);
     if (maintainAspectRatio && originalDimensions.width > 0) {
       const aspectRatio = originalDimensions.width / originalDimensions.height;
-      setResizeHeight(Math.round(resizeWidth / aspectRatio));
+      setResizeHeight(Math.round(value / aspectRatio));
     }
-  }, [resizeWidth, maintainAspectRatio, originalDimensions]);
+  };
+
+  const handleHeightChange = (value: number) => {
+    setResizeHeight(value);
+    if (maintainAspectRatio && originalDimensions.width > 0) {
+      const aspectRatio = originalDimensions.width / originalDimensions.height;
+      setResizeWidth(Math.round(value * aspectRatio));
+    }
+  };
 
   useEffect(() => {
     // リサイズ時に切り抜き領域が画像からはみ出ないように調整
@@ -334,15 +343,15 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                       <Image
                         src={imageUrl}
                         alt="Image being edited"
-                        width={resizeWidth}
-                        height={resizeHeight}
+                        width={originalDimensions.width}
+                        height={originalDimensions.height}
                         style={{ 
                           width: `${resizeWidth}px`,
                           height: `${resizeHeight}px`,
-                          maxWidth: 'none',
-                          objectFit: 'contain'
+                          maxWidth: 'none'
                         }}
                         priority
+                        unoptimized
                       />
                       {activeTab === 'clip' && (
                         <>
@@ -420,9 +429,9 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                           <div className="flex items-center gap-4">
                             <Slider
                               value={[resizeWidth]}
-                              onValueChange={([value]) => setResizeWidth(value)}
-                              min={100}
-                              max={originalDimensions.width * 2}
+                              onValueChange={([value]) => handleWidthChange(value)}
+                              min={10}
+                              max={1000}
                               step={1}
                               className="flex-1"
                             />
@@ -437,9 +446,9 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                           <div className="flex items-center gap-4">
                             <Slider
                               value={[resizeHeight]}
-                              onValueChange={([value]) => setResizeHeight(value)}
-                              min={100}
-                              max={originalDimensions.height * 2}
+                              onValueChange={([value]) => handleHeightChange(value)}
+                              min={10}
+                              max={1000}
                               step={1}
                               className="flex-1"
                               disabled={maintainAspectRatio}
