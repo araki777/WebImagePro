@@ -46,6 +46,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   const [originalDimensions, setOriginalDimensions] = useState({ width: 0, height: 0 });
   
   const [clipRegion, setClipRegion] = useState<ClipRegion>({ x: 0, y: 0, width: 0, height: 0 });
+  const [clipImage, setClipImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
@@ -261,9 +262,14 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   };
 
   const resizeImage = async () => {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    let response = null;
+    if (clipImage) {
+      response = await fetch(clipImage);
+    } else {
+      response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
     }
     
     const blob = await response.blob();
@@ -297,13 +303,24 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     const blob = await response.blob();
     const arrayBuffer = await blob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
-    console.log(imageData);
 
     const wasm = await import("../../public/wasm/wasm.js");
     await wasm.default();
 
-    // ここで切り取り処理を実行
-    // 画面上で画像が切り取られるが、保存をを押すまでは正式な保存ではない
+    if (typeof wasm.clip_image !== 'function') {
+      throw new Error('Clip function not found');
+    }
+
+    const clipedImage = wasm.clip_image(imageData, clipRegion.x, clipRegion.y, clipRegion.width, clipRegion.height);
+    
+    if (!(clipedImage instanceof Uint8Array)) {
+      throw new Error('Invalid resize result format');
+    }
+
+    const clippedBlob = new Blob([clipedImage], { type: 'image/png' });
+    const clippedUrl = URL.createObjectURL(clippedBlob);
+
+    setClipImage(clippedUrl);
   }
 
   const handleSave = async () => {
@@ -359,7 +376,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                   <div className="min-w-fit min-h-full flex items-center justify-center">
                     <div ref={imageRef} className="relative">
                       <Image
-                        src={imageUrl}
+                        src={clipImage ? clipImage : imageUrl}
                         alt="Image being edited"
                         width={originalDimensions.width}
                         height={originalDimensions.height}
