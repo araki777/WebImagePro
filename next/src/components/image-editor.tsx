@@ -28,6 +28,15 @@ interface ClipRegion {
   height: number;
 }
 
+const RATIOS = [
+  { name: "フリー", value: null },
+  { name: "1:1", value: 1 },
+  { name: "4:3", value: 4/3 },
+  { name: "3:2", value: 3/2 },
+  { name: "16:9", value: 16/9 },
+  { name: "9:16", value: 9/16 },
+];
+
 export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   const [activeTab, setActiveTab] = useState("resize");
   const [resizeWidth, setResizeWidth] = useState(0);
@@ -36,13 +45,13 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [originalDimensions, setOriginalDimensions] = useState({ width: 0, height: 0 });
   
-  // 切り抜き関連の状態
   const [clipRegion, setClipRegion] = useState<ClipRegion>({ x: 0, y: 0, width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedRatio, setSelectedRatio] = useState(RATIOS[0]);
   const imageRef = useRef<HTMLDivElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const img = new window.Image();
@@ -50,12 +59,16 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
       setOriginalDimensions({ width: img.width, height: img.height });
       setResizeWidth(img.width);
       setResizeHeight(img.height);
+      
       // 初期の切り抜き領域を設定
+      const maxWidth = img.width * 0.8;
+      const maxHeight = img.height * 0.8;
+      
       setClipRegion({
-        x: img.width * 0.1, // 10% のマージン
-        y: img.height * 0.1,
-        width: img.width * 0.8, // 80% の幅
-        height: img.height * 0.8
+        x: (img.width - maxWidth) / 2,
+        y: (img.height - maxHeight) / 2,
+        width: maxWidth,
+        height: maxHeight
       });
     };
     img.src = imageUrl;
@@ -68,28 +81,57 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     }
   }, [resizeWidth, maintainAspectRatio, originalDimensions]);
 
-  // マウスイベントハンドラー
+  useEffect(() => {
+    // リサイズ時に切り抜き領域が画像からはみ出ないように調整
+    setClipRegion(prev => {
+      const newRegion = { ...prev };
+      
+      if (prev.x + prev.width > resizeWidth) {
+        if (prev.width > resizeWidth) {
+          newRegion.width = resizeWidth;
+          newRegion.x = 0;
+        } else {
+          newRegion.x = resizeWidth - prev.width;
+        }
+      }
+      
+      if (prev.y + prev.height > resizeHeight) {
+        if (prev.height > resizeHeight) {
+          newRegion.height = resizeHeight;
+          newRegion.y = 0;
+        } else {
+          newRegion.y = resizeHeight - prev.height;
+        }
+      }
+      
+      return newRegion;
+    });
+  }, [resizeWidth, resizeHeight]);
+
+  const getScaleFactor = () => {
+    if (!imageRef.current || !imageContainerRef.current) return 1;
+
+    const imageRect = imageRef.current.getBoundingClientRect();
+    return imageRect.width / resizeWidth;
+  };
+
   const handleMouseDown = (e: React.MouseEvent, handle?: string) => {
     if (activeTab !== 'clip') return;
     
-    e.preventDefault(); // ドラッグ操作を防止
-    e.stopPropagation(); // イベントの伝播を停止
+    e.preventDefault();
+    e.stopPropagation();
 
     const imageElement = imageRef.current;
     if (!imageElement) return;
 
     const rect = imageElement.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scale = getScaleFactor();
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
 
     setIsDragging(true);
     setDragStart({ x, y });
-
-    if (handle) {
-      setResizeHandle(handle);
-    } else {
-      setResizeHandle(null);
-    }
+    setResizeHandle(handle || null);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -99,35 +141,56 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     if (!imageElement) return;
 
     const rect = imageElement.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const deltaX = x - dragStart.x;
-    const deltaY = y - dragStart.y;
+    const scale = getScaleFactor();
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
+    const deltaX = (x - dragStart.x);
+    const deltaY = (y - dragStart.y);
 
     if (resizeHandle) {
-      // リサイズハンドル操作
       const newClipRegion = { ...clipRegion };
+      const minSize = 50;
 
       switch (resizeHandle) {
-        case 'nw':
-          newClipRegion.x = Math.min(clipRegion.x + clipRegion.width - 50, Math.max(0, clipRegion.x + deltaX));
-          newClipRegion.y = Math.min(clipRegion.y + clipRegion.height - 50, Math.max(0, clipRegion.y + deltaY));
-          newClipRegion.width = clipRegion.width - (newClipRegion.x - clipRegion.x);
-          newClipRegion.height = clipRegion.height - (newClipRegion.y - clipRegion.y);
-          break;
-        case 'ne':
-          newClipRegion.y = Math.min(clipRegion.y + clipRegion.height - 50, Math.max(0, clipRegion.y + deltaY));
-          newClipRegion.width = Math.max(50, Math.min(resizeWidth - newClipRegion.x, clipRegion.width + deltaX));
-          newClipRegion.height = clipRegion.height - (newClipRegion.y - clipRegion.y);
-          break;
-        case 'sw':
-          newClipRegion.x = Math.min(clipRegion.x + clipRegion.width - 50, Math.max(0, clipRegion.x + deltaX));
-          newClipRegion.width = clipRegion.width - (newClipRegion.x - clipRegion.x);
-          newClipRegion.height = Math.max(50, Math.min(resizeHeight - newClipRegion.y, clipRegion.height + deltaY));
-          break;
         case 'se':
-          newClipRegion.width = Math.max(50, Math.min(resizeWidth - newClipRegion.x, clipRegion.width + deltaX));
-          newClipRegion.height = Math.max(50, Math.min(resizeHeight - newClipRegion.y, clipRegion.height + deltaY));
+          if (selectedRatio.value === null) {
+            // フリーモード
+            newClipRegion.width = Math.max(minSize, Math.min(resizeWidth - clipRegion.x, clipRegion.width + deltaX));
+            newClipRegion.height = Math.max(minSize, Math.min(resizeHeight - clipRegion.y, clipRegion.height + deltaY));
+          } else {
+            // 比率固定モード
+            const newWidth = Math.max(minSize, Math.min(resizeWidth - clipRegion.x, clipRegion.width + deltaX));
+            const newHeight = newWidth / selectedRatio.value;
+            
+            if (clipRegion.y + newHeight <= resizeHeight) {
+              newClipRegion.width = newWidth;
+              newClipRegion.height = newHeight;
+            } else {
+              const maxHeight = resizeHeight - clipRegion.y;
+              newClipRegion.height = maxHeight;
+              newClipRegion.width = maxHeight * selectedRatio.value;
+            }
+          }
+          break;
+        case 'e':
+          newClipRegion.width = Math.max(minSize, Math.min(resizeWidth - clipRegion.x, clipRegion.width + deltaX));
+          if (selectedRatio.value !== null) {
+            newClipRegion.height = newClipRegion.width / selectedRatio.value;
+            if (clipRegion.y + newClipRegion.height > resizeHeight) {
+              newClipRegion.height = resizeHeight - clipRegion.y;
+              newClipRegion.width = newClipRegion.height * selectedRatio.value;
+            }
+          }
+          break;
+        case 's':
+          newClipRegion.height = Math.max(minSize, Math.min(resizeHeight - clipRegion.y, clipRegion.height + deltaY));
+          if (selectedRatio.value !== null) {
+            newClipRegion.width = newClipRegion.height * selectedRatio.value;
+            if (clipRegion.x + newClipRegion.width > resizeWidth) {
+              newClipRegion.width = resizeWidth - clipRegion.x;
+              newClipRegion.height = newClipRegion.width / selectedRatio.value;
+            }
+          }
           break;
       }
 
@@ -147,6 +210,45 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   const handleMouseUp = () => {
     setIsDragging(false);
     setResizeHandle(null);
+  };
+
+  const handleRatioChange = (ratio: typeof RATIOS[0]) => {
+    setSelectedRatio(ratio);
+
+    if (ratio.value === null) return;
+
+    const currentWidth = clipRegion.width;
+    const newHeight = currentWidth / ratio.value;
+
+    // 高さが画像からはみ出る場合は幅を調整
+    if (clipRegion.y + newHeight > resizeHeight) {
+      const adjustedHeight = resizeHeight - clipRegion.y;
+      const adjustedWidth = adjustedHeight * ratio.value;
+      
+      // 調整後の幅が画像幅を超える場合は、中央から計算し直す
+      if (adjustedWidth > resizeWidth) {
+        const maxWidth = resizeWidth * 0.8;
+        const maxHeight = maxWidth / ratio.value;
+        
+        setClipRegion({
+          x: (resizeWidth - maxWidth) / 2,
+          y: (resizeHeight - maxHeight) / 2,
+          width: maxWidth,
+          height: maxHeight
+        });
+      } else {
+        setClipRegion(prev => ({
+          ...prev,
+          width: adjustedWidth,
+          height: adjustedHeight
+        }));
+      }
+    } else {
+      setClipRegion(prev => ({
+        ...prev,
+        height: newHeight
+      }));
+    }
   };
 
   const resizeImage = async () => {
@@ -208,7 +310,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
       <div className="container flex h-full items-center justify-center p-4">
-        <Card className="w-full max-w-[1200px] shadow-lg relative">
+        <Card className="w-full max-w-[1400px] shadow-lg relative">
           <Button 
             variant="outline"
             size="icon"
@@ -235,6 +337,8 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                         width={resizeWidth}
                         height={resizeHeight}
                         style={{ 
+                          width: `${resizeWidth}px`,
+                          height: `${resizeHeight}px`,
                           maxWidth: 'none',
                           objectFit: 'contain'
                         }}
@@ -242,10 +346,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                       />
                       {activeTab === 'clip' && (
                         <>
-                          {/* 切り抜き領域の外側を暗くする */}
                           <div className="absolute inset-0 bg-black/50" />
-                          
-                          {/* 切り抜き領域 */}
                           <div
                             className="absolute border-2 border-white cursor-move"
                             style={{
@@ -256,25 +357,21 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                             }}
                             onMouseDown={handleMouseDown}
                           >
-                            {/* 切り抜き領域の中身を表示 */}
                             <div className="absolute inset-0 bg-transparent" />
-                            
-                            {/* リサイズハンドル */}
-                            <div
-                              className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-nw-resize"
-                              onMouseDown={(e) => handleMouseDown(e, 'nw')}
-                            />
-                            <div
-                              className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-ne-resize"
-                              onMouseDown={(e) => handleMouseDown(e, 'ne')}
-                            />
-                            <div
-                              className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-sw-resize"
-                              onMouseDown={(e) => handleMouseDown(e, 'sw')}
-                            />
+                            {/* 右下のリサイズハンドル */}
                             <div
                               className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-se-resize"
                               onMouseDown={(e) => handleMouseDown(e, 'se')}
+                            />
+                            {/* 右端のリサイズハンドル */}
+                            <div
+                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-e-resize"
+                              onMouseDown={(e) => handleMouseDown(e, 'e')}
+                            />
+                            {/* 下端のリサイズハンドル */}
+                            <div
+                              className="absolute bottom-[-1.5px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-s-resize"
+                              onMouseDown={(e) => handleMouseDown(e, 's')}
                             />
                           </div>
                         </>
@@ -287,7 +384,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                 </div>
               </div>
 
-              <div className="w-80 flex flex-col">
+              <div className="w-96 flex flex-col">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
                   <TabsList className="w-full grid grid-cols-2">
                     <TabsTrigger value="resize" className="flex-1">
@@ -358,35 +455,6 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
 
                       <div className="space-y-2">
                         <Button 
-                          className="w-full"
-                          onClick={handleResize}
-                          disabled={isResizing}
-                        >
-                          {isResizing ? (
-                            <span>処理中...</span>
-                          ) : (
-                            <>
-                              <Save className="w-4 h-4 mr-2" />
-                              変更を保存
-                            </>
-                          )}
-                        </Button>
-                        <Button 
-                          variant="outline"
-                          className="w-full"
-                          onClick={handleSaveNew}
-                          disabled={isResizing}
-                        >
-                          {isResizing ? (
-                            <span>処理中...</span>
-                          ) : (
-                            <>
-                              <Plus className="w-4 h-4 mr-2" />
-                              新規として保存
-                            </>
-                          )}
-                        </Button>
-                        <Button 
                           variant="outline"
                           className="w-full"
                           onClick={() => {
@@ -402,12 +470,60 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
 
                   <TabsContent value="clip" className="mt-6 space-y-6">
                     <div className="space-y-4">
-                      <div className="text-sm text-muted-foreground">
-                        切り抜き領域をドラッグして移動、または角のハンドルをドラッグしてサイズを変更できます
+                      <div className="text-sm text-muted-foreground mb-4">
+                        切り抜き領域をドラッグして移動、またはハンドルをドラッグしてサイズを変更できます
+                      </div>
+                      
+                      <Label className="text-sm text-muted-foreground">比率</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {RATIOS.map((ratio) => (
+                          <Button
+                            key={ratio.name}
+                            variant={selectedRatio.name === ratio.name ? "default" : "outline"}
+                            className="w-full"
+                            onClick={() => handleRatioChange(ratio)}
+                          >
+                            {ratio.name}
+                          </Button>
+                        ))}
                       </div>
                     </div>
                   </TabsContent>
                 </Tabs>
+
+                <Separator className="my-6" />
+
+                <div className="space-y-2">
+                  <Button 
+                    className="w-full"
+                    onClick={handleResize}
+                    disabled={isResizing}
+                  >
+                    {isResizing ? (
+                      <span>処理中...</span>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        変更を保存
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleSaveNew}
+                    disabled={isResizing}
+                  >
+                    {isResizing ? (
+                      <span>処理中...</span>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        新規として保存
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
