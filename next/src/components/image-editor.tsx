@@ -288,7 +288,25 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     );
   };
 
-  const handleResize = async () => {
+  const handleClip = async () => {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    
+    const blob = await response.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+    console.log(imageData);
+
+    const wasm = await import("../../public/wasm/wasm.js");
+    await wasm.default();
+
+    // ここで切り取り処理を実行
+    // 画面上で画像が切り取られるが、保存をを押すまでは正式な保存ではない
+  }
+
+  const handleSave = async () => {
     if (isResizing) return;
     
     setIsResizing(true);
@@ -496,6 +514,13 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                           </Button>
                         ))}
                       </div>
+                      <Button 
+                        className="w-full"
+                        onClick={handleClip}
+                        disabled={isResizing}
+                      >
+                        切り取りを実行
+                      </Button>
                     </div>
                   </TabsContent>
                 </Tabs>
@@ -505,7 +530,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                 <div className="space-y-2">
                   <Button 
                     className="w-full"
-                    onClick={handleResize}
+                    onClick={handleSave}
                     disabled={isResizing}
                   >
                     {isResizing ? (
