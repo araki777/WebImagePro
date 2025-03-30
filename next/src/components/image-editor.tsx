@@ -76,16 +76,16 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
 
   const handleWidthChange = (value: number) => {
     setResizeWidth(value);
-    if (maintainAspectRatio && originalDimensions.width > 0) {
-      const aspectRatio = originalDimensions.width / originalDimensions.height;
+    if (maintainAspectRatio && value > 0) {
+      const aspectRatio = resizeWidth / resizeHeight;
       setResizeHeight(Math.round(value / aspectRatio));
     }
   };
 
   const handleHeightChange = (value: number) => {
     setResizeHeight(value);
-    if (maintainAspectRatio && originalDimensions.width > 0) {
-      const aspectRatio = originalDimensions.width / originalDimensions.height;
+    if (maintainAspectRatio && value > 0) {
+      const aspectRatio = resizeWidth / resizeHeight;
       setResizeWidth(Math.round(value * aspectRatio));
     }
   };
