@@ -121,20 +121,23 @@ export function ImageGallery() {
 
   const handleDelete = async (image: ApiImage) => {
     try {
-      const encodedUrl = Buffer.from(image.url).toString('base64');
+      // URLをBase64エンコードし、URLとして安全な形式にする
+      const encodedUrl = encodeURIComponent(Buffer.from(image.url).toString("base64"));
+  
       const response = await fetch(`/api/images/${encodedUrl}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
-
-      if (!response.ok) throw new Error('削除に失敗しました');
-
+  
+      if (!response.ok) throw new Error("削除に失敗しました");
+  
       await fetchImages();
-      toast.success('画像を削除しました');
-    } catch (error: unknown) {
-      console.error('画像の削除エラー:', error);
-      toast.error('画像の削除に失敗しました');
+      toast.success("画像を削除しました");
+    } catch (error) {
+      console.error("画像の削除エラー:", error);
+      toast.error("画像の削除に失敗しました");
     }
   };
+  
 
   if (loading) {
     return (
