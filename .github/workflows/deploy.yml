@@ -29,6 +29,9 @@ jobs:
           cp pkg/*.wasm ../public/
           cp pkg/*.js ../public/
 
+      - name: Debug Public Folder Before Build
+        run: ls -R public/
+
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
