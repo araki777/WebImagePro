@@ -276,7 +276,8 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     const arrayBuffer = await blob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await import(process.env.NEXT_PUBLIC_WASM_PATH || "");
+    const wasmPath = process.env.NEXT_PUBLIC_WASM_PATH || "";
+    const wasm = await import(wasmPath);
     await wasm.default();
 
     if (typeof wasm.resize_image !== 'function') {
@@ -304,7 +305,8 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     const arrayBuffer = await blob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await import(process.env.NEXT_PUBLIC_WASM_PATH || "");
+    const wasmPath = process.env.NEXT_PUBLIC_WASM_PATH || "";
+    const wasm = await import(wasmPath);
     await wasm.default();
 
     if (typeof wasm.clip_image !== 'function') {
