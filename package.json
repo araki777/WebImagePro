@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "cd wasm && wasm-pack build --target web --release && tsc && next build",
+    "build:js": "tsc && next build",
+    "build:wasm": "cd wasm && wasm-pack build --target web --release",
     "start": "next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
