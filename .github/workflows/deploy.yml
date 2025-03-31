@@ -25,12 +25,12 @@ jobs:
         run: |
           cd wasm
           wasm-pack build --target web --out-dir pkg
-          mkdir -p ../public
-          cp pkg/*.wasm ../public/
-          cp pkg/*.js ../public/
+          mkdir -p ../public/wasm/
+          cp pkg/*.wasm ../public/wasm/
+          cp pkg/*.js ../public/wasm/
 
       - name: Debug Public Folder Before Build
-        run: ls -R public/
+        run: ls -R public/wasm/
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
