@@ -44,7 +44,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
   const [isResizing, setIsResizing] = useState(false);
   const [originalDimensions, setOriginalDimensions] = useState({ width: 0, height: 0 });
-  
+
   const [clipRegion, setClipRegion] = useState<ClipRegion>({ x: 0, y: 0, width: 0, height: 0 });
   const [clipImage, setClipImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -60,11 +60,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
       setOriginalDimensions({ width: img.width, height: img.height });
       setResizeWidth(img.width);
       setResizeHeight(img.height);
-      
+
       // 初期の切り抜き領域を設定
       const maxWidth = img.width * 0.8;
       const maxHeight = img.height * 0.8;
-      
+
       setClipRegion({
         x: (img.width - maxWidth) / 2,
         y: (img.height - maxHeight) / 2,
@@ -95,7 +95,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     // リサイズ時に切り抜き領域が画像からはみ出ないように調整
     setClipRegion(prev => {
       const newRegion = { ...prev };
-      
+
       if (prev.x + prev.width > resizeWidth) {
         if (prev.width > resizeWidth) {
           newRegion.width = resizeWidth;
@@ -104,7 +104,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
           newRegion.x = resizeWidth - prev.width;
         }
       }
-      
+
       if (prev.y + prev.height > resizeHeight) {
         if (prev.height > resizeHeight) {
           newRegion.height = resizeHeight;
@@ -113,7 +113,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
           newRegion.y = resizeHeight - prev.height;
         }
       }
-      
+
       return newRegion;
     });
   }, [resizeWidth, resizeHeight]);
@@ -127,7 +127,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
 
   const handleMouseDown = (e: React.MouseEvent, handle?: string) => {
     if (activeTab !== 'clip') return;
-    
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -171,7 +171,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
             // 比率固定モード
             const newWidth = Math.max(minSize, Math.min(resizeWidth - clipRegion.x, clipRegion.width + deltaX));
             const newHeight = newWidth / selectedRatio.value;
-            
+
             if (clipRegion.y + newHeight <= resizeHeight) {
               newClipRegion.width = newWidth;
               newClipRegion.height = newHeight;
@@ -234,12 +234,12 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     if (clipRegion.y + newHeight > resizeHeight) {
       const adjustedHeight = resizeHeight - clipRegion.y;
       const adjustedWidth = adjustedHeight * ratio.value;
-      
+
       // 調整後の幅が画像幅を超える場合は、中央から計算し直す
       if (adjustedWidth > resizeWidth) {
         const maxWidth = resizeWidth * 0.8;
         const maxHeight = maxWidth / ratio.value;
-        
+
         setClipRegion({
           x: (resizeWidth - maxWidth) / 2,
           y: (resizeHeight - maxHeight) / 2,
@@ -271,20 +271,20 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
       }
     }
-    
+
     const blob = await response.blob();
     const arrayBuffer = await blob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await import("../../public/wasm/wasm.js");
+    const wasm = await import(process.env.NEXT_PUBLIC_WASM_PATH || "");
     await wasm.default();
-    
+
     if (typeof wasm.resize_image !== 'function') {
       throw new Error('Resize function not found');
     }
 
     const resizedImage = wasm.resize_image(imageData, resizeWidth, resizeHeight);
-    
+
     if (!(resizedImage instanceof Uint8Array)) {
       throw new Error('Invalid resize result format');
     }
@@ -299,12 +299,12 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     if (!response.ok) {
       throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
-    
+
     const blob = await response.blob();
     const arrayBuffer = await blob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await import("../../public/wasm/wasm.js");
+    const wasm = await import(process.env.NEXT_PUBLIC_WASM_PATH || "");
     await wasm.default();
 
     if (typeof wasm.clip_image !== 'function') {
@@ -312,7 +312,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     }
 
     const clipedImage = wasm.clip_image(imageData, clipRegion.x, clipRegion.y, clipRegion.width, clipRegion.height);
-    
+
     if (!(clipedImage instanceof Uint8Array)) {
       throw new Error('Invalid resize result format');
     }
@@ -325,7 +325,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
 
   const handleSave = async () => {
     if (isResizing) return;
-    
+
     setIsResizing(true);
     try {
       const base64String = await resizeImage();
@@ -339,7 +339,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
 
   const handleSaveNew = async () => {
     if (isResizing) return;
-    
+
     setIsResizing(true);
     try {
       const base64String = await resizeImage();
@@ -355,7 +355,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
       <div className="container flex h-full items-center justify-center p-4">
         <Card className="w-full max-w-[1400px] shadow-lg relative">
-          <Button 
+          <Button
             variant="outline"
             size="icon"
             className="absolute -top-3 -right-3 h-8 w-8 rounded-full border-2 bg-background shadow-md hover:scale-105 transition-transform"
@@ -365,7 +365,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
           </Button>
           <CardContent className="p-6">
             <div className="flex gap-6">
-              <div 
+              <div
                 ref={imageContainerRef}
                 className="flex-1 rounded-lg border bg-card h-[600px] relative overflow-hidden"
                 onMouseMove={handleMouseMove}
@@ -380,7 +380,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                         alt="Image being edited"
                         width={originalDimensions.width}
                         height={originalDimensions.height}
-                        style={{ 
+                        style={{
                           width: `${resizeWidth}px`,
                           height: `${resizeHeight}px`,
                           maxWidth: 'none'
@@ -498,7 +498,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                       <Separator />
 
                       <div className="space-y-2">
-                        <Button 
+                        <Button
                           variant="outline"
                           className="w-full"
                           onClick={() => {
@@ -517,7 +517,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                       <div className="text-sm text-muted-foreground mb-4">
                         切り抜き領域をドラッグして移動、またはハンドルをドラッグしてサイズを変更できます
                       </div>
-                      
+
                       <Label className="text-sm text-muted-foreground">比率</Label>
                       <div className="grid grid-cols-2 gap-2">
                         {RATIOS.map((ratio) => (
@@ -531,7 +531,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                           </Button>
                         ))}
                       </div>
-                      <Button 
+                      <Button
                         className="w-full"
                         onClick={handleClip}
                         disabled={isResizing}
@@ -545,7 +545,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                 <Separator className="my-6" />
 
                 <div className="space-y-2">
-                  <Button 
+                  <Button
                     className="w-full"
                     onClick={handleSave}
                     disabled={isResizing}
@@ -559,7 +559,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                       </>
                     )}
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     className="w-full"
                     onClick={handleSaveNew}
