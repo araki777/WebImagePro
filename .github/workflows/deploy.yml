@@ -7,10 +7,11 @@ on:
     branches: [master]
 
 jobs:
-  build-wasm:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -24,22 +25,25 @@ jobs:
         run: |
           cd wasm
           wasm-pack build --target web --out-dir pkg
+          mkdir -p ../public
           cp pkg/*.wasm ../public/
           cp pkg/*.js ../public/
-
-  deploy:
-    needs: build-wasm
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          NEXT_PUBLIC_WASM_URL: /wasm.wasm
+          NEXT_PUBLIC_WASM_JS_URL: /wasm.js
+          NEXT_PUBLIC_BASE_PATH: ""
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
@@ -48,4 +52,3 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: "--prod"
-          working-directory: ./
