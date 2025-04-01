@@ -5,13 +5,14 @@ import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Maximize2, X, Plus, Scissors } from "lucide-react";
+import { Save, Maximize2, X, Plus, Scissors, Sliders } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ImageResizer } from '@/components/ImageResizer';
 import { RATIOS } from '@/lib/constants';
 import { ImageCliper } from '@/components/ImageCliper';
 import { IImageEditorProps, IClipRegion, IPosition } from '@/types/types';
 import { ImageCliperControls } from '@/components/ImageCliperControls';
+import { ImageColorAjustment } from '@/components/ImageColorAjustment';
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("resize");
@@ -340,8 +341,8 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
-      <div className="container flex h-full items-center justify-center p-4">
-        <Card className="w-full max-w-[1400px] shadow-lg relative">
+      <div className="flex w-full h-full items-center justify-center p-10">
+        <Card className="w-full shadow-lg relative">
           <Button
             variant="outline"
             size="icon"
@@ -354,7 +355,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
             <div className="flex gap-6">
               <div
                 ref={imageContainerRef}
-                className="flex-1 rounded-lg border bg-card h-[600px] relative overflow-hidden"
+                className="flex-1 rounded-lg border bg-card h-[500px] relative overflow-hidden"
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
@@ -388,7 +389,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
               <div className="w-96 flex flex-col">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                  <TabsList className="w-full grid grid-cols-2">
+                  <TabsList className="w-full grid grid-cols-3">
                     <TabsTrigger value="resize" className="flex-1">
                       <Maximize2 className="w-4 h-4 mr-2" />
                       リサイズ
@@ -396,6 +397,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                     <TabsTrigger value="clip" className="flex-1">
                       <Scissors className="w-4 h-4 mr-2" />
                       切り抜き
+                    </TabsTrigger>
+                    <TabsTrigger value="color_adjustment" className="flex-1">
+                      <Sliders className="w-4 h-4 mr-2" />
+                      色調整
                     </TabsTrigger>
                   </TabsList>
 
@@ -418,6 +423,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                       onClip={handleClip}
                       isResizing={isResizing}
                     />
+                  </TabsContent>
+
+                  <TabsContent value="color_adjustment" className="mt-6 space-y-6">
+                    <ImageColorAjustment />
                   </TabsContent>
                 </Tabs>
 
