@@ -63,7 +63,7 @@ export function ImageUpload() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
-      
+
       if (newFiles.length !== e.target.files.length) {
         toast.error('画像ファイルのみアップロード可能です');
       }
@@ -95,7 +95,7 @@ export function ImageUpload() {
 
   const handleUpload = async () => {
     if (images.length === 0) return;
-    
+
     const uploadPromises = images.map(async (image) => {
       const formData = new FormData();
       formData.append('file', image.file);
@@ -133,9 +133,9 @@ export function ImageUpload() {
 
   const handleSaveEdit = (editedImageUrl: string) => {
     if (editingImageIndex === null) return;
-    
-    setImages(prev => prev.map((img, i) => 
-      i === editingImageIndex 
+
+    setImages(prev => prev.map((img, i) =>
+      i === editingImageIndex
         ? { ...img, preview: editedImageUrl }
         : img
     ));
@@ -186,7 +186,7 @@ export function ImageUpload() {
                   <Switch
                     id="compression-toggle"
                     checked={compressionSettings.enabled}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setCompressionSettings(prev => ({ ...prev, enabled: checked }))
                     }
                   />
@@ -199,7 +199,7 @@ export function ImageUpload() {
                     <Slider
                       disabled={!compressionSettings.enabled}
                       value={[compressionSettings.quality]}
-                      onValueChange={([value]) => 
+                      onValueChange={([value]) =>
                         setCompressionSettings(prev => ({ ...prev, quality: value }))
                       }
                       min={1}
@@ -213,7 +213,7 @@ export function ImageUpload() {
                     <Slider
                       disabled={!compressionSettings.enabled}
                       value={[compressionSettings.maxWidth]}
-                      onValueChange={([value]) => 
+                      onValueChange={([value]) =>
                         setCompressionSettings(prev => ({ ...prev, maxWidth: value }))
                       }
                       min={100}
@@ -227,7 +227,7 @@ export function ImageUpload() {
                     <Slider
                       disabled={!compressionSettings.enabled}
                       value={[compressionSettings.maxHeight]}
-                      onValueChange={([value]) => 
+                      onValueChange={([value]) =>
                         setCompressionSettings(prev => ({ ...prev, maxHeight: value }))
                       }
                       min={100}
@@ -246,7 +246,7 @@ export function ImageUpload() {
               </div>
             )}
           </div>
-          
+
           {images.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {images.map((image, index) => (
@@ -295,8 +295,10 @@ export function ImageUpload() {
                     </div>
                   </CardContent>
                   <button
+                    type="button"
                     onClick={() => removeImage(index)}
                     className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="画像を削除"
                   >
                     <X className="h-4 w-4" />
                   </button>
