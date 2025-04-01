@@ -4,40 +4,16 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Maximize2, X, Lock, Unlock, Plus, Scissors } from "lucide-react";
-import { Label } from "@/components/ui/label";
+import { Save, Maximize2, X, Plus, Scissors } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { ImageResizer } from '@/components/ImageResizer';
+import { RATIOS } from '@/lib/constants';
+import { ImageCliper } from '@/components/ImageCliper';
+import { IImageEditorProps, IClipRegion, IPosition } from '@/types/types';
+import { ImageCliperControls } from '@/components/ImageCliperControls';
 
-interface ImageEditorProps {
-  imageUrl: string;
-  onSave: (editedImage: string, isNewImage: boolean) => void;
-  onClose: () => void;
-}
-
-interface Position {
-  x: number;
-  y: number;
-}
-
-interface ClipRegion {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-const RATIOS = [
-  { name: "フリー", value: null },
-  { name: "1:1", value: 1 },
-  { name: "4:3", value: 4/3 },
-  { name: "3:2", value: 3/2 },
-  { name: "16:9", value: 16/9 },
-  { name: "9:16", value: 9/16 },
-];
-
-export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
+export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("resize");
   const [resizeWidth, setResizeWidth] = useState(0);
   const [resizeHeight, setResizeHeight] = useState(0);
@@ -45,10 +21,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [originalDimensions, setOriginalDimensions] = useState({ width: 0, height: 0 });
 
-  const [clipRegion, setClipRegion] = useState<ClipRegion>({ x: 0, y: 0, width: 0, height: 0 });
+  const [clipRegion, setClipRegion] = useState<IClipRegion>({ x: 0, y: 0, width: 0, height: 0 });
   const [clipImage, setClipImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState<Position>({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState<IPosition>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [selectedRatio, setSelectedRatio] = useState(RATIOS[0]);
   const imageRef = useRef<HTMLDivElement>(null);
@@ -90,6 +66,15 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
       setResizeWidth(Math.round(value * aspectRatio));
     }
   };
+
+  const handleSizeReset = () => {
+    setResizeWidth(originalDimensions.width);
+    setResizeHeight(originalDimensions.height);
+  }
+
+  const handleAspectRatioChange = () => {
+    setMaintainAspectRatio(!maintainAspectRatio)
+  }
 
   useEffect(() => {
     // リサイズ時に切り抜き領域が画像からはみ出ないように調整
@@ -391,36 +376,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                         unoptimized
                       />
                       {activeTab === 'clip' && (
-                        <>
-                          <div className="absolute inset-0 bg-black/50" />
-                          <div
-                            className="absolute border-2 border-white cursor-move"
-                            style={{
-                              left: `${clipRegion.x}px`,
-                              top: `${clipRegion.y}px`,
-                              width: `${clipRegion.width}px`,
-                              height: `${clipRegion.height}px`
-                            }}
-                            onMouseDown={handleMouseDown}
-                          >
-                            <div className="absolute inset-0 bg-transparent" />
-                            {/* 右下のリサイズハンドル */}
-                            <div
-                              className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-se-resize"
-                              onMouseDown={(e) => handleMouseDown(e, 'se')}
-                            />
-                            {/* 右端のリサイズハンドル */}
-                            <div
-                              className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-e-resize"
-                              onMouseDown={(e) => handleMouseDown(e, 'e')}
-                            />
-                            {/* 下端のリサイズハンドル */}
-                            <div
-                              className="absolute bottom-[-1.5px] left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-2 border-gray-800 rounded-full cursor-s-resize"
-                              onMouseDown={(e) => handleMouseDown(e, 's')}
-                            />
-                          </div>
-                        </>
+                        <ImageCliperControls clipRegion={clipRegion} onMouseDown={handleMouseDown} />
                       )}
                     </div>
                   </div>
@@ -444,103 +400,24 @@ export function ImageEditor({ imageUrl, onSave, onClose }: ImageEditorProps) {
                   </TabsList>
 
                   <TabsContent value="resize" className="mt-6 space-y-6">
-                    <div className="space-y-4">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => setMaintainAspectRatio(!maintainAspectRatio)}
-                      >
-                        {maintainAspectRatio ? (
-                          <Lock className="w-4 h-4 mr-2" />
-                        ) : (
-                          <Unlock className="w-4 h-4 mr-2" />
-                        )}
-                        アスペクト比を{maintainAspectRatio ? 'ロック' : 'アンロック'}
-                      </Button>
-
-                      <Separator />
-
-                      <div className="space-y-4">
-                        <div>
-                          <Label className="text-sm text-muted-foreground">幅</Label>
-                          <div className="flex items-center gap-4">
-                            <Slider
-                              value={[resizeWidth]}
-                              onValueChange={([value]) => handleWidthChange(value)}
-                              min={10}
-                              max={1000}
-                              step={1}
-                              className="flex-1"
-                            />
-                            <span className="text-sm tabular-nums">
-                              {resizeWidth}px
-                            </span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <Label className="text-sm text-muted-foreground">高さ</Label>
-                          <div className="flex items-center gap-4">
-                            <Slider
-                              value={[resizeHeight]}
-                              onValueChange={([value]) => handleHeightChange(value)}
-                              min={10}
-                              max={1000}
-                              step={1}
-                              className="flex-1"
-                              disabled={maintainAspectRatio}
-                            />
-                            <span className="text-sm tabular-nums">
-                              {resizeHeight}px
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-2">
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => {
-                            setResizeWidth(originalDimensions.width);
-                            setResizeHeight(originalDimensions.height);
-                          }}
-                        >
-                          元のサイズにリセット
-                        </Button>
-                      </div>
-                    </div>
+                    <ImageResizer
+                      resizeWidth={resizeWidth}
+                      resizeHeight={resizeHeight}
+                      onWidthChange={handleWidthChange}
+                      onHeightChange={handleHeightChange}
+                      onSizeReset={handleSizeReset}
+                      onAspectRatioChange={handleAspectRatioChange}
+                      maintainAspectRatio={maintainAspectRatio}
+                    />
                   </TabsContent>
 
                   <TabsContent value="clip" className="mt-6 space-y-6">
-                    <div className="space-y-4">
-                      <div className="text-sm text-muted-foreground mb-4">
-                        切り抜き領域をドラッグして移動、またはハンドルをドラッグしてサイズを変更できます
-                      </div>
-
-                      <Label className="text-sm text-muted-foreground">比率</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {RATIOS.map((ratio) => (
-                          <Button
-                            key={ratio.name}
-                            variant={selectedRatio.name === ratio.name ? "default" : "outline"}
-                            className="w-full"
-                            onClick={() => handleRatioChange(ratio)}
-                          >
-                            {ratio.name}
-                          </Button>
-                        ))}
-                      </div>
-                      <Button
-                        className="w-full"
-                        onClick={handleClip}
-                        disabled={isResizing}
-                      >
-                        切り取りを実行
-                      </Button>
-                    </div>
+                    <ImageCliper
+                      selectedRatio={selectedRatio}
+                      onRatioChange={handleRatioChange}
+                      onClip={handleClip}
+                      isResizing={isResizing}
+                    />
                   </TabsContent>
                 </Tabs>
 
