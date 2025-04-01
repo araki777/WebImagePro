@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ImageEditor } from "@/components/image-editor";
+import { ImageEditor } from "@/components/ImageEditor";
 import { Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from 'sonner';
 import { IApiImage } from '@/types/types';

@@ -72,3 +72,49 @@ export interface IImageUploadActionsProps {
   images: IImagePreview[];
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
 }
+
+// 画像リサイズの props 型定義
+export interface IImageResizerProps {
+  resizeWidth: number;
+  resizeHeight: number;
+  onWidthChange: (value: number) => void;
+  onHeightChange: (value: number) => void;
+  onSizeReset: () => void;
+  onAspectRatioChange: () => void;
+  maintainAspectRatio: boolean;
+}
+
+export interface IImageCliperProps {
+  selectedRatio: { name: string; value: number | null };
+  onRatioChange: (ratio: { name: string; value: number | null }) => void;
+  onClip: () => void;
+  isResizing: boolean;
+}
+
+// 画像エディターの props 型定義
+export interface IImageEditorProps {
+  imageUrl: string;
+  onSave: (editedImage: string, isNewImage: boolean) => void;
+  onClose: () => void;
+}
+
+// 画像エディターの座標の型定義
+export interface IPosition {
+  x: number;
+  y: number;
+}
+
+// 画像エディターの切り抜き領域の型定義
+export interface IClipRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+// 画像エディターのリサイズハンドルの型定義
+export type ResizeHandle = "se" | "e" | "s";
+export interface IImageCliperContolesProps {
+  clipRegion: { x: number; y: number; width: number; height: number };
+  onMouseDown: (event: React.MouseEvent<HTMLDivElement>, handle?: ResizeHandle) => void;
+}

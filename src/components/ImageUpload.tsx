@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Image as ImageIcon, Settings2 } from "lucide-react";
-import { ImageEditor } from "@/components/image-editor";
+import { ImageEditor } from "@/components/ImageEditor";
 import { DEFAULT_COMPRESSION_SETTINGS } from '@/lib/constants';
 import { ICompressionSettings, IImagePreview } from '@/types/types';
 import { ImagePreviewList } from '@/components/ImagePreviewList';

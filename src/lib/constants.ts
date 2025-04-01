@@ -8,3 +8,13 @@ export const DEFAULT_COMPRESSION_SETTINGS = {
   maxWidth: 1024,
   maxHeight: 1024,
 };
+
+// 切り抜き領域の比率
+export const RATIOS = [
+  { name: "フリー", value: null },
+  { name: "1:1", value: 1 },
+  { name: "4:3", value: 4/3 },
+  { name: "3:2", value: 3/2 },
+  { name: "16:9", value: 16/9 },
+  { name: "9:16", value: 9/16 },
+];
