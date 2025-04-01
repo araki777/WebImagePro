@@ -2,7 +2,7 @@
 
 import { Header } from "@/components/ui/header";
 import { ImageUpload } from "@/components/image-upload";
-import { ImageGallery } from "@/components/image-gallery";
+import { ImageGallery } from "@/components/ImageGallery";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import { supabase } from '@/lib/supabase';
