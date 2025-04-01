@@ -5,15 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ImageEditor } from "@/components/image-editor";
 import { Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from 'sonner';
-import { ApiImage } from '@/types/types';
-import { ImageList } from './ImageList';
-import { SearchBar } from './ui/searchBar';
+import { IApiImage } from '@/types/types';
+import { ImageList } from '@/components/ImageList';
+import { SearchBar } from '@/components/ui/searchBar';
 
 export function ImageGallery() {
-  const [images, setImages] = useState<ApiImage[]>([]); // 画像データの状態
+  const [images, setImages] = useState<IApiImage[]>([]); // 画像データの状態
   const [loading, setLoading] = useState(true); // ローディング状態
   const [searchQuery, setSearchQuery] = useState(''); // 検索クエリ
-  const [editingImage, setEditingImage] = useState<ApiImage | null>(null); // 編集中の画像
+  const [editingImage, setEditingImage] = useState<IApiImage | null>(null); // 編集中の画像
 
   // コンポーネントがマウントされた時に画像データを取得
   useEffect(() => {
@@ -27,7 +27,7 @@ export function ImageGallery() {
       if (!response.ok) throw new Error('画像の取得に失敗しました');
 
       const data = await response.json(); // レスポンスをJSON形式に変換
-      setImages(data.map((img: ApiImage) => ({
+      setImages(data.map((img: IApiImage) => ({
         ...img,
         uploadedAt: new Date(img.uploadedAt) // 日付をDateオブジェクトに変換
       })));
@@ -46,7 +46,7 @@ export function ImageGallery() {
   );
 
   // 編集中の画像を設定する関数
-  const handleEditImage = (image: ApiImage) => {
+  const handleEditImage = (image: IApiImage) => {
     setEditingImage(image); // 編集中の画像を設定
   };
 
@@ -97,7 +97,7 @@ export function ImageGallery() {
   };
 
   // 画像をダウンロードする関数
-  const handleDownload = async (image: ApiImage) => {
+  const handleDownload = async (image: IApiImage) => {
     try {
       const response = await fetch(image.url); // 画像のURLを取得
       const blob = await response.blob(); // レスポンスをBlobオブジェクトに変換
@@ -116,7 +116,7 @@ export function ImageGallery() {
   };
 
   // 画像を削除する関数
-  const handleDelete = async (image: ApiImage) => {
+  const handleDelete = async (image: IApiImage) => {
     try {
       const encodedUrl = encodeURIComponent(Buffer.from(image.url).toString("base64"));
 
@@ -155,7 +155,7 @@ export function ImageGallery() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* 検索フォーム */}
-          <SearchBar query={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <SearchBar query={searchQuery} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} />
           <ImageList
             images={filteredImages}
             onEditImage={handleEditImage}

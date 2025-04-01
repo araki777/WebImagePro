@@ -1,18 +1,18 @@
 'use client';
 
 import { Header } from "@/components/ui/header";
-import { ImageUpload } from "@/components/image-upload";
+import { ImageUpload } from "@/components/ImageUpload";
 import { ImageGallery } from "@/components/ImageGallery";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Image as ImageIcon } from "lucide-react";
 import { supabase } from '@/lib/supabase';
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
-import { UserData } from "@/types/types";
+import { IUserData } from "@/types/types";
 
 export default function Home() {
   // ユーザー情報の状態管理
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<IUserData | null>(null);
 
   // コンポーネントがマウントされたときにユーザー情報を取得
   useEffect(() => {

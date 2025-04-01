@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Pencil, Download, Trash2 } from "lucide-react";
 import { formatFileSize } from "@/lib/utils";
 import Image from "next/image";
-import { ImageListProps } from "@/types/types";
+import { IImageListProps } from "@/types/types";
 
-export function ImageList({ images, onEditImage, onDownload, onDelete }: ImageListProps) {
+export function ImageList({ images, onEditImage, onDownload, onDelete }: IImageListProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {images.map((image) => (
