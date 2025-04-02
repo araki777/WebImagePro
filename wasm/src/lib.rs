@@ -37,6 +37,5 @@ pub use filter_effects::{
     apply_vignette,
     apply_hdr,
     apply_mosaic,
-    apply_oil_painting,
-    apply_glitch,
+    apply_oil_painting
 };
