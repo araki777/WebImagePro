@@ -11,6 +11,11 @@ export const useAuth = (requireAuth: boolean = true) => {
   }, [checkUser]);
 
   useEffect(() => {
+    // ログアウト時は認証チェックをスキップ
+    if (window.location.pathname === '/login') {
+      return;
+    }
+
     if (!isLoading && requireAuth && !user) {
       router.push('/login?error=ユーザー情報が取得できませんでした');
     }
