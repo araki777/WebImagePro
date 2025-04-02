@@ -300,7 +300,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     }
   };
 
-  const handleBrightness = async (brightness: number) => {
+  // 共通の画像処理関数
+  const processImage = async (
+    processFunctionName: string,
+    ...args: number[]
+  ) => {
     if (!originalImageBlob) return;
 
     const arrayBuffer = await originalImageBlob.arrayBuffer();
@@ -308,84 +312,34 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
     const wasm = await getWasmModule();
 
-    if (typeof wasm.adjust_brightness !== 'function') {
-      throw new Error('Adjust brightness function not found');
+    if (typeof wasm[processFunctionName] !== 'function') {
+      throw new Error(`${processFunctionName} function not found`);
     }
 
-    const adjustedImage = wasm.adjust_brightness(imageData, brightness);
+    const adjustedImage = wasm[processFunctionName](imageData, ...args);
 
     if (!(adjustedImage instanceof Uint8Array)) {
-      throw new Error('Invalid adjust brightness result format');
+      throw new Error(`Invalid ${processFunctionName} result format`);
     }
 
     const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
     updateProcessedImage(adjustedBlob);
+  };
+
+  const handleBrightness = async (brightness: number) => {
+    await processImage('adjust_brightness', brightness);
   }
 
   const handleSaturation = async (saturation: number) => {
-    if (!originalImageBlob) return;
-
-    const arrayBuffer = await originalImageBlob.arrayBuffer();
-    const imageData = new Uint8Array(arrayBuffer);
-
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.adjust_saturation !== 'function') {
-      throw new Error('Adjust saturation function not found');
-    }
-
-    const adjustedImage = wasm.adjust_saturation(imageData, saturation);
-
-    if (!(adjustedImage instanceof Uint8Array)) {
-      throw new Error('Invalid adjust saturation result format');
-    }
-
-    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
-    updateProcessedImage(adjustedBlob);
+    await processImage('adjust_saturation', saturation);
   }
 
   const handleContrast = async (contrast: number) => {
-    if (!originalImageBlob) return;
-
-    const arrayBuffer = await originalImageBlob.arrayBuffer();
-    const imageData = new Uint8Array(arrayBuffer);
-
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.adjust_contrast !== 'function') {
-      throw new Error('Adjust contrast function not found');
-    }
-
-    const adjustedImage = wasm.adjust_contrast(imageData, contrast);
-
-    if (!(adjustedImage instanceof Uint8Array)) {
-      throw new Error('Invalid adjust contrast result format');
-    }
-
-    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
-    updateProcessedImage(adjustedBlob);
+    await processImage('adjust_contrast', contrast);
   }
 
   const handleGamma = async (gamma: number) => {
-    if (!originalImageBlob) return;
-
-    const arrayBuffer = await originalImageBlob.arrayBuffer();
-    const imageData = new Uint8Array(arrayBuffer);
-
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.adjust_gamma !== 'function') {
-      throw new Error('Adjust gamma function not found');
-    }
-
-    const adjustedImage = wasm.adjust_gamma(imageData, gamma);
-
-    if (!(adjustedImage instanceof Uint8Array)) {
-      throw new Error('Invalid adjust gamma result format');
-    }
-
-    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
-    updateProcessedImage(adjustedBlob);
+    await processImage('adjust_gamma', gamma);
   }
 
   const handleGrayscale = async (isGrayScale: boolean) => {
@@ -401,7 +355,6 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     }
 
     const adjustedImage = isGrayScale ? wasm.adjust_grayscale(imageData) : imageData;
-
     const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
     updateProcessedImage(adjustedBlob);
   }
@@ -419,7 +372,6 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     }
 
     const adjustedImage = isSepia ? wasm.adjust_sepia(imageData) : imageData;
-
     const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
     updateProcessedImage(adjustedBlob);
   }
@@ -437,45 +389,16 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     }
 
     const adjustedImage = isInvert ? wasm.adjust_invert(imageData) : imageData;
-
     const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
     updateProcessedImage(adjustedBlob);
   }
 
   const handleThreshold = async (threshold: number) => {
-    if (!originalImageBlob) return;
-
-    const arrayBuffer = await originalImageBlob.arrayBuffer();
-    const imageData = new Uint8Array(arrayBuffer);
-
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.adjust_threshold !== 'function') {
-      throw new Error('Adjust threshold function not found');
-    }
-
-    const adjustedImage = wasm.adjust_threshold(imageData, threshold);
-
-    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
-    updateProcessedImage(adjustedBlob);
+    await processImage('adjust_threshold', threshold);
   }
 
   const handleColorBalance = async (redFactor: number, greenFactor: number, blueFactor: number) => {
-    if (!originalImageBlob) return;
-
-    const arrayBuffer = await originalImageBlob.arrayBuffer();
-    const imageData = new Uint8Array(arrayBuffer);
-
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.adjust_color_balance !== 'function') {
-      throw new Error('Adjust color balance function not found');
-    }
-
-    const adjustedImage = wasm.adjust_color_balance(imageData, redFactor, greenFactor, blueFactor);
-
-    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
-    updateProcessedImage(adjustedBlob);
+    await processImage('adjust_color_balance', redFactor, greenFactor, blueFactor);
   }
 
   const handleClip = async () => {
