@@ -6,73 +6,61 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { IImageResizerProps } from '@/types/types';
 
-export const ImageResizer = ({ resizeWidth, resizeHeight, onWidthChange, onHeightChange, onSizeReset, onAspectRatioChange, maintainAspectRatio }: IImageResizerProps) => {
+export const ImageResizer = ({ resizeWidth, resizeHeight, onWidthChange, onHeightChange, onAspectRatioChange, maintainAspectRatio }: IImageResizerProps) => {
 
   return (
     <div className="space-y-4">
-        <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => onAspectRatioChange()}
-        >
-        {maintainAspectRatio ? (
-            <Lock className="w-4 h-4 mr-2" />
-        ) : (
-            <Unlock className="w-4 h-4 mr-2" />
-        )}
-        アスペクト比を{maintainAspectRatio ? 'ロック' : 'アンロック'}
-        </Button>
+			<Button
+				variant="outline"
+				className="w-full"
+				onClick={() => onAspectRatioChange()}
+			>
+			{maintainAspectRatio ? (
+					<Lock className="w-4 h-4 mr-2" />
+			) : (
+					<Unlock className="w-4 h-4 mr-2" />
+			)}
+			アスペクト比を{maintainAspectRatio ? 'ロック' : 'アンロック'}
+			</Button>
 
-        <Separator />
+			<Separator />
 
-        <div className="space-y-4">
-        <div>
-            <Label className="text-sm text-muted-foreground">幅</Label>
-            <div className="flex items-center gap-4">
-            <Slider
-                value={[resizeWidth]}
-                onValueChange={([value]) => onWidthChange(value)}
-                min={10}
-                max={1000}
-                step={1}
-                className="flex-1"
-            />
-            <span className="text-sm tabular-nums">
-                {resizeWidth}px
-            </span>
-            </div>
-        </div>
+			<div className="space-y-4">
+				<div>
+					<Label className="text-sm text-muted-foreground">幅</Label>
+					<div className="flex items-center gap-4">
+						<Slider
+								value={[resizeWidth]}
+								onValueChange={([value]) => onWidthChange(value)}
+								min={10}
+								max={1000}
+								step={1}
+								className="flex-1"
+						/>
+						<span className="text-sm tabular-nums">
+								{resizeWidth}px
+						</span>
+					</div>
+				</div>
 
-        <div>
-            <Label className="text-sm text-muted-foreground">高さ</Label>
-            <div className="flex items-center gap-4">
-            <Slider
-                value={[resizeHeight]}
-                onValueChange={([value]) => onHeightChange(value)}
-                min={10}
-                max={1000}
-                step={1}
-                className="flex-1"
-                disabled={maintainAspectRatio}
-            />
-            <span className="text-sm tabular-nums">
-                {resizeHeight}px
-            </span>
-            </div>
-        </div>
-        </div>
-
-        <Separator />
-
-        <div className="space-y-2">
-        <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => onSizeReset()}
-        >
-            元のサイズにリセット
-        </Button>
-        </div>
-    </div>
+				<div>
+					<Label className="text-sm text-muted-foreground">高さ</Label>
+					<div className="flex items-center gap-4">
+						<Slider
+								value={[resizeHeight]}
+								onValueChange={([value]) => onHeightChange(value)}
+								min={10}
+								max={1000}
+								step={1}
+								className="flex-1"
+								disabled={maintainAspectRatio}
+						/>
+						<span className="text-sm tabular-nums">
+								{resizeHeight}px
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
   )
 }
