@@ -4,8 +4,7 @@ tasks:
   build:wasm:
     desc: "Rust AssemblyをビルドしてNext.jsに展開"
     cmds:
-      - mkdir -p public/wasm
-      - cd wasm && wasm-pack build --target web --out-dir ../public/wasm
+      - cd wasm && wasm-pack build --target web
     sources:
       - wasm/src/**
     generates:

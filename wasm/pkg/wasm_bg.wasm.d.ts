@@ -1,0 +1,27 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const adjust_saturation: (a: number, b: number, c: number) => [number, number];
+export const adjust_sepia: (a: number, b: number) => [number, number];
+export const adjust_color_balance: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+export const adjust_brightness: (a: number, b: number, c: number) => [number, number];
+export const adjust_contrast: (a: number, b: number, c: number) => [number, number];
+export const adjust_gamma: (a: number, b: number, c: number) => [number, number];
+export const adjust_grayscale: (a: number, b: number) => [number, number];
+export const adjust_invert: (a: number, b: number) => [number, number];
+export const adjust_threshold: (a: number, b: number, c: number) => [number, number];
+export const resize_image: (a: number, b: number, c: number, d: number) => [number, number];
+export const clip_image: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
+export const apply_gaussian_blur: (a: number, b: number, c: number) => [number, number];
+export const apply_motion_blur: (a: number, b: number, c: number, d: number) => [number, number];
+export const apply_sharpen: (a: number, b: number, c: number, d: number) => [number, number];
+export const apply_edge_detection: (a: number, b: number, c: number) => [number, number];
+export const apply_noise_reduction: (a: number, b: number, c: number) => [number, number];
+export const apply_vignette: (a: number, b: number, c: number) => [number, number];
+export const apply_hdr: (a: number, b: number, c: number) => [number, number];
+export const apply_mosaic: (a: number, b: number, c: number) => [number, number];
+export const apply_oil_painting: (a: number, b: number, c: number, d: number) => [number, number];
+export const __wbindgen_export_0: WebAssembly.Table;
+export const __wbindgen_malloc: (a: number, b: number) => number;
+export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __wbindgen_start: () => void;
