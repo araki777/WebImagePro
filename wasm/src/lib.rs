@@ -296,9 +296,9 @@ pub fn adjust_color_balance(input: &[u8], red_factor: f32, green_factor: f32, bl
 
     // カラーバランス調整
     for pixel in img_rgb.pixels_mut() {
-        let r = (pixel.0[0] as f32 + red_factor).clamp(0.0, 255.0) as u8;
-        let g = (pixel.0[1] as f32 + green_factor).clamp(0.0, 255.0) as u8;
-        let b = (pixel.0[2] as f32 + blue_factor).clamp(0.0, 255.0) as u8;
+        let r = (pixel.0[0] as f32 * red_factor).clamp(0.0, 255.0) as u8;
+        let g = (pixel.0[1] as f32 * green_factor).clamp(0.0, 255.0) as u8;
+        let b = (pixel.0[2] as f32 * blue_factor).clamp(0.0, 255.0) as u8;
 
         *pixel = Rgb([r, g, b]);
     }

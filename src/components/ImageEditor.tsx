@@ -33,6 +33,14 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [brightness, setBrightness] = useState(0);
 	const [saturation, setSaturation] = useState(1);
 	const [contrast, setContrast] = useState(0);
+  const [gamma, setGamma] = useState(1);
+  const [threshold, setThreshold] = useState(128);
+  const [redFactor, setRedFactor] = useState(1);
+  const [greenFactor, setGreenFactor] = useState(1);
+  const [blueFactor, setBlueFactor] = useState(1);
+  const [isGrayScale, setIsGrayScale] = useState(false);
+  const [isSepia, setIsSepia] = useState(false);
+  const [isInvert, setIsInvert] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -105,6 +113,14 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       setBrightness(0);
       setSaturation(1);
       setContrast(0);
+      setGamma(1);
+      setThreshold(128);
+      setRedFactor(1);
+      setGreenFactor(1);
+      setBlueFactor(1);
+      setIsGrayScale(false);
+      setIsSepia(false);
+      setIsInvert(false);
       // 元の画像を設定
       setProcessedImageUrl(URL.createObjectURL(originalImageBlob));
     }
@@ -350,6 +366,118 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     updateProcessedImage(adjustedBlob);
   }
 
+  const handleGamma = async (gamma: number) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.adjust_gamma !== 'function') {
+      throw new Error('Adjust gamma function not found');
+    }
+
+    const adjustedImage = wasm.adjust_gamma(imageData, gamma);
+
+    if (!(adjustedImage instanceof Uint8Array)) {
+      throw new Error('Invalid adjust gamma result format');
+    }
+
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
+
+  const handleGrayscale = async (isGrayScale: boolean) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.adjust_grayscale !== 'function') {
+      throw new Error('Adjust grayscale function not found');
+    }
+
+    const adjustedImage = isGrayScale ? wasm.adjust_grayscale(imageData) : imageData;
+
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
+
+  const handleSepia = async (isSepia: boolean) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.adjust_sepia !== 'function') {
+      throw new Error('Adjust sepia function not found');
+    }
+
+    const adjustedImage = isSepia ? wasm.adjust_sepia(imageData) : imageData;
+
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
+
+  const handleInvert = async (isInvert: boolean) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.adjust_invert !== 'function') {
+      throw new Error('Adjust invert function not found');
+    }
+
+    const adjustedImage = isInvert ? wasm.adjust_invert(imageData) : imageData;
+
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
+
+  const handleThreshold = async (threshold: number) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.adjust_threshold !== 'function') {
+      throw new Error('Adjust threshold function not found');
+    }
+
+    const adjustedImage = wasm.adjust_threshold(imageData, threshold);
+
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
+
+  const handleColorBalance = async (redFactor: number, greenFactor: number, blueFactor: number) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.adjust_color_balance !== 'function') {
+      throw new Error('Adjust color balance function not found');
+    }
+
+    const adjustedImage = wasm.adjust_color_balance(imageData, redFactor, greenFactor, blueFactor);
+
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
+
   const handleClip = async () => {
     if (!originalImageBlob) return;
 
@@ -541,12 +669,34 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                       brightness={brightness}
                       saturation={saturation}
                       contrast={contrast}
+                      gamma={gamma}
+                      threshold={threshold}
+                      redFactor={redFactor}
+                      greenFactor={greenFactor}
+                      blueFactor={blueFactor}
+                      isGrayScale={isGrayScale}
+                      isSepia={isSepia}
+                      isInvert={isInvert}
                       setBrightness={setBrightness}
                       setSaturation={setSaturation}
                       setContrast={setContrast}
+                      setGamma={setGamma}
+                      setRedFactor={setRedFactor}
+                      setGreenFactor={setGreenFactor}
+                      setBlueFactor={setBlueFactor}
+                      setThreshold={setThreshold}
+                      setIsGrayScale={setIsGrayScale}
+                      setIsSepia={setIsSepia}
+                      setIsInvert={setIsInvert}
                       onBrightnessChange={handleBrightness}
                       onSaturationChange={handleSaturation}
                       onContrastChange={handleContrast}
+                      onGammaChange={handleGamma}
+                      onThresholdChange={handleThreshold}
+                      onColorBalanceChange={handleColorBalance}
+                      onGrayscaleChange={handleGrayscale}
+                      onSepiaChange={handleSepia}
+                      onInvertChange={handleInvert}
                       isSave={isSave}
                     />
                   </TabsContent>
