@@ -155,3 +155,33 @@ export interface IImageColorAjustmentProps {
   onInvertChange: (isInvert: boolean) => void;
   isSave: boolean;
 }
+
+export interface IImageFilterProps {
+  gaussianBlur: number;
+  motionBlur: { angle: number; distance: number };
+  sharpen: { sigma: number; threshold: number };
+  edgeDetection: number;
+  noiseReduction: number;
+  vignette: number;
+  hdr: number;
+  mosaic: number;
+  oilPainting: { radius: number; intensity: number };
+  setGaussianBlur: (value: number) => void;
+  setMotionBlur: (value: { angle: number; distance: number }) => void;
+  setSharpen: (value: { sigma: number; threshold: number }) => void;
+  setEdgeDetection: (value: number) => void;
+  setNoiseReduction: (value: number) => void;
+  setVignette: (value: number) => void;
+  setHdr: (value: number) => void;
+  setMosaic: (value: number) => void;
+  setOilPainting: (value: { radius: number; intensity: number }) => void;
+  onGaussianBlurChange: (value: number) => void;
+  onMotionBlurChange: (angle: number, distance: number) => void;
+  onSharpenChange: (sigma: number, threshold: number) => void;
+  onEdgeDetectionChange: (value: number) => void;
+  onNoiseReductionChange: (value: number) => void;
+  onVignetteChange: (value: number) => void;
+  onHdrChange: (value: number) => void;
+  onMosaicChange: (value: number) => void;
+  onOilPaintingChange: (radius: number, intensity: number) => void;
+}
