@@ -13,44 +13,69 @@ import { ImageCliper } from '@/components/ImageCliper';
 import { IImageEditorProps, IClipRegion, IPosition } from '@/types/types';
 import { ImageCliperControls } from '@/components/ImageCliperControls';
 import { ImageColorAjustment } from '@/components/ImageColorAjustment';
+import { getWasmModule } from '@/lib/wasm-loader';
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("resize");
   const [resizeWidth, setResizeWidth] = useState(0);
   const [resizeHeight, setResizeHeight] = useState(0);
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
-  const [isResizing, setIsResizing] = useState(false);
   const [originalDimensions, setOriginalDimensions] = useState({ width: 0, height: 0 });
-
+  const [originalImageBlob, setOriginalImageBlob] = useState<Blob | null>(null);
+  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
+  const [processedImageBlob, setProcessedImageBlob] = useState<Blob | null>(null);
   const [clipRegion, setClipRegion] = useState<IClipRegion>({ x: 0, y: 0, width: 0, height: 0 });
-  const [clipImage, setClipImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSave, setIsSave] = useState(false);
   const [dragStart, setDragStart] = useState<IPosition>({ x: 0, y: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [selectedRatio, setSelectedRatio] = useState(RATIOS[0]);
+  const [brightness, setBrightness] = useState(0);
+	const [saturation, setSaturation] = useState(1);
+	const [contrast, setContrast] = useState(0);
   const imageRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const img = new window.Image();
-    img.onload = () => {
-      setOriginalDimensions({ width: img.width, height: img.height });
-      setResizeWidth(img.width);
-      setResizeHeight(img.height);
+    const loadImage = async () => {
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      setOriginalImageBlob(blob);
 
-      // 初期の切り抜き領域を設定
-      const maxWidth = img.width * 0.8;
-      const maxHeight = img.height * 0.8;
+      const img = new window.Image();
+      img.onload = () => {
+        setOriginalDimensions({ width: img.width, height: img.height });
+        setResizeWidth(img.width);
+        setResizeHeight(img.height);
 
-      setClipRegion({
-        x: (img.width - maxWidth) / 2,
-        y: (img.height - maxHeight) / 2,
-        width: maxWidth,
-        height: maxHeight
-      });
+        // 初期の切り抜き領域を設定
+        const maxWidth = img.width * 0.8;
+        const maxHeight = img.height * 0.8;
+
+        setClipRegion({
+          x: (img.width - maxWidth) / 2,
+          y: (img.height - maxHeight) / 2,
+          width: maxWidth,
+          height: maxHeight
+        });
+      };
+      img.src = URL.createObjectURL(blob);
     };
-    img.src = imageUrl;
+
+    loadImage();
   }, [imageUrl]);
+
+  const updateProcessedImage = (blob: Blob) => {
+    // 既存のURLを解放
+    if (processedImageUrl) {
+      URL.revokeObjectURL(processedImageUrl);
+    }
+    setProcessedImageUrl(URL.createObjectURL(blob));
+    setProcessedImageBlob(blob);
+  };
 
   const handleWidthChange = (value: number) => {
     setResizeWidth(value);
@@ -68,9 +93,21 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     }
   };
 
-  const handleSizeReset = () => {
-    setResizeWidth(originalDimensions.width);
-    setResizeHeight(originalDimensions.height);
+  const handleImageReset = () => {
+    if (originalImageBlob) {
+      // 既存のURLを解放
+      if (processedImageUrl) {
+        URL.revokeObjectURL(processedImageUrl);
+      }
+      setResizeWidth(originalDimensions.width);
+      setResizeHeight(originalDimensions.height);
+      setClipRegion({ x: 0, y: 0, width: originalDimensions.width, height: originalDimensions.height });
+      setBrightness(0);
+      setSaturation(1);
+      setContrast(0);
+      // 元の画像を設定
+      setProcessedImageUrl(URL.createObjectURL(originalImageBlob));
+    }
   }
 
   const handleAspectRatioChange = () => {
@@ -247,53 +284,85 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     }
   };
 
-  const resizeImage = async () => {
-    let response = null;
-    if (clipImage) {
-      response = await fetch(clipImage);
-    } else {
-      response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
-      }
-    }
+  const handleBrightness = async (brightness: number) => {
+    if (!originalImageBlob) return;
 
-    const blob = await response.blob();
-    const arrayBuffer = await blob.arrayBuffer();
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasmPath = process.env.NEXT_PUBLIC_WASM_PATH || "";
-    const wasm = await import(wasmPath);
-    await wasm.default();
+    const wasm = await getWasmModule();
 
-    if (typeof wasm.resize_image !== 'function') {
-      throw new Error('Resize function not found');
+    if (typeof wasm.adjust_brightness !== 'function') {
+      throw new Error('Adjust brightness function not found');
     }
 
-    const resizedImage = wasm.resize_image(imageData, resizeWidth, resizeHeight);
+    const adjustedImage = wasm.adjust_brightness(imageData, brightness);
 
-    if (!(resizedImage instanceof Uint8Array)) {
-      throw new Error('Invalid resize result format');
+    if (!(adjustedImage instanceof Uint8Array)) {
+      throw new Error('Invalid adjust brightness result format');
     }
 
-    return btoa(
-      resizedImage.reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
-  };
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
+
+  const handleSaturation = async (saturation: number) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.adjust_saturation !== 'function') {
+      throw new Error('Adjust saturation function not found');
+    }
+
+    const adjustedImage = wasm.adjust_saturation(imageData, saturation);
+
+    if (!(adjustedImage instanceof Uint8Array)) {
+      throw new Error('Invalid adjust saturation result format');
+    }
+
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
+
+  const handleContrast = async (contrast: number) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.adjust_contrast !== 'function') {
+      throw new Error('Adjust contrast function not found');
+    }
+
+    const adjustedImage = wasm.adjust_contrast(imageData, contrast);
+
+    if (!(adjustedImage instanceof Uint8Array)) {
+      throw new Error('Invalid adjust contrast result format');
+    }
+
+    const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
+    updateProcessedImage(adjustedBlob);
+  }
 
   const handleClip = async () => {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    if (!originalImageBlob) return;
+
+    let imageData: Uint8Array;
+    if (processedImageBlob) {
+      const arrayBuffer = await processedImageBlob.arrayBuffer();
+      imageData = new Uint8Array(arrayBuffer);
+    } else {
+      const arrayBuffer = await originalImageBlob.arrayBuffer();
+      imageData = new Uint8Array(arrayBuffer);
     }
 
-    const blob = await response.blob();
-    const arrayBuffer = await blob.arrayBuffer();
-    const imageData = new Uint8Array(arrayBuffer);
-
-    const wasmPath = process.env.NEXT_PUBLIC_WASM_PATH || "";
-    const wasm = await import(wasmPath);
-    await wasm.default();
+    const wasm = await getWasmModule();
 
     if (typeof wasm.clip_image !== 'function') {
       throw new Error('Clip function not found');
@@ -306,38 +375,81 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     }
 
     const clippedBlob = new Blob([clipedImage], { type: 'image/png' });
-    const clippedUrl = URL.createObjectURL(clippedBlob);
-
-    setClipImage(clippedUrl);
+    updateProcessedImage(clippedBlob);
   }
 
-  const handleSave = async () => {
-    if (isResizing) return;
+  const resizeImage = async () => {
+    if (!originalImageBlob) {
+      throw new Error('No image to resize');
+    }
 
-    setIsResizing(true);
+    if (!processedImageBlob) {
+      return URL.createObjectURL(originalImageBlob);
+    }
+
+    const arrayBuffer = await processedImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.resize_image !== 'function') {
+      throw new Error('Resize function not found');
+    }
+
+    const resizedImage = wasm.resize_image(imageData, resizeWidth, resizeHeight);
+
+    if (!(resizedImage instanceof Uint8Array)) {
+      throw new Error('Invalid resize result format');
+    }
+
+    const resizedBlob = new Blob([resizedImage], { type: 'image/png' });
+    updateProcessedImage(resizedBlob);
+
+    const base64String = btoa(
+      resizedImage.reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+
+    if (!base64String) {
+      throw new Error('Failed to convert image to base64');
+    }
+
+    return base64String;
+  };
+
+  const handleSave = async () => {
+    setIsSave(true);
     try {
       const base64String = await resizeImage();
-      onSave(base64String, false);
+      if (base64String) {
+        onSave(base64String, false);
+      }
     } catch (error) {
       console.error('Error during image resize:', error);
-    } finally {
-      setIsResizing(false);
     }
+    setIsSave(false);
   };
 
   const handleSaveNew = async () => {
-    if (isResizing) return;
-
-    setIsResizing(true);
+    setIsSave(true);
     try {
       const base64String = await resizeImage();
-      onSave(base64String, true);
+      if (base64String) {
+        onSave(base64String, true);
+      }
     } catch (error) {
       console.error('Error during image save:', error);
-    } finally {
-      setIsResizing(false);
     }
+    setIsSave(false);
   };
+
+  useEffect(() => {
+    // コンポーネントのアンマウント時にURLを解放
+    return () => {
+      if (processedImageUrl) {
+        URL.revokeObjectURL(processedImageUrl);
+      }
+    };
+  }, [processedImageUrl]);
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
@@ -364,7 +476,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                   <div className="min-w-fit min-h-full flex items-center justify-center">
                     <div ref={imageRef} className="relative">
                       <Image
-                        src={clipImage ? clipImage : imageUrl}
+                        src={processedImageUrl || imageUrl}
                         alt="Image being edited"
                         width={originalDimensions.width}
                         height={originalDimensions.height}
@@ -410,7 +522,6 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                       resizeHeight={resizeHeight}
                       onWidthChange={handleWidthChange}
                       onHeightChange={handleHeightChange}
-                      onSizeReset={handleSizeReset}
                       onAspectRatioChange={handleAspectRatioChange}
                       maintainAspectRatio={maintainAspectRatio}
                     />
@@ -421,12 +532,23 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                       selectedRatio={selectedRatio}
                       onRatioChange={handleRatioChange}
                       onClip={handleClip}
-                      isResizing={isResizing}
+                      isSave={isSave}
                     />
                   </TabsContent>
 
                   <TabsContent value="color_adjustment" className="mt-6 space-y-6">
-                    <ImageColorAjustment />
+                    <ImageColorAjustment
+                      brightness={brightness}
+                      saturation={saturation}
+                      contrast={contrast}
+                      setBrightness={setBrightness}
+                      setSaturation={setSaturation}
+                      setContrast={setContrast}
+                      onBrightnessChange={handleBrightness}
+                      onSaturationChange={handleSaturation}
+                      onContrastChange={handleContrast}
+                      isSave={isSave}
+                    />
                   </TabsContent>
                 </Tabs>
 
@@ -435,10 +557,16 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                 <div className="space-y-2">
                   <Button
                     className="w-full"
-                    onClick={handleSave}
-                    disabled={isResizing}
+                    onClick={() => handleImageReset()}
                   >
-                    {isResizing ? (
+                    画像をリセット
+                  </Button>
+                  <Button
+                    className="w-full"
+                    onClick={() => handleSave()}
+                    disabled={isSave}
+                  >
+                    {isSave ? (
                       <span>処理中...</span>
                     ) : (
                       <>
@@ -450,10 +578,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={handleSaveNew}
-                    disabled={isResizing}
+                    onClick={() => handleSaveNew()}
+                    disabled={isSave}
                   >
-                    {isResizing ? (
+                    {isSave ? (
                       <span>処理中...</span>
                     ) : (
                       <>

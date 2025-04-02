@@ -4,7 +4,7 @@ import { RATIOS } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { IImageCliperProps } from '@/types/types'
 
-export const ImageCliper = ({ selectedRatio, onRatioChange, onClip, isResizing }: IImageCliperProps) => {
+export const ImageCliper = ({ selectedRatio, onRatioChange, onClip, isSave }: IImageCliperProps) => {
   return (
     <div className="space-y-4">
         <div className="text-sm text-muted-foreground mb-4">
@@ -27,7 +27,7 @@ export const ImageCliper = ({ selectedRatio, onRatioChange, onClip, isResizing }
         <Button
 					className="w-full"
 					onClick={onClip}
-					disabled={isResizing}
+					disabled={isSave}
         >
           切り取りを実行
         </Button>

@@ -79,7 +79,6 @@ export interface IImageResizerProps {
   resizeHeight: number;
   onWidthChange: (value: number) => void;
   onHeightChange: (value: number) => void;
-  onSizeReset: () => void;
   onAspectRatioChange: () => void;
   maintainAspectRatio: boolean;
 }
@@ -88,7 +87,7 @@ export interface IImageCliperProps {
   selectedRatio: { name: string; value: number | null };
   onRatioChange: (ratio: { name: string; value: number | null }) => void;
   onClip: () => void;
-  isResizing: boolean;
+  isSave: boolean;
 }
 
 // 画像エディターの props 型定義
@@ -117,4 +116,17 @@ export type ResizeHandle = "se" | "e" | "s";
 export interface IImageCliperContolesProps {
   clipRegion: { x: number; y: number; width: number; height: number };
   onMouseDown: (event: React.MouseEvent<HTMLDivElement>, handle?: ResizeHandle) => void;
+}
+
+export interface IImageColorAjustmentProps {
+  brightness: number;
+  saturation: number;
+  contrast: number;
+  setBrightness: (brightness: number) => void;
+  setSaturation: (saturation: number) => void;
+  setContrast: (contrast: number) => void;
+  onBrightnessChange: (brightness: number) => void;
+  onSaturationChange: (saturation: number) => void;
+  onContrastChange: (contrast: number) => void;
+  isSave: boolean;
 }
