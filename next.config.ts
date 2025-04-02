@@ -22,6 +22,18 @@ const nextConfig: NextConfig = {
       test: /\.wasm$/,
       type: 'webassembly/async',
     });
+    
+    // wbgモジュールをエミュレート
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      'wbg': false,  // wbgモジュールをnoop化
+    };
+
+    // NodeバックエンドでWASMをサポート
+    config.output = {
+      ...config.output,
+      webassemblyModuleFilename: 'static/wasm/[modulehash].wasm'
+    };
 
     return config;
   },
