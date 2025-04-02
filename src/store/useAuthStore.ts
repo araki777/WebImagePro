@@ -53,8 +53,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   signOut: async () => {
     try {
+      // サインアウト
       await supabase.auth.signOut();
-      set({ user: null });
+      // ユーザー状態をクリア
+      set({ user: null, isLoading: false });
+      // ログインページに直接リダイレクト
+      window.location.href = '/login';
     } catch (error) {
       console.error('ログアウトエラー:', error);
     }
