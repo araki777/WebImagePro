@@ -352,7 +352,7 @@ pub fn apply_oil_painting(input: &[u8], radius: u32, intensity: u8) -> Vec<u8> {
                 for dx in -(radius as i32)..=(radius as i32) {
                     let pixel = oil_img.get_pixel((x as i32 + dx) as u32, (y as i32 + dy) as u32);
                     for c in 0..3 {
-                        let quantized = (pixel[c] as usize / quantization_step);
+                        let quantized = pixel[c] as usize / quantization_step;
                         histogram[c][quantized] += 1;
                         total[c] += pixel[c] as u32;
                     }
