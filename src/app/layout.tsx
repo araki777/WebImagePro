@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css"; // グローバルCSSを適用
 
 // GoogleFontsGeist Sansフォントを設定
@@ -34,9 +35,16 @@ export default function RootLayout({
         suppressHydrationWarning // ハイドレーションエラーを抑制
         className={`${geistSans.variable} ${geistMono.variable} antialiased`} // フォント適用 & アンチエイリアス
       >
-        {children} {/* 各ページのコンテンツをレンダリング */}
-        <Analytics /> {/* Vercel Analytics */}
-        <SpeedInsights /> {/* Vercel Speed Insights */}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children} {/* 各ページのコンテンツをレンダリング */}
+          <Analytics /> {/* Vercel Analytics */}
+          <SpeedInsights /> {/* Vercel Speed Insights */}
+        </ThemeProvider>
       </body>
     </html>
   );

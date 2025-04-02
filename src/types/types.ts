@@ -5,8 +5,6 @@ export interface IUserData {
   user_metadata: {
     avatar_url?: string;
     full_name?: string;
-    display_name?: string;
-    bio?: string;
     provider?: string;
   };
 }
