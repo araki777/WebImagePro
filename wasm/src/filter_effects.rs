@@ -1,7 +1,6 @@
 use wasm_bindgen::prelude::*;
 use image::io::Reader as ImageReader;
-use image::{ImageOutputFormat, imageops, Rgb};
-use rand::Rng;
+use image::{ImageOutputFormat, imageops};
 
 /// ガウシアンボカシを適用する
 #[wasm_bindgen]
