@@ -183,7 +183,7 @@ pub fn adjust_grayscale(input: &[u8]) -> Vec<u8> {
         .unwrap();
 
     // グレースケール変換
-    let mut img_gray = img.to_luma8();
+    let img_gray = img.to_luma8();
 
     // グレースケール画像をPNGとして出力
     img_gray.write_to(&mut Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
@@ -263,7 +263,7 @@ pub fn adjust_threshold(input: &[u8], threshold: u8) -> Vec<u8> {
         .unwrap();
 
     // 画像をグレースケールに変換
-    let mut img_gray = img.to_luma8();
+    let img_gray = img.to_luma8();
 
     let mut img_binary = img_gray.clone();
 
@@ -296,9 +296,9 @@ pub fn adjust_color_balance(input: &[u8], red_factor: f32, green_factor: f32, bl
 
     // カラーバランス調整
     for pixel in img_rgb.pixels_mut() {
-        let r = (pixel.0[0] as i32 + red_factor).clamp(0, 255) as u8;
-        let g = (pixel.0[1] as i32 + green_factor).clamp(0, 255) as u8;
-        let b = (pixel.0[2] as i32 + blue_factor).clamp(0, 255) as u8;
+        let r = (pixel.0[0] as f32 + red_factor).clamp(0.0, 255.0) as u8;
+        let g = (pixel.0[1] as f32 + green_factor).clamp(0.0, 255.0) as u8;
+        let b = (pixel.0[2] as f32 + blue_factor).clamp(0.0, 255.0) as u8;
 
         *pixel = Rgb([r, g, b]);
     }
