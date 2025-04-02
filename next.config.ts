@@ -10,6 +10,21 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true
   },
+  webpack: (config) => {
+    // WebAssemblyサポートを有効化
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
+
+    // wasmファイルのルールを追加
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'webassembly/async',
+    });
+
+    return config;
+  },
 };
 
 export default nextConfig;
