@@ -10,14 +10,14 @@ import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { loadStripe } from '@stripe/stripe-js';
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 // Stripeの公開キーを設定
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
-export default function SettingsPage() {
+function SettingsContent() {
   const { user, isLoading, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
@@ -127,5 +127,13 @@ export default function SettingsPage() {
         </Card>
       </main>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center">読み込み中...</div>}>
+      <SettingsContent />
+    </Suspense>
   );
 }

@@ -3,7 +3,7 @@ mod color_conversion;
 use wasm_bindgen::prelude::*;
 use std::io::Cursor;
 use image::io::Reader as ImageReader;
-use image::{GenericImageView, ImageOutputFormat, imageops, Rgb };
+use image::{GenericImageView, ImageOutputFormat, imageops, Rgb, Luma };
 use color_conversion::{rgb_to_hsv, hsv_to_rgb};
 
 // 画像のリサイズ
@@ -124,6 +124,183 @@ pub fn adjust_saturation(input: &[u8], saturation: f32) -> Vec<u8> {
 
         // ピクセルの色を更新
         *pixel = Rgb([new_r as u8, new_g as u8, new_b as u8]);
+    }
+
+    // PNGとして出力
+    img_rgb.write_to(&mut Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
+
+    buf
+}
+
+// ガンマ補正処理
+#[wasm_bindgen]
+pub fn adjust_gamma(input: &[u8], gamma: f32) -> Vec<u8> {
+    let mut buf = Vec::new();
+
+    // 画像の読み込み
+    let img = ImageReader::new(Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // 画像をRGB8に変換
+    let mut img_rgb = img.to_rgb8();
+
+    // ガンマ補正（各ピクセルのRGB値を補正）
+    for pixel in img_rgb.pixels_mut() {
+        let (r, g, b) = (pixel.0[0] as f32, pixel.0[1] as f32, pixel.0[2] as f32);
+
+        // ガンマ補正を適用
+        let gamma_corrected_r = (r / 255.0).powf(gamma) * 255.0;
+        let gamma_corrected_g = (g / 255.0).powf(gamma) * 255.0;
+        let gamma_corrected_b = (b / 255.0).powf(gamma) * 255.0;
+
+        // ピクセルの色を更新
+        *pixel = Rgb([
+            gamma_corrected_r.clamp(0.0, 255.0) as u8,
+            gamma_corrected_g.clamp(0.0, 255.0) as u8,
+            gamma_corrected_b.clamp(0.0, 255.0) as u8,
+        ]);
+    }
+
+    // PNGとして出力
+    img_rgb.write_to(&mut Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
+
+    buf
+}
+
+// グレースケール変換
+#[wasm_bindgen]
+pub fn adjust_grayscale(input: &[u8]) -> Vec<u8> {
+    let mut buf = Vec::new();
+
+    // 画像の読み込み
+    let img = ImageReader::new(Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // グレースケール変換
+    let mut img_gray = img.to_luma8();
+
+    // グレースケール画像をPNGとして出力
+    img_gray.write_to(&mut Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
+
+    buf
+}
+
+// セピア調整
+#[wasm_bindgen]
+pub fn adjust_sepia(input: &[u8]) -> Vec<u8> {
+    let mut buf = Vec::new();
+
+    // 画像の読み込み
+    let img = ImageReader::new(Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // セピアフィルターを適用
+    let mut img_rgb = img.to_rgb8();
+    for pixel in img_rgb.pixels_mut() {
+        let (r, g, b) = (pixel.0[0], pixel.0[1], pixel.0[2]);
+
+        // セピア調整（R, G, Bを調整）
+        let tr = (0.393 * r as f32 + 0.769 * g as f32 + 0.189 * b as f32).min(255.0) as u8;
+        let tg = (0.349 * r as f32 + 0.686 * g as f32 + 0.168 * b as f32).min(255.0) as u8;
+        let tb = (0.272 * r as f32 + 0.534 * g as f32 + 0.131 * b as f32).min(255.0) as u8;
+
+        // ピクセルをセピアに変換
+        *pixel = Rgb([tr, tg, tb]);
+    }
+
+    // PNGとして出力
+    img_rgb.write_to(&mut Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
+
+    buf
+}
+
+// 反転処理
+#[wasm_bindgen]
+pub fn adjust_invert(input: &[u8]) -> Vec<u8> {
+    let mut buf = Vec::new();
+
+    // 画像の読み込み
+    let img = ImageReader::new(Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // 反転処理
+    let mut img_rgb = img.to_rgb8();
+    for pixel in img_rgb.pixels_mut() {
+        let (r, g, b) = (pixel.0[0], pixel.0[1], pixel.0[2]);
+
+        // 反転処理（RGB値を255から引く）
+        *pixel = Rgb([255 - r, 255 - g, 255 - b]);
+    }
+
+    // PNGとして出力
+    img_rgb.write_to(&mut Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
+
+    buf
+}
+
+// 画像の白黒変換（2値化）
+#[wasm_bindgen]
+pub fn adjust_threshold(input: &[u8], threshold: u8) -> Vec<u8> {
+    let mut buf = Vec::new();
+
+    // 画像の読み込み
+    let img = ImageReader::new(Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // 画像をグレースケールに変換
+    let mut img_gray = img.to_luma8();
+
+    let mut img_binary = img_gray.clone();
+
+    for pixel in img_binary.pixels_mut() {
+        let gray_value = pixel.0[0];
+        let new_value = if gray_value >= threshold { 255 } else { 0 };
+        *pixel = Luma([new_value]);
+    }
+
+    // PNGとして出力
+    img_binary.write_to(&mut Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
+
+    buf
+}
+
+// カラーバランス調整
+#[wasm_bindgen]
+pub fn adjust_color_balance(input: &[u8], red_factor: f32, green_factor: f32, blue_factor: f32) -> Vec<u8> {
+    let mut buf = Vec::new();
+
+    // 画像の読み込み
+    let img = ImageReader::new(Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // 画像をRGB8に変換
+    let mut img_rgb = img.to_rgb8();
+
+    // カラーバランス調整
+    for pixel in img_rgb.pixels_mut() {
+        let r = (pixel.0[0] as i32 + red_factor).clamp(0, 255) as u8;
+        let g = (pixel.0[1] as i32 + green_factor).clamp(0, 255) as u8;
+        let b = (pixel.0[2] as i32 + blue_factor).clamp(0, 255) as u8;
+
+        *pixel = Rgb([r, g, b]);
     }
 
     // PNGとして出力
