@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Maximize2, X, Plus, Scissors, Sliders } from "lucide-react";
+import { Save, Maximize2, X, Plus, Scissors, Sliders, Sparkles } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ImageResizer } from '@/components/ImageResizer';
 import { RATIOS } from '@/lib/constants';
@@ -13,6 +13,7 @@ import { ImageCliper } from '@/components/ImageCliper';
 import { IImageEditorProps, IClipRegion, IPosition } from '@/types/types';
 import { ImageCliperControls } from '@/components/ImageCliperControls';
 import { ImageColorAjustment } from '@/components/ImageColorAjustment';
+import { ImageFilter } from '@/components/ImageFilter';
 import { getWasmModule } from '@/lib/wasm-loader';
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
@@ -41,6 +42,15 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [isGrayScale, setIsGrayScale] = useState(false);
   const [isSepia, setIsSepia] = useState(false);
   const [isInvert, setIsInvert] = useState(false);
+  const [gaussianBlur, setGaussianBlur] = useState(0);
+  const [motionBlur, setMotionBlur] = useState({ angle: 0, distance: 0 });
+  const [sharpen, setSharpen] = useState({ sigma: 0, threshold: 0 });
+  const [edgeDetection, setEdgeDetection] = useState(0);
+  const [noiseReduction, setNoiseReduction] = useState(0);
+  const [vignette, setVignette] = useState(0);
+  const [hdr, setHdr] = useState(0);
+  const [mosaic, setMosaic] = useState(0);
+  const [oilPainting, setOilPainting] = useState({ radius: 0, intensity: 0 });
   const imageRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -121,6 +131,15 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       setIsGrayScale(false);
       setIsSepia(false);
       setIsInvert(false);
+      setGaussianBlur(0);
+      setMotionBlur({ angle: 0, distance: 0 });
+      setSharpen({ sigma: 0, threshold: 0 });
+      setEdgeDetection(0);
+      setNoiseReduction(0);
+      setVignette(0);
+      setHdr(0);
+      setMosaic(0);
+      setOilPainting({ radius: 0, intensity: 0 });
       // 元の画像を設定
       setProcessedImageUrl(URL.createObjectURL(originalImageBlob));
     }
@@ -493,6 +512,42 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     setIsSave(false);
   };
 
+  const handleGaussianBlur = async (sigma: number) => {
+    await processImage('apply_gaussian_blur', sigma);
+  }
+
+  const handleMotionBlur = async (angle: number, distance: number) => {
+    await processImage('apply_motion_blur', angle, distance);
+  }
+
+  const handleSharpen = async (sigma: number, threshold: number) => {
+    await processImage('apply_sharpen', sigma, threshold);
+  }
+
+  const handleEdgeDetection = async (threshold: number) => {
+    await processImage('apply_edge_detection', threshold);
+  }
+
+  const handleNoiseReduction = async (radius: number) => {
+    await processImage('apply_noise_reduction', radius);
+  }
+
+  const handleVignette = async (strength: number) => {
+    await processImage('apply_vignette', strength);
+  }
+
+  const handleHdr = async (strength: number) => {
+    await processImage('apply_hdr', strength);
+  }
+
+  const handleMosaic = async (blockSize: number) => {
+    await processImage('apply_mosaic', blockSize);
+  }
+
+  const handleOilPainting = async (radius: number, intensity: number) => {
+    await processImage('apply_oil_painting', radius, intensity);
+  }
+
   useEffect(() => {
     // コンポーネントのアンマウント時にURLを解放
     return () => {
@@ -552,7 +607,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
               <div className="w-96 flex flex-col">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                  <TabsList className="w-full grid grid-cols-3">
+                  <TabsList className="w-full grid grid-cols-4">
                     <TabsTrigger value="resize" className="flex-1">
                       <Maximize2 className="w-4 h-4 mr-2" />
                       リサイズ
@@ -564,6 +619,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                     <TabsTrigger value="color_adjustment" className="flex-1">
                       <Sliders className="w-4 h-4 mr-2" />
                       色調整
+                    </TabsTrigger>
+                    <TabsTrigger value="filters" className="flex-1">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      フィルター
                     </TabsTrigger>
                   </TabsList>
 
@@ -621,6 +680,38 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                       onSepiaChange={handleSepia}
                       onInvertChange={handleInvert}
                       isSave={isSave}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="filters" className="mt-6 space-y-6">
+                    <ImageFilter
+                      gaussianBlur={gaussianBlur}
+                      motionBlur={motionBlur}
+                      sharpen={sharpen}
+                      edgeDetection={edgeDetection}
+                      noiseReduction={noiseReduction}
+                      vignette={vignette}
+                      hdr={hdr}
+                      mosaic={mosaic}
+                      oilPainting={oilPainting}
+                      setGaussianBlur={setGaussianBlur}
+                      setMotionBlur={setMotionBlur}
+                      setSharpen={setSharpen}
+                      setEdgeDetection={setEdgeDetection}
+                      setNoiseReduction={setNoiseReduction}
+                      setVignette={setVignette}
+                      setHdr={setHdr}
+                      setMosaic={setMosaic}
+                      setOilPainting={setOilPainting}
+                      onGaussianBlurChange={handleGaussianBlur}
+                      onMotionBlurChange={handleMotionBlur}
+                      onSharpenChange={handleSharpen}
+                      onEdgeDetectionChange={handleEdgeDetection}
+                      onNoiseReductionChange={handleNoiseReduction}
+                      onVignetteChange={handleVignette}
+                      onHdrChange={handleHdr}
+                      onMosaicChange={handleMosaic}
+                      onOilPaintingChange={handleOilPainting}
                     />
                   </TabsContent>
                 </Tabs>
