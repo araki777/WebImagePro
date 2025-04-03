@@ -15,7 +15,7 @@ export const ImageCliper = ({ selectedRatio, onRatioChange, onClip, isSave }: II
           <Button
             key={ratio.name}
             variant={selectedRatio.name === ratio.name ? "default" : "outline"}
-            className="w-full h-8 text-sm"
+            className="w-full h-8 text-xs"
             onClick={() => onRatioChange(ratio)}
           >
             {ratio.name}
@@ -24,7 +24,7 @@ export const ImageCliper = ({ selectedRatio, onRatioChange, onClip, isSave }: II
       </div>
 
       <Button
-        className="w-full h-8 text-sm"
+        className="w-full h-8 text-xs"
         onClick={onClip}
         disabled={isSave}
       >

@@ -20,6 +20,7 @@ import { ImageComposition } from '@/components/ImageComposition';
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("transform");
+  const [activeTransformTab, setActiveTransformTab] = useState("resize");
   const [resizeWidth, setResizeWidth] = useState(0);
   const [resizeHeight, setResizeHeight] = useState(0);
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
@@ -113,15 +114,30 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     }
   };
 
-  const handleImageReset = () => {
+  const handleImageReset = async () => {
     if (originalImageBlob) {
       // 既存のURLを解放
       if (processedImageUrl) {
         URL.revokeObjectURL(processedImageUrl);
       }
+
+      // 元の画像を表示
+      setProcessedImageUrl(URL.createObjectURL(originalImageBlob));
+      setProcessedImageBlob(originalImageBlob);
+
+      // 画像サイズを元に戻す
       setResizeWidth(originalDimensions.width);
       setResizeHeight(originalDimensions.height);
-      setClipRegion({ x: 0, y: 0, width: originalDimensions.width, height: originalDimensions.height });
+
+      // 切り抜き領域を元に戻す
+      setClipRegion({
+        x: 0,
+        y: 0,
+        width: originalDimensions.width,
+        height: originalDimensions.height
+      });
+
+      // 色調整の状態をリセット
       setBrightness(0);
       setSaturation(1);
       setContrast(0);
@@ -133,6 +149,8 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       setIsGrayScale(false);
       setIsSepia(false);
       setIsInvert(false);
+
+      // フィルターの状態をリセット
       setGaussianBlur(0);
       setMotionBlur({ angle: 0, distance: 0 });
       setSharpen({ sigma: 0, threshold: 0 });
@@ -142,8 +160,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       setHdr(0);
       setMosaic(0);
       setOilPainting({ radius: 0, intensity: 0 });
-      // 元の画像を設定
-      setProcessedImageUrl(URL.createObjectURL(originalImageBlob));
+
+      // アスペクト比の状態をリセット
+      setMaintainAspectRatio(true);
+      setSelectedRatio(RATIOS[0]);
     }
   }
 
@@ -186,7 +206,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   };
 
   const handleMouseDown = (e: React.MouseEvent, handle?: string) => {
-    if (activeTab !== 'clip') return;
+    if (activeTransformTab !== 'clip') return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -205,7 +225,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || activeTab !== 'clip') return;
+    if (!isDragging || activeTransformTab !== 'clip') return;
 
     const imageElement = imageRef.current;
     if (!imageElement) return;
@@ -728,7 +748,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
             <div className="flex gap-6">
               <div
                 ref={imageContainerRef}
-                className="flex-1 rounded-lg border bg-card h-[500px] relative overflow-hidden"
+                className="flex-[1.2] rounded-lg border bg-card h-[500px] relative overflow-hidden"
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
@@ -749,7 +769,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                         priority
                         unoptimized
                       />
-                      {activeTab === 'clip' && (
+                      {activeTab === "transform" && activeTransformTab === "clip" && (
                         <ImageCliperControls clipRegion={clipRegion} onMouseDown={handleMouseDown} />
                       )}
                     </div>
@@ -760,45 +780,45 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                 </div>
               </div>
 
-              <div className="w-96 flex flex-col">
+              <div className="w-[420px] flex flex-col">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                  <TabsList className="w-full grid grid-cols-4">
-                    <TabsTrigger value="transform" className="flex-1">
-                      <Maximize2 className="w-4 h-4 mr-2" />
+                  <TabsList className="w-full flex justify-between gap-1 px-1">
+                    <TabsTrigger value="transform" className="flex-1 min-w-0 px-2 text-xs py-1">
+                      <Maximize2 className="w-3 h-3 mr-1" />
                       加工
                     </TabsTrigger>
-                    <TabsTrigger value="color_adjustment" className="flex-1">
-                      <Sliders className="w-4 h-4 mr-2" />
+                    <TabsTrigger value="color_adjustment" className="flex-1 min-w-0 px-2 text-xs py-1">
+                      <Sliders className="w-3 h-3 mr-1" />
                       色調整
                     </TabsTrigger>
-                    <TabsTrigger value="filters" className="flex-1">
-                      <Sparkles className="w-4 h-4 mr-2" />
+                    <TabsTrigger value="filters" className="flex-1 min-w-0 px-2 text-xs py-1">
+                      <Sparkles className="w-3 h-3 mr-1" />
                       フィルター
                     </TabsTrigger>
-                    <TabsTrigger value="composition" className="flex-1">
-                      <ImageIcon className="w-4 h-4 mr-2" />
+                    <TabsTrigger value="composition" className="flex-1 min-w-0 px-2 text-xs py-1">
+                      <ImageIcon className="w-3 h-3 mr-1" />
                       編集・合成
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="transform" className="mt-6 space-y-6">
-                    <Tabs defaultValue="resize" className="w-full">
-                      <TabsList className="w-full grid grid-cols-3">
-                        <TabsTrigger value="resize" className="flex-1">
-                          <Maximize2 className="w-4 h-4 mr-2" />
+                  <TabsContent value="transform" className="mt-4 space-y-4">
+                    <Tabs value={activeTransformTab} onValueChange={setActiveTransformTab} className="w-full">
+                      <TabsList className="w-full flex justify-between gap-1 px-1">
+                        <TabsTrigger value="resize" className="flex-1 min-w-0 px-2 text-xs py-1">
+                          <Maximize2 className="w-3 h-3 mr-1" />
                           リサイズ
                         </TabsTrigger>
-                        <TabsTrigger value="clip" className="flex-1">
-                          <Scissors className="w-4 h-4 mr-2" />
+                        <TabsTrigger value="clip" className="flex-1 min-w-0 px-2 text-xs py-1">
+                          <Scissors className="w-3 h-3 mr-1" />
                           切り抜き
                         </TabsTrigger>
-                        <TabsTrigger value="rotate" className="flex-1">
-                          <RotateCw className="w-4 h-4 mr-2" />
+                        <TabsTrigger value="rotate" className="flex-1 min-w-0 px-2 text-xs py-1">
+                          <RotateCw className="w-3 h-3 mr-1" />
                           回転・反転
                         </TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="resize" className="mt-4">
+                      <TabsContent value="resize" className="mt-3">
                         <ImageResizer
                           resizeWidth={resizeWidth}
                           resizeHeight={resizeHeight}
@@ -809,7 +829,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                         />
                       </TabsContent>
 
-                      <TabsContent value="clip" className="mt-4">
+                      <TabsContent value="clip" className="mt-3">
                         <ImageCliper
                           selectedRatio={selectedRatio}
                           onRatioChange={handleRatioChange}
@@ -818,7 +838,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                         />
                       </TabsContent>
 
-                      <TabsContent value="rotate" className="mt-4">
+                      <TabsContent value="rotate" className="mt-3">
                         <ImageTransform
                           onRotate={handleRotate}
                           onFlip={handleFlip}
@@ -828,7 +848,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                     </Tabs>
                   </TabsContent>
 
-                  <TabsContent value="color_adjustment" className="mt-6 space-y-6">
+                  <TabsContent value="color_adjustment" className="mt-4 space-y-4">
                     <ImageColorAjustment
                       brightness={brightness}
                       saturation={saturation}
@@ -865,7 +885,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                     />
                   </TabsContent>
 
-                  <TabsContent value="filters" className="mt-6 space-y-6">
+                  <TabsContent value="filters" className="mt-4 space-y-4">
                     <ImageFilter
                       gaussianBlur={gaussianBlur}
                       motionBlur={motionBlur}
@@ -897,7 +917,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                     />
                   </TabsContent>
 
-                  <TabsContent value="composition" className="mt-6 space-y-6">
+                  <TabsContent value="composition" className="mt-4 space-y-4">
                     <ImageComposition
                       onMakeTransparent={handleMakeTransparent}
                       onAddWatermark={handleAddWatermark}

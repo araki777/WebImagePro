@@ -42,23 +42,23 @@ export const ImageColorAjustment = ({
 
   return (
 		<Tabs defaultValue="basic" className="w-full">
-			<TabsList className="grid w-full grid-cols-2 mb-4">
-				<TabsTrigger value="basic" className="flex items-center gap-1.5">
-					<Sliders className="w-3.5 h-3.5" />
+			<TabsList className="w-full flex justify-between gap-1 px-1">
+				<TabsTrigger value="basic" className="flex-1 min-w-0 px-2 text-xs py-1">
+					<Sliders className="w-3 h-3 mr-1" />
 					基本調整
 				</TabsTrigger>
-				<TabsTrigger value="advanced" className="flex items-center gap-1.5">
-					<Settings className="w-3.5 h-3.5" />
+				<TabsTrigger value="advanced" className="flex-1 min-w-0 px-2 text-xs py-1">
+					<Settings className="w-3 h-3 mr-1" />
 					高度な調整
 				</TabsTrigger>
 			</TabsList>
 
-			<TabsContent value="basic" className="space-y-4">
+			<TabsContent value="basic" className="space-y-3">
 				{/* Basic Adjustment Controls */}
-				<div className="grid grid-cols-2 gap-3">
+				<div className="grid grid-cols-2 gap-2">
 					{/* Brightness */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-sm font-medium">
+						<label className="flex items-center gap-1.5 text-xs font-medium">
 							<Sun className="w-3.5 h-3.5" />
 							明度
 						</label>
@@ -83,7 +83,7 @@ export const ImageColorAjustment = ({
 
 					{/* Saturation */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-sm font-medium">
+						<label className="flex items-center gap-1.5 text-xs font-medium">
 							<Palette className="w-3.5 h-3.5" />
 							彩度
 						</label>
@@ -108,7 +108,7 @@ export const ImageColorAjustment = ({
 
 					{/* Contrast */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-sm font-medium">
+						<label className="flex items-center gap-1.5 text-xs font-medium">
 							<Contrast className="w-3.5 h-3.5" />
 							コントラスト
 						</label>
@@ -133,9 +133,9 @@ export const ImageColorAjustment = ({
 				</div>
 
 				{/* Effect Switches */}
-				<div className="grid grid-cols-3 gap-3">
+				<div className="grid grid-cols-3 gap-2">
 					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-						<label className="text-sm font-medium whitespace-nowrap">グレースケール</label>
+						<label className="text-xs font-medium whitespace-nowrap">グレースケール</label>
 						<Switch
 							checked={isGrayScale}
 							onCheckedChange={(checked) => {
@@ -148,7 +148,7 @@ export const ImageColorAjustment = ({
 					</div>
 
 					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-						<label className="text-sm font-medium whitespace-nowrap">セピア</label>
+						<label className="text-xs font-medium whitespace-nowrap">セピア</label>
 						<Switch
 							checked={isSepia}
 							onCheckedChange={(checked) => {
@@ -161,7 +161,7 @@ export const ImageColorAjustment = ({
 					</div>
 
 					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-						<label className="text-sm font-medium whitespace-nowrap">反転</label>
+						<label className="text-xs font-medium whitespace-nowrap">反転</label>
 						<Switch
 							checked={isInvert}
 							onCheckedChange={(checked) => {
@@ -175,12 +175,12 @@ export const ImageColorAjustment = ({
 				</div>
 			</TabsContent>
 
-			<TabsContent value="advanced" className="space-y-4">
+			<TabsContent value="advanced" className="space-y-3">
 				{/* Advanced Adjustment Controls */}
-				<div className="grid grid-cols-2 gap-3">
+				<div className="grid grid-cols-2 gap-2">
 					{/* Gamma */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-sm font-medium">
+						<label className="flex items-center gap-1.5 text-xs font-medium">
 							<Contrast className="w-3.5 h-3.5" />
 							ガンマ
 						</label>
@@ -205,7 +205,7 @@ export const ImageColorAjustment = ({
 
 					{/* Threshold */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-sm font-medium">
+						<label className="flex items-center gap-1.5 text-xs font-medium">
 							<Contrast className="w-3.5 h-3.5" />
 							白黒
 						</label>
@@ -231,10 +231,10 @@ export const ImageColorAjustment = ({
 
 				{/* Color Balance */}
 				<div className="space-y-1">
-					<label className="text-sm font-medium">カラーバランス</label>
-					<div className="grid grid-cols-2 gap-3">
+					<label className="text-xs font-medium">カラーバランス</label>
+					<div className="grid grid-cols-2 gap-2">
 						<div className="space-y-1">
-							<label className="flex items-center gap-1.5 text-sm font-medium text-red-500">
+							<label className="flex items-center gap-1.5 text-xs font-medium text-red-500">
 								<Palette className="w-3.5 h-3.5" />
 								赤
 							</label>
@@ -258,7 +258,7 @@ export const ImageColorAjustment = ({
 						</div>
 
 						<div className="space-y-1">
-							<label className="flex items-center gap-1.5 text-sm font-medium text-green-500">
+							<label className="flex items-center gap-1.5 text-xs font-medium text-green-500">
 								<Palette className="w-3.5 h-3.5" />
 								緑
 							</label>
@@ -282,7 +282,7 @@ export const ImageColorAjustment = ({
 						</div>
 
 						<div className="space-y-1">
-							<label className="flex items-center gap-1.5 text-sm font-medium text-blue-500">
+							<label className="flex items-center gap-1.5 text-xs font-medium text-blue-500">
 								<Palette className="w-3.5 h-3.5" />
 								青
 							</label>
