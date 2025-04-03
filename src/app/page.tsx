@@ -5,10 +5,15 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { ImageGallery } from "@/components/ImageGallery";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Image as ImageIcon } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
 
 export default function Home() {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, signOut, checkUser } = useAuthStore();
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
 
   if (isLoading || !user) {
     return null;
