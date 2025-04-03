@@ -3,24 +3,26 @@
 import { Header } from "@/components/ui/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function ProfilePage() {
-  const { user, isLoading, signOut } = useAuth();
-  const { setUser } = useAuthStore();
+  const { user, isLoading, signOut, setUser, checkUser } = useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
     full_name: user?.user_metadata.full_name || '',
     display_name: user?.user_metadata.display_name || '',
     bio: user?.user_metadata.bio || '',
   });
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
 
   if (isLoading || !user) {
     return null;

@@ -2,7 +2,7 @@
 
 import { Header } from "@/components/ui/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Moon, Sun, CreditCard } from "lucide-react";
@@ -18,9 +18,23 @@ import { supabase } from "@/lib/supabase";
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 function SettingsContent() {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, userSettings, updateUserSettings, signOut } = useAuthStore();
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
+
+  // テーマ変更時のハンドラー
+  const handleThemeChange = async (checked: boolean) => {
+    const newTheme = checked ? 'dark' : 'light';
+    setTheme(newTheme);
+    await updateUserSettings({ theme: newTheme });
+  };
+
+  // 初期テーマの設定
+  useEffect(() => {
+    if (userSettings?.theme && userSettings.theme !== 'system') {
+      setTheme(userSettings.theme);
+    }
+  }, [userSettings?.theme, setTheme]);
 
   useEffect(() => {
     // 決済成功時のメッセージ
@@ -77,7 +91,7 @@ function SettingsContent() {
     }
   };
 
-  if (isLoading || !user) {
+  if (!user) {
     return null;
   }
 
@@ -105,7 +119,7 @@ function SettingsContent() {
                 <Sun className="h-5 w-5" />
                 <Switch
                   checked={theme === 'dark'}
-                  onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                  onCheckedChange={handleThemeChange}
                 />
                 <Moon className="h-5 w-5" />
               </div>

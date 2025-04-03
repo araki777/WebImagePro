@@ -20,12 +20,27 @@ export interface IUserData {
   };
 }
 
+export interface UserSettings {
+  id: string;
+  user_id: string;
+  theme: 'light' | 'dark' | 'system';
+  language: string;
+  created_at: string;
+  updated_at: string;
+  subscription_status: 'active' | 'canceled' | 'past_due' | 'unpaid' | null;
+  subscription_id: string | null;
+  subscription_end_date: string | null;
+  stripe_customer_id: string | null;
+}
+
 export interface AuthState {
   user: IUserData | null;
   isLoading: boolean;
   setUser: (user: IUserData | null) => void;
-  checkUser: () => Promise<void>;
+  checkUser: () => Promise<void | (() => void)>;
   signOut: () => Promise<void>;
+  userSettings: UserSettings | null;
+  updateUserSettings: (settings: Partial<UserSettings>) => Promise<void>;
 }
 
 // ============================================================================
