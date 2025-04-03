@@ -18,6 +18,7 @@ export const resize_image: (a: number, b: number, c: number, d: number) => [numb
 export const clip_image: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
 export const rotate_image: (a: number, b: number, c: number) => [number, number];
 export const flip_image: (a: number, b: number, c: number) => [number, number];
+export const convert_image_format: (a: number, b: number, c: number, d: number) => [number, number];
 export const apply_gaussian_blur: (a: number, b: number, c: number) => [number, number];
 export const apply_motion_blur: (a: number, b: number, c: number, d: number) => [number, number];
 export const apply_sharpen: (a: number, b: number, c: number, d: number) => [number, number];
@@ -30,4 +31,5 @@ export const apply_oil_painting: (a: number, b: number, c: number, d: number) =>
 export const __wbindgen_export_0: WebAssembly.Table;
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
 export const __wbindgen_start: () => void;

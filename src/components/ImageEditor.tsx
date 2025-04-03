@@ -10,13 +10,14 @@ import { Separator } from "@/components/ui/separator";
 import { ImageResizer } from '@/components/ImageResizer';
 import { RATIOS } from '@/lib/constants';
 import { ImageCliper } from '@/components/ImageCliper';
-import { IImageEditorProps, IClipRegion, IPosition } from '@/types/types';
+import { IImageEditorProps, IClipRegion, IPosition, IMAGE_FORMATS } from '@/types/types';
 import { ImageCliperControls } from '@/components/ImageCliperControls';
 import { ImageColorAjustment } from '@/components/ImageColorAjustment';
 import { ImageFilter } from '@/components/ImageFilter';
 import { getWasmModule } from '@/lib/wasm-loader';
 import { ImageTransform } from '@/components/ImageTransform';
 import { ImageComposition } from '@/components/ImageComposition';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("transform");
@@ -54,6 +55,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [hdr, setHdr] = useState(0);
   const [mosaic, setMosaic] = useState(0);
   const [oilPainting, setOilPainting] = useState({ radius: 0, intensity: 0 });
+  const [selectedFormat, setSelectedFormat] = useState('png');
   const imageRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -526,68 +528,48 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     updateProcessedImage(flippedBlob);
   }
 
-  const resizeImage = async () => {
-    if (!originalImageBlob) {
-      throw new Error('No image to resize');
-    }
-
-    if (!processedImageBlob) {
-      return URL.createObjectURL(originalImageBlob);
-    }
-
-    const arrayBuffer = await processedImageBlob.arrayBuffer();
-    const imageData = new Uint8Array(arrayBuffer);
-
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.resize_image !== 'function') {
-      throw new Error('Resize function not found');
-    }
-
-    const resizedImage = wasm.resize_image(imageData, resizeWidth, resizeHeight);
-
-    if (!(resizedImage instanceof Uint8Array)) {
-      throw new Error('Invalid resize result format');
-    }
-
-    const resizedBlob = new Blob([resizedImage], { type: 'image/png' });
-    updateProcessedImage(resizedBlob);
-
-    const base64String = btoa(
-      resizedImage.reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
-
-    if (!base64String) {
-      throw new Error('Failed to convert image to base64');
-    }
-
-    return base64String;
-  };
-
   const handleSave = async () => {
+    if (!processedImageBlob && !originalImageBlob) return;
     setIsSave(true);
+
     try {
-      const base64String = await resizeImage();
-      if (base64String) {
-        onSave(base64String, false);
-      }
+      const imageToSave = processedImageBlob || originalImageBlob;
+      if (!imageToSave) return;
+      const arrayBuffer = await imageToSave.arrayBuffer();
+      const imageData = new Uint8Array(arrayBuffer);
+
+      const wasm = await getWasmModule();
+      const convertedImage = wasm.convert_image_format(imageData, selectedFormat);
+
+      const base64 = btoa(String.fromCharCode(...convertedImage));
+      onSave(base64, false, selectedFormat);
     } catch (error) {
-      console.error('Error during image resize:', error);
+      console.error('Error saving image:', error);
+    } finally {
+      setIsSave(false);
     }
-    setIsSave(false);
   };
 
   const handleSaveNew = async () => {
+    if (!processedImageBlob && !originalImageBlob) return;
     setIsSave(true);
+
     try {
-      const base64String = await resizeImage();
-      if (base64String) {
-        onSave(base64String, true);
-      }
+      const imageToSave = processedImageBlob || originalImageBlob;
+      if (!imageToSave) return;
+      const arrayBuffer = await imageToSave.arrayBuffer();
+      const imageData = new Uint8Array(arrayBuffer);
+
+      const wasm = await getWasmModule();
+      const convertedImage = wasm.convert_image_format(imageData, selectedFormat);
+
+      const base64 = btoa(String.fromCharCode(...convertedImage));
+      onSave(base64, true, selectedFormat);
     } catch (error) {
-      console.error('Error during image save:', error);
+      console.error('Error saving image:', error);
+    } finally {
+      setIsSave(false);
     }
-    setIsSave(false);
   };
 
   const handleGaussianBlur = async (sigma: number) => {
@@ -724,8 +706,12 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   };
 
   useEffect(() => {
-    // コンポーネントのアンマウント時にURLを解放
+    // モーダルが開かれたときにbodyのスクロールを無効にする
+    document.body.style.overflow = 'hidden';
+
+    // コンポーネントのアンマウント時にスクロールを有効に戻す
     return () => {
+      document.body.style.overflow = 'auto';
       if (processedImageUrl) {
         URL.revokeObjectURL(processedImageUrl);
       }
@@ -734,12 +720,12 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
-      <div className="flex w-full h-full items-center justify-center p-10">
-        <Card className="w-full shadow-lg relative">
+      <div className="flex items-center justify-center h-screen p-4">
+        <Card className="w-[1800px] mx-auto relative">
           <Button
             variant="outline"
             size="icon"
-            className="absolute -top-3 -right-3 h-8 w-8 rounded-full border-2 bg-background shadow-md hover:scale-105 transition-transform"
+            className="absolute -top-3 -right-3 h-8 w-8 rounded-full border-2 bg-background shadow-md hover:scale-105 transition-transform z-10"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
@@ -753,9 +739,9 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
               >
-                <div className="h-full w-full overflow-x-scroll overflow-y-scroll">
-                  <div className="min-w-fit min-h-full flex items-center justify-center">
-                    <div ref={imageRef} className="relative">
+                <div className="absolute inset-0 overflow-auto">
+                  <div className="h-full w-full flex items-center justify-center p-4">
+                    <div ref={imageRef} className="relative min-w-max">
                       <Image
                         src={processedImageUrl || imageUrl}
                         alt="Image being edited"
@@ -764,7 +750,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                         style={{
                           width: `${resizeWidth}px`,
                           height: `${resizeHeight}px`,
-                          maxWidth: 'none'
+                          objectFit: maintainAspectRatio ? 'contain' : 'fill'
                         }}
                         priority
                         unoptimized
@@ -780,9 +766,9 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                 </div>
               </div>
 
-              <div className="w-[420px] flex flex-col">
+              <div className="w-[400px] flex flex-col shrink-0">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                  <TabsList className="w-full flex justify-between gap-1 px-1">
+                  <TabsList className="w-full grid grid-cols-4 gap-1 px-1">
                     <TabsTrigger value="transform" className="flex-1 min-w-0 px-2 text-xs py-1">
                       <Maximize2 className="w-3 h-3 mr-1" />
                       加工
@@ -801,136 +787,150 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="transform" className="mt-4 space-y-4">
-                    <Tabs value={activeTransformTab} onValueChange={setActiveTransformTab} className="w-full">
-                      <TabsList className="w-full flex justify-between gap-1 px-1">
-                        <TabsTrigger value="resize" className="flex-1 min-w-0 px-2 text-xs py-1">
-                          <Maximize2 className="w-3 h-3 mr-1" />
-                          リサイズ
-                        </TabsTrigger>
-                        <TabsTrigger value="clip" className="flex-1 min-w-0 px-2 text-xs py-1">
-                          <Scissors className="w-3 h-3 mr-1" />
-                          切り抜き
-                        </TabsTrigger>
-                        <TabsTrigger value="rotate" className="flex-1 min-w-0 px-2 text-xs py-1">
-                          <RotateCw className="w-3 h-3 mr-1" />
-                          回転・反転
-                        </TabsTrigger>
-                      </TabsList>
+                  <div className="mt-4 space-y-4">
+                    <TabsContent value="transform" className="mt-0">
+                      <Tabs value={activeTransformTab} onValueChange={setActiveTransformTab} className="w-full">
+                        <TabsList className="w-full grid grid-cols-3 gap-1 px-1">
+                          <TabsTrigger value="resize" className="flex-1 min-w-0 px-2 text-xs py-1">
+                            <Maximize2 className="w-3 h-3 mr-1" />
+                            リサイズ
+                          </TabsTrigger>
+                          <TabsTrigger value="clip" className="flex-1 min-w-0 px-2 text-xs py-1">
+                            <Scissors className="w-3 h-3 mr-1" />
+                            切り抜き
+                          </TabsTrigger>
+                          <TabsTrigger value="rotate" className="flex-1 min-w-0 px-2 text-xs py-1">
+                            <RotateCw className="w-3 h-3 mr-1" />
+                            回転・反転
+                          </TabsTrigger>
+                        </TabsList>
 
-                      <TabsContent value="resize" className="mt-3">
-                        <ImageResizer
-                          resizeWidth={resizeWidth}
-                          resizeHeight={resizeHeight}
-                          onWidthChange={handleWidthChange}
-                          onHeightChange={handleHeightChange}
-                          onAspectRatioChange={handleAspectRatioChange}
-                          maintainAspectRatio={maintainAspectRatio}
-                        />
-                      </TabsContent>
+                        <TabsContent value="resize" className="mt-3">
+                          <ImageResizer
+                            resizeWidth={resizeWidth}
+                            resizeHeight={resizeHeight}
+                            onWidthChange={handleWidthChange}
+                            onHeightChange={handleHeightChange}
+                            onAspectRatioChange={handleAspectRatioChange}
+                            maintainAspectRatio={maintainAspectRatio}
+                          />
+                        </TabsContent>
 
-                      <TabsContent value="clip" className="mt-3">
-                        <ImageCliper
-                          selectedRatio={selectedRatio}
-                          onRatioChange={handleRatioChange}
-                          onClip={handleClip}
-                          isSave={isSave}
-                        />
-                      </TabsContent>
+                        <TabsContent value="clip" className="mt-3">
+                          <ImageCliper
+                            selectedRatio={selectedRatio}
+                            onRatioChange={handleRatioChange}
+                            onClip={handleClip}
+                            isSave={isSave}
+                          />
+                        </TabsContent>
 
-                      <TabsContent value="rotate" className="mt-3">
-                        <ImageTransform
-                          onRotate={handleRotate}
-                          onFlip={handleFlip}
-                          isSave={isSave}
-                        />
-                      </TabsContent>
-                    </Tabs>
-                  </TabsContent>
+                        <TabsContent value="rotate" className="mt-3">
+                          <ImageTransform
+                            onRotate={handleRotate}
+                            onFlip={handleFlip}
+                            isSave={isSave}
+                          />
+                        </TabsContent>
+                      </Tabs>
+                    </TabsContent>
 
-                  <TabsContent value="color_adjustment" className="mt-4 space-y-4">
-                    <ImageColorAjustment
-                      brightness={brightness}
-                      saturation={saturation}
-                      contrast={contrast}
-                      gamma={gamma}
-                      threshold={threshold}
-                      redFactor={redFactor}
-                      greenFactor={greenFactor}
-                      blueFactor={blueFactor}
-                      isGrayScale={isGrayScale}
-                      isSepia={isSepia}
-                      isInvert={isInvert}
-                      setBrightness={setBrightness}
-                      setSaturation={setSaturation}
-                      setContrast={setContrast}
-                      setGamma={setGamma}
-                      setRedFactor={setRedFactor}
-                      setGreenFactor={setGreenFactor}
-                      setBlueFactor={setBlueFactor}
-                      setThreshold={setThreshold}
-                      setIsGrayScale={setIsGrayScale}
-                      setIsSepia={setIsSepia}
-                      setIsInvert={setIsInvert}
-                      onBrightnessChange={handleBrightness}
-                      onSaturationChange={handleSaturation}
-                      onContrastChange={handleContrast}
-                      onGammaChange={handleGamma}
-                      onThresholdChange={handleThreshold}
-                      onColorBalanceChange={handleColorBalance}
-                      onGrayscaleChange={handleGrayscale}
-                      onSepiaChange={handleSepia}
-                      onInvertChange={handleInvert}
-                      isSave={isSave}
-                    />
-                  </TabsContent>
+                    <TabsContent value="color_adjustment" className="mt-0">
+                      <ImageColorAjustment
+                        brightness={brightness}
+                        saturation={saturation}
+                        contrast={contrast}
+                        gamma={gamma}
+                        threshold={threshold}
+                        redFactor={redFactor}
+                        greenFactor={greenFactor}
+                        blueFactor={blueFactor}
+                        isGrayScale={isGrayScale}
+                        isSepia={isSepia}
+                        isInvert={isInvert}
+                        setBrightness={setBrightness}
+                        setSaturation={setSaturation}
+                        setContrast={setContrast}
+                        setGamma={setGamma}
+                        setRedFactor={setRedFactor}
+                        setGreenFactor={setGreenFactor}
+                        setBlueFactor={setBlueFactor}
+                        setThreshold={setThreshold}
+                        setIsGrayScale={setIsGrayScale}
+                        setIsSepia={setIsSepia}
+                        setIsInvert={setIsInvert}
+                        onBrightnessChange={handleBrightness}
+                        onSaturationChange={handleSaturation}
+                        onContrastChange={handleContrast}
+                        onGammaChange={handleGamma}
+                        onThresholdChange={handleThreshold}
+                        onColorBalanceChange={handleColorBalance}
+                        onGrayscaleChange={handleGrayscale}
+                        onSepiaChange={handleSepia}
+                        onInvertChange={handleInvert}
+                        isSave={isSave}
+                      />
+                    </TabsContent>
 
-                  <TabsContent value="filters" className="mt-4 space-y-4">
-                    <ImageFilter
-                      gaussianBlur={gaussianBlur}
-                      motionBlur={motionBlur}
-                      sharpen={sharpen}
-                      edgeDetection={edgeDetection}
-                      noiseReduction={noiseReduction}
-                      vignette={vignette}
-                      hdr={hdr}
-                      mosaic={mosaic}
-                      oilPainting={oilPainting}
-                      setGaussianBlur={setGaussianBlur}
-                      setMotionBlur={setMotionBlur}
-                      setSharpen={setSharpen}
-                      setEdgeDetection={setEdgeDetection}
-                      setNoiseReduction={setNoiseReduction}
-                      setVignette={setVignette}
-                      setHdr={setHdr}
-                      setMosaic={setMosaic}
-                      setOilPainting={setOilPainting}
-                      onGaussianBlurChange={handleGaussianBlur}
-                      onMotionBlurChange={handleMotionBlur}
-                      onSharpenChange={handleSharpen}
-                      onEdgeDetectionChange={handleEdgeDetection}
-                      onNoiseReductionChange={handleNoiseReduction}
-                      onVignetteChange={handleVignette}
-                      onHdrChange={handleHdr}
-                      onMosaicChange={handleMosaic}
-                      onOilPaintingChange={handleOilPainting}
-                    />
-                  </TabsContent>
+                    <TabsContent value="filters" className="mt-0">
+                      <ImageFilter
+                        gaussianBlur={gaussianBlur}
+                        motionBlur={motionBlur}
+                        sharpen={sharpen}
+                        edgeDetection={edgeDetection}
+                        noiseReduction={noiseReduction}
+                        vignette={vignette}
+                        hdr={hdr}
+                        mosaic={mosaic}
+                        oilPainting={oilPainting}
+                        setGaussianBlur={setGaussianBlur}
+                        setMotionBlur={setMotionBlur}
+                        setSharpen={setSharpen}
+                        setEdgeDetection={setEdgeDetection}
+                        setNoiseReduction={setNoiseReduction}
+                        setVignette={setVignette}
+                        setHdr={setHdr}
+                        setMosaic={setMosaic}
+                        setOilPainting={setOilPainting}
+                        onGaussianBlurChange={handleGaussianBlur}
+                        onMotionBlurChange={handleMotionBlur}
+                        onSharpenChange={handleSharpen}
+                        onEdgeDetectionChange={handleEdgeDetection}
+                        onNoiseReductionChange={handleNoiseReduction}
+                        onVignetteChange={handleVignette}
+                        onHdrChange={handleHdr}
+                        onMosaicChange={handleMosaic}
+                        onOilPaintingChange={handleOilPainting}
+                      />
+                    </TabsContent>
 
-                  <TabsContent value="composition" className="mt-4 space-y-4">
-                    <ImageComposition
-                      onMakeTransparent={handleMakeTransparent}
-                      onAddWatermark={handleAddWatermark}
-                      onComposite={handleComposite}
-                      onAddStamp={handleAddStamp}
-                      isSave={isSave}
-                    />
-                  </TabsContent>
+                    <TabsContent value="composition" className="mt-0">
+                      <ImageComposition
+                        onMakeTransparent={handleMakeTransparent}
+                        onAddWatermark={handleAddWatermark}
+                        onComposite={handleComposite}
+                        onAddStamp={handleAddStamp}
+                        isSave={isSave}
+                      />
+                    </TabsContent>
+                  </div>
                 </Tabs>
 
-                <Separator className="my-6" />
+                <Separator className="my-2" />
 
                 <div className="space-y-2">
+                  <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="フォーマットを選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {IMAGE_FORMATS.map((format) => (
+                        <SelectItem key={format.value} value={format.value}>
+                          {format.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Button
                     className="w-full"
                     onClick={() => handleImageReset()}

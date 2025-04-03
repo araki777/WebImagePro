@@ -116,7 +116,7 @@ export interface IImageUploadActionsProps {
 
 export interface IImageEditorProps {
   imageUrl: string;
-  onSave: (editedImage: string, isNewImage: boolean) => void;
+  onSave: (editedImage: string, isNewImage: boolean, format: string) => void;
   onClose: () => void;
 }
 
@@ -241,3 +241,16 @@ export interface IImageCompositionProps {
   onAddStamp: (stamp: File, x: number, y: number) => Promise<void>;
   isSave: boolean;
 }
+
+export interface IFormatOption {
+  value: string;
+  label: string;
+}
+
+export const IMAGE_FORMATS: IFormatOption[] = [
+  { value: 'png', label: 'PNG' },
+  { value: 'jpeg', label: 'JPEG' },
+  { value: 'gif', label: 'GIF' },
+  { value: 'bmp', label: 'BMP' },
+  { value: 'webp', label: 'WebP' },
+];
