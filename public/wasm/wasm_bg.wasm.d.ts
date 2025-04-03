@@ -1,6 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const make_transparent: (a: number, b: number, c: number) => [number, number];
+export const add_watermark: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
+export const composite: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
+export const add_stamp: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
 export const adjust_saturation: (a: number, b: number, c: number) => [number, number];
 export const adjust_sepia: (a: number, b: number) => [number, number];
 export const adjust_color_balance: (a: number, b: number, c: number, d: number, e: number) => [number, number];

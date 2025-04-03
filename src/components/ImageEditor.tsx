@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Maximize2, X, Plus, Scissors, Sliders, Sparkles, RotateCw } from "lucide-react";
+import { Save, Maximize2, X, Plus, Scissors, Sliders, Sparkles, RotateCw, ImageIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ImageResizer } from '@/components/ImageResizer';
 import { RATIOS } from '@/lib/constants';
@@ -16,6 +16,7 @@ import { ImageColorAjustment } from '@/components/ImageColorAjustment';
 import { ImageFilter } from '@/components/ImageFilter';
 import { getWasmModule } from '@/lib/wasm-loader';
 import { ImageTransform } from '@/components/ImageTransform';
+import { ImageComposition } from '@/components/ImageComposition';
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("transform");
@@ -605,6 +606,103 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     await processImage('apply_oil_painting', radius, intensity);
   }
 
+  const handleMakeTransparent = async (threshold: number) => {
+    if (!originalImageBlob) return;
+
+    const arrayBuffer = await originalImageBlob.arrayBuffer();
+    const imageData = new Uint8Array(arrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.make_transparent !== 'function') {
+      throw new Error('Make transparent function not found');
+    }
+
+    const transparentImage = wasm.make_transparent(imageData, threshold);
+
+    if (!(transparentImage instanceof Uint8Array)) {
+      throw new Error('Invalid make transparent result format');
+    }
+
+    const transparentBlob = new Blob([transparentImage], { type: 'image/png' });
+    updateProcessedImage(transparentBlob);
+  };
+
+  const handleAddWatermark = async (watermark: File, x: number, y: number, opacity: number) => {
+    if (!originalImageBlob) return;
+
+    const baseArrayBuffer = await originalImageBlob.arrayBuffer();
+    const baseImageData = new Uint8Array(baseArrayBuffer);
+
+    const watermarkArrayBuffer = await watermark.arrayBuffer();
+    const watermarkImageData = new Uint8Array(watermarkArrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.add_watermark !== 'function') {
+      throw new Error('Add watermark function not found');
+    }
+
+    const watermarkedImage = wasm.add_watermark(baseImageData, watermarkImageData, x, y, opacity);
+
+    if (!(watermarkedImage instanceof Uint8Array)) {
+      throw new Error('Invalid add watermark result format');
+    }
+
+    const watermarkedBlob = new Blob([watermarkedImage], { type: 'image/png' });
+    updateProcessedImage(watermarkedBlob);
+  };
+
+  const handleComposite = async (overlay: File, x: number, y: number) => {
+    if (!originalImageBlob) return;
+
+    const baseArrayBuffer = await originalImageBlob.arrayBuffer();
+    const baseImageData = new Uint8Array(baseArrayBuffer);
+
+    const overlayArrayBuffer = await overlay.arrayBuffer();
+    const overlayImageData = new Uint8Array(overlayArrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.composite !== 'function') {
+      throw new Error('Composite function not found');
+    }
+
+    const compositeImage = wasm.composite(baseImageData, overlayImageData, x, y);
+
+    if (!(compositeImage instanceof Uint8Array)) {
+      throw new Error('Invalid composite result format');
+    }
+
+    const compositeBlob = new Blob([compositeImage], { type: 'image/png' });
+    updateProcessedImage(compositeBlob);
+  };
+
+  const handleAddStamp = async (stamp: File, x: number, y: number) => {
+    if (!originalImageBlob) return;
+
+    const baseArrayBuffer = await originalImageBlob.arrayBuffer();
+    const baseImageData = new Uint8Array(baseArrayBuffer);
+
+    const stampArrayBuffer = await stamp.arrayBuffer();
+    const stampImageData = new Uint8Array(stampArrayBuffer);
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.add_stamp !== 'function') {
+      throw new Error('Add stamp function not found');
+    }
+
+    const stampedImage = wasm.add_stamp(baseImageData, stampImageData, x, y);
+
+    if (!(stampedImage instanceof Uint8Array)) {
+      throw new Error('Invalid add stamp result format');
+    }
+
+    const stampedBlob = new Blob([stampedImage], { type: 'image/png' });
+    updateProcessedImage(stampedBlob);
+  };
+
   useEffect(() => {
     // コンポーネントのアンマウント時にURLを解放
     return () => {
@@ -664,7 +762,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
               <div className="w-96 flex flex-col">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                  <TabsList className="w-full grid grid-cols-3">
+                  <TabsList className="w-full grid grid-cols-4">
                     <TabsTrigger value="transform" className="flex-1">
                       <Maximize2 className="w-4 h-4 mr-2" />
                       加工
@@ -676,6 +774,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                     <TabsTrigger value="filters" className="flex-1">
                       <Sparkles className="w-4 h-4 mr-2" />
                       フィルター
+                    </TabsTrigger>
+                    <TabsTrigger value="composition" className="flex-1">
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      編集・合成
                     </TabsTrigger>
                   </TabsList>
 
@@ -792,6 +894,16 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                       onHdrChange={handleHdr}
                       onMosaicChange={handleMosaic}
                       onOilPaintingChange={handleOilPainting}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="composition" className="mt-6 space-y-6">
+                    <ImageComposition
+                      onMakeTransparent={handleMakeTransparent}
+                      onAddWatermark={handleAddWatermark}
+                      onComposite={handleComposite}
+                      onAddStamp={handleAddStamp}
+                      isSave={isSave}
                     />
                   </TabsContent>
                 </Tabs>
