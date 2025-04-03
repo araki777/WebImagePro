@@ -51,3 +51,50 @@ pub fn clip_image(input: &[u8], x: u32, y: u32, width: u32, height: u32) -> Vec<
 
     buf
 }
+
+// 画像の回転
+#[wasm_bindgen]
+pub fn rotate_image(input: &[u8], degrees: u32) -> Vec<u8> {
+    let mut buf = Vec::new();
+    let img = ImageReader::new(std::io::Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // 回転処理
+    let rotated_image = match degrees {
+        90 => img.rotate90(),
+        180 => img.rotate180(),
+        270 => img.rotate270(),
+        _ => img,
+    };
+
+    // PNGとして出力
+    rotated_image.write_to(&mut std::io::Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
+
+    buf
+}
+
+// 画像の反転
+#[wasm_bindgen]
+pub fn flip_image(input: &[u8], horizontal: bool) -> Vec<u8> {
+    let mut buf = Vec::new();
+    let img = ImageReader::new(std::io::Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // 反転処理
+    let flipped_image = if horizontal {
+        img.fliph()
+    } else {
+        img.flipv()
+    };
+
+    // PNGとして出力
+    flipped_image.write_to(&mut std::io::Cursor::new(&mut buf), ImageOutputFormat::Png).unwrap();
+
+    buf
+}

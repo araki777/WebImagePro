@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, Maximize2, X, Plus, Scissors, Sliders, Sparkles } from "lucide-react";
+import { Save, Maximize2, X, Plus, Scissors, Sliders, Sparkles, RotateCw } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ImageResizer } from '@/components/ImageResizer';
 import { RATIOS } from '@/lib/constants';
@@ -15,9 +15,10 @@ import { ImageCliperControls } from '@/components/ImageCliperControls';
 import { ImageColorAjustment } from '@/components/ImageColorAjustment';
 import { ImageFilter } from '@/components/ImageFilter';
 import { getWasmModule } from '@/lib/wasm-loader';
+import { ImageTransform } from '@/components/ImageTransform';
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
-  const [activeTab, setActiveTab] = useState("resize");
+  const [activeTab, setActiveTab] = useState("transform");
   const [resizeWidth, setResizeWidth] = useState(0);
   const [resizeHeight, setResizeHeight] = useState(0);
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
@@ -448,6 +449,62 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     updateProcessedImage(clippedBlob);
   }
 
+  const handleRotate = async (degrees: number) => {
+    if (!originalImageBlob) return;
+
+    let imageData: Uint8Array;
+    if (processedImageBlob) {
+      const arrayBuffer = await processedImageBlob.arrayBuffer();
+      imageData = new Uint8Array(arrayBuffer);
+    } else {
+      const arrayBuffer = await originalImageBlob.arrayBuffer();
+      imageData = new Uint8Array(arrayBuffer);
+    }
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.rotate_image !== 'function') {
+      throw new Error('Rotate function not found');
+    }
+
+    const rotatedImage = wasm.rotate_image(imageData, degrees);
+
+    if (!(rotatedImage instanceof Uint8Array)) {
+      throw new Error('Invalid rotate result format');
+    }
+
+    const rotatedBlob = new Blob([rotatedImage], { type: 'image/png' });
+    updateProcessedImage(rotatedBlob);
+  }
+
+  const handleFlip = async (horizontal: boolean) => {
+    if (!originalImageBlob) return;
+
+    let imageData: Uint8Array;
+    if (processedImageBlob) {
+      const arrayBuffer = await processedImageBlob.arrayBuffer();
+      imageData = new Uint8Array(arrayBuffer);
+    } else {
+      const arrayBuffer = await originalImageBlob.arrayBuffer();
+      imageData = new Uint8Array(arrayBuffer);
+    }
+
+    const wasm = await getWasmModule();
+
+    if (typeof wasm.flip_image !== 'function') {
+      throw new Error('Flip function not found');
+    }
+
+    const flippedImage = wasm.flip_image(imageData, horizontal);
+
+    if (!(flippedImage instanceof Uint8Array)) {
+      throw new Error('Invalid flip result format');
+    }
+
+    const flippedBlob = new Blob([flippedImage], { type: 'image/png' });
+    updateProcessedImage(flippedBlob);
+  }
+
   const resizeImage = async () => {
     if (!originalImageBlob) {
       throw new Error('No image to resize');
@@ -607,14 +664,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
               <div className="w-96 flex flex-col">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                  <TabsList className="w-full grid grid-cols-4">
-                    <TabsTrigger value="resize" className="flex-1">
+                  <TabsList className="w-full grid grid-cols-3">
+                    <TabsTrigger value="transform" className="flex-1">
                       <Maximize2 className="w-4 h-4 mr-2" />
-                      リサイズ
-                    </TabsTrigger>
-                    <TabsTrigger value="clip" className="flex-1">
-                      <Scissors className="w-4 h-4 mr-2" />
-                      切り抜き
+                      加工
                     </TabsTrigger>
                     <TabsTrigger value="color_adjustment" className="flex-1">
                       <Sliders className="w-4 h-4 mr-2" />
@@ -626,24 +679,51 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="resize" className="mt-6 space-y-6">
-                    <ImageResizer
-                      resizeWidth={resizeWidth}
-                      resizeHeight={resizeHeight}
-                      onWidthChange={handleWidthChange}
-                      onHeightChange={handleHeightChange}
-                      onAspectRatioChange={handleAspectRatioChange}
-                      maintainAspectRatio={maintainAspectRatio}
-                    />
-                  </TabsContent>
+                  <TabsContent value="transform" className="mt-6 space-y-6">
+                    <Tabs defaultValue="resize" className="w-full">
+                      <TabsList className="w-full grid grid-cols-3">
+                        <TabsTrigger value="resize" className="flex-1">
+                          <Maximize2 className="w-4 h-4 mr-2" />
+                          リサイズ
+                        </TabsTrigger>
+                        <TabsTrigger value="clip" className="flex-1">
+                          <Scissors className="w-4 h-4 mr-2" />
+                          切り抜き
+                        </TabsTrigger>
+                        <TabsTrigger value="rotate" className="flex-1">
+                          <RotateCw className="w-4 h-4 mr-2" />
+                          回転・反転
+                        </TabsTrigger>
+                      </TabsList>
 
-                  <TabsContent value="clip" className="mt-6 space-y-6">
-                    <ImageCliper
-                      selectedRatio={selectedRatio}
-                      onRatioChange={handleRatioChange}
-                      onClip={handleClip}
-                      isSave={isSave}
-                    />
+                      <TabsContent value="resize" className="mt-4">
+                        <ImageResizer
+                          resizeWidth={resizeWidth}
+                          resizeHeight={resizeHeight}
+                          onWidthChange={handleWidthChange}
+                          onHeightChange={handleHeightChange}
+                          onAspectRatioChange={handleAspectRatioChange}
+                          maintainAspectRatio={maintainAspectRatio}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="clip" className="mt-4">
+                        <ImageCliper
+                          selectedRatio={selectedRatio}
+                          onRatioChange={handleRatioChange}
+                          onClip={handleClip}
+                          isSave={isSave}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="rotate" className="mt-4">
+                        <ImageTransform
+                          onRotate={handleRotate}
+                          onFlip={handleFlip}
+                          isSave={isSave}
+                        />
+                      </TabsContent>
+                    </Tabs>
                   </TabsContent>
 
                   <TabsContent value="color_adjustment" className="mt-6 space-y-6">

@@ -1,14 +1,6 @@
 import { create } from 'zustand';
-import { IUserData } from '@/types/types';
+import { AuthState } from '@/types/types';
 import { supabase } from '@/lib/supabase';
-
-interface AuthState {
-  user: IUserData | null;
-  isLoading: boolean;
-  setUser: (user: IUserData | null) => void;
-  checkUser: () => Promise<void>;
-  signOut: () => Promise<void>;
-}
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
