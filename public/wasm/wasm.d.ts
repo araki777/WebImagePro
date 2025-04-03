@@ -20,6 +20,8 @@ export function adjust_invert(input: Uint8Array): Uint8Array;
 export function adjust_threshold(input: Uint8Array, threshold: number): Uint8Array;
 export function resize_image(input: Uint8Array, width: number, height: number): Uint8Array;
 export function clip_image(input: Uint8Array, x: number, y: number, width: number, height: number): Uint8Array;
+export function rotate_image(input: Uint8Array, degrees: number): Uint8Array;
+export function flip_image(input: Uint8Array, horizontal: boolean): Uint8Array;
 /**
  * ガウシアンボカシを適用する
  */
@@ -72,6 +74,8 @@ export interface InitOutput {
   readonly adjust_threshold: (a: number, b: number, c: number) => [number, number];
   readonly resize_image: (a: number, b: number, c: number, d: number) => [number, number];
   readonly clip_image: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
+  readonly rotate_image: (a: number, b: number, c: number) => [number, number];
+  readonly flip_image: (a: number, b: number, c: number) => [number, number];
   readonly apply_gaussian_blur: (a: number, b: number, c: number) => [number, number];
   readonly apply_motion_blur: (a: number, b: number, c: number, d: number) => [number, number];
   readonly apply_sharpen: (a: number, b: number, c: number, d: number) => [number, number];

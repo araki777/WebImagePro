@@ -183,6 +183,34 @@ export function clip_image(input, x, y, width, height) {
 }
 
 /**
+ * @param {Uint8Array} input
+ * @param {number} degrees
+ * @returns {Uint8Array}
+ */
+export function rotate_image(input, degrees) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.rotate_image(ptr0, len0, degrees);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
+}
+
+/**
+ * @param {Uint8Array} input
+ * @param {boolean} horizontal
+ * @returns {Uint8Array}
+ */
+export function flip_image(input, horizontal) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.flip_image(ptr0, len0, horizontal);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
+}
+
+/**
  * ガウシアンボカシを適用する
  * @param {Uint8Array} input
  * @param {number} sigma

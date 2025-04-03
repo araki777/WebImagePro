@@ -1,4 +1,13 @@
-// ユーザーデータの型定義
+// ============================================================================
+// 認証関連の型定義
+// ============================================================================
+
+export interface HeaderProps {
+  onLogout: () => Promise<void>;
+  userImage?: string;
+  userName?: string;
+}
+
 export interface IUserData {
   id: string;
   email?: string;
@@ -11,7 +20,18 @@ export interface IUserData {
   };
 }
 
-// 基本的な画像データの型
+export interface AuthState {
+  user: IUserData | null;
+  isLoading: boolean;
+  setUser: (user: IUserData | null) => void;
+  checkUser: () => Promise<void>;
+  signOut: () => Promise<void>;
+}
+
+// ============================================================================
+// 画像データ関連の型定義
+// ============================================================================
+
 export interface IBaseImage {
   url: string;
   name: string;
@@ -19,18 +39,19 @@ export interface IBaseImage {
   size: number;
 }
 
-// API から取得した画像データ
 export interface IApiImage extends IBaseImage {
   uploadedAt: string;
 }
 
-// 画像アップロード時のプレビュー用データ
 export interface IImagePreview {
   file: File;
   preview: string;
 }
 
-// 画像リストの型定義
+// ============================================================================
+// 画像リスト関連の型定義
+// ============================================================================
+
 export interface IImageListProps {
   images: IApiImage[];
   onEditImage: (image: IApiImage) => void;
@@ -38,14 +59,16 @@ export interface IImageListProps {
   onDelete: (image: IApiImage) => void;
 }
 
-// 画像プレビューリストの型定義
 export interface IImagePreviewListProps {
   images: IImagePreview[];
   onRemove: (index: number) => void;
   onEdit: (index: number) => void;
 }
 
-// 圧縮設定の型定義
+// ============================================================================
+// 画像アップロード関連の型定義
+// ============================================================================
+
 export interface ICompressionSettings {
   enabled: boolean;
   quality: number;
@@ -53,30 +76,58 @@ export interface ICompressionSettings {
   maxHeight: number;
 }
 
-// 圧縮設定のコンポーネントの props 型定義
 export interface ICompressionSettingsProps {
   compressionSettings: ICompressionSettings;
   setCompressionSettings: React.Dispatch<React.SetStateAction<ICompressionSettings>>;
 }
 
-// 検索バーの型定義
 export interface ISearchBarProps {
   query: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-// 画像アップロードフォームの props 型定義
 export interface IImageUploadFormProps extends ICompressionSettingsProps {
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
 }
 
-// 画像アップロードアクションの props 型定義
 export interface IImageUploadActionsProps {
   images: IImagePreview[];
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
 }
 
-// 画像リサイズの props 型定義
+// ============================================================================
+// 画像編集関連の型定義
+// ============================================================================
+
+export interface IImageEditorProps {
+  imageUrl: string;
+  onSave: (editedImage: string, isNewImage: boolean) => void;
+  onClose: () => void;
+}
+
+export interface IPosition {
+  x: number;
+  y: number;
+}
+
+export interface IClipRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export type ResizeHandle = "se" | "e" | "s";
+
+export interface IImageCliperContolesProps {
+  clipRegion: IClipRegion;
+  onMouseDown: (event: React.MouseEvent<HTMLDivElement>, handle?: ResizeHandle) => void;
+}
+
+// ============================================================================
+// 画像変換コンポーネントの型定義
+// ============================================================================
+
 export interface IImageResizerProps {
   resizeWidth: number;
   resizeHeight: number;
@@ -93,33 +144,15 @@ export interface IImageCliperProps {
   isSave: boolean;
 }
 
-// 画像エディターの props 型定義
-export interface IImageEditorProps {
-  imageUrl: string;
-  onSave: (editedImage: string, isNewImage: boolean) => void;
-  onClose: () => void;
+export interface ImageTransformProps {
+  onRotate: (degrees: number) => void;
+  onFlip: (horizontal: boolean) => void;
+  isSave: boolean;
 }
 
-// 画像エディターの座標の型定義
-export interface IPosition {
-  x: number;
-  y: number;
-}
-
-// 画像エディターの切り抜き領域の型定義
-export interface IClipRegion {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-// 画像エディターのリサイズハンドルの型定義
-export type ResizeHandle = "se" | "e" | "s";
-export interface IImageCliperContolesProps {
-  clipRegion: { x: number; y: number; width: number; height: number };
-  onMouseDown: (event: React.MouseEvent<HTMLDivElement>, handle?: ResizeHandle) => void;
-}
+// ============================================================================
+// 画像フィルター関連の型定義
+// ============================================================================
 
 export interface IImageColorAjustmentProps {
   brightness: number;

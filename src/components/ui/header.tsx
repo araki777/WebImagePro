@@ -6,12 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-
-interface HeaderProps {
-  onLogout: () => Promise<void>;
-  userImage?: string;
-  userName?: string;
-}
+import { HeaderProps } from "@/types/types";
 
 export function Header({ onLogout, userImage, userName = "User" }: HeaderProps) {
     return (
