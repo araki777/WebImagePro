@@ -233,3 +233,11 @@ export interface IImageFilterProps {
   onMosaicChange: (value: number) => void;
   onOilPaintingChange: (radius: number, intensity: number) => void;
 }
+
+export interface IImageCompositionProps {
+  onMakeTransparent: (threshold: number) => Promise<void>;
+  onAddWatermark: (watermark: File, x: number, y: number, opacity: number) => Promise<void>;
+  onComposite: (overlay: File, x: number, y: number) => Promise<void>;
+  onAddStamp: (stamp: File, x: number, y: number) => Promise<void>;
+  isSave: boolean;
+}

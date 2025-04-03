@@ -3,6 +3,7 @@ mod color_adjustment;
 mod brightness_adjustment;
 mod image_operations;
 mod filter_effects;
+mod image_composition;
 
 // 色調整関連の関数を再エクスポート
 pub use color_adjustment::{
@@ -38,4 +39,12 @@ pub use filter_effects::{
     apply_hdr,
     apply_mosaic,
     apply_oil_painting
+};
+
+// 画像編集・合成関連の関数を再エクスポート
+pub use image_composition::{
+    make_transparent,
+    add_watermark,
+    composite,
+    add_stamp,
 };

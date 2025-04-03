@@ -1,6 +1,22 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+ * 画像の透過処理を実行
+ */
+export function make_transparent(input: Uint8Array, threshold: number): Uint8Array;
+/**
+ * ウォーターマークを追加
+ */
+export function add_watermark(input: Uint8Array, watermark: Uint8Array, x: number, y: number, opacity: number): Uint8Array;
+/**
+ * 画像を合成（レイヤー）
+ */
+export function composite(input: Uint8Array, overlay: Uint8Array, x: number, y: number): Uint8Array;
+/**
+ * スタンプを追加
+ */
+export function add_stamp(input: Uint8Array, stamp: Uint8Array, x: number, y: number): Uint8Array;
+/**
  * 画像の彩度を調整する
  */
 export function adjust_saturation(input: Uint8Array, saturation: number): Uint8Array;
@@ -63,6 +79,10 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly make_transparent: (a: number, b: number, c: number) => [number, number];
+  readonly add_watermark: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
+  readonly composite: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
+  readonly add_stamp: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
   readonly adjust_saturation: (a: number, b: number, c: number) => [number, number];
   readonly adjust_sepia: (a: number, b: number) => [number, number];
   readonly adjust_color_balance: (a: number, b: number, c: number, d: number, e: number) => [number, number];

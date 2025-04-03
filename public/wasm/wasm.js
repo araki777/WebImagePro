@@ -23,6 +23,79 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
+ * 画像の透過処理を実行
+ * @param {Uint8Array} input
+ * @param {number} threshold
+ * @returns {Uint8Array}
+ */
+export function make_transparent(input, threshold) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.make_transparent(ptr0, len0, threshold);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
+}
+
+/**
+ * ウォーターマークを追加
+ * @param {Uint8Array} input
+ * @param {Uint8Array} watermark
+ * @param {number} x
+ * @param {number} y
+ * @param {number} opacity
+ * @returns {Uint8Array}
+ */
+export function add_watermark(input, watermark, x, y, opacity) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(watermark, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.add_watermark(ptr0, len0, ptr1, len1, x, y, opacity);
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
+
+/**
+ * 画像を合成（レイヤー）
+ * @param {Uint8Array} input
+ * @param {Uint8Array} overlay
+ * @param {number} x
+ * @param {number} y
+ * @returns {Uint8Array}
+ */
+export function composite(input, overlay, x, y) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(overlay, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.composite(ptr0, len0, ptr1, len1, x, y);
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
+
+/**
+ * スタンプを追加
+ * @param {Uint8Array} input
+ * @param {Uint8Array} stamp
+ * @param {number} x
+ * @param {number} y
+ * @returns {Uint8Array}
+ */
+export function add_stamp(input, stamp, x, y) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(stamp, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.add_stamp(ptr0, len0, ptr1, len1, x, y);
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
+
+/**
  * 画像の彩度を調整する
  * @param {Uint8Array} input
  * @param {number} saturation
