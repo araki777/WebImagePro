@@ -38,6 +38,7 @@ export function resize_image(input: Uint8Array, width: number, height: number): 
 export function clip_image(input: Uint8Array, x: number, y: number, width: number, height: number): Uint8Array;
 export function rotate_image(input: Uint8Array, degrees: number): Uint8Array;
 export function flip_image(input: Uint8Array, horizontal: boolean): Uint8Array;
+export function convert_image_format(input: Uint8Array, format: string): Uint8Array;
 /**
  * ガウシアンボカシを適用する
  */
@@ -96,6 +97,7 @@ export interface InitOutput {
   readonly clip_image: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
   readonly rotate_image: (a: number, b: number, c: number) => [number, number];
   readonly flip_image: (a: number, b: number, c: number) => [number, number];
+  readonly convert_image_format: (a: number, b: number, c: number, d: number) => [number, number];
   readonly apply_gaussian_blur: (a: number, b: number, c: number) => [number, number];
   readonly apply_motion_blur: (a: number, b: number, c: number, d: number) => [number, number];
   readonly apply_sharpen: (a: number, b: number, c: number, d: number) => [number, number];
@@ -108,6 +110,7 @@ export interface InitOutput {
   readonly __wbindgen_export_0: WebAssembly.Table;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_start: () => void;
 }
 

@@ -26,6 +26,7 @@ pub use brightness_adjustment::{
 pub use image_operations::{
     resize_image,
     clip_image,
+    convert_image_format,
 };
 
 // フィルター・エフェクト関連の関数を再エクスポート

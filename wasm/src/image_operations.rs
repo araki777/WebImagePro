@@ -98,3 +98,29 @@ pub fn flip_image(input: &[u8], horizontal: bool) -> Vec<u8> {
 
     buf
 }
+
+// 画像フォーマットの変換
+#[wasm_bindgen]
+pub fn convert_image_format(input: &[u8], format: &str) -> Vec<u8> {
+    let mut buf = Vec::new();
+    let img = ImageReader::new(std::io::Cursor::new(input))
+        .with_guessed_format()
+        .unwrap()
+        .decode()
+        .unwrap();
+
+    // フォーマットに応じて出力形式を設定
+    let output_format = match format {
+        "jpeg" | "jpg" => ImageOutputFormat::Jpeg(90),
+        "png" => ImageOutputFormat::Png,
+        "gif" => ImageOutputFormat::Gif,
+        "bmp" => ImageOutputFormat::Bmp,
+        "webp" => ImageOutputFormat::WebP,
+        _ => ImageOutputFormat::Png, // デフォルトはPNG
+    };
+
+    // 指定されたフォーマットで出力
+    img.write_to(&mut std::io::Cursor::new(&mut buf), output_format).unwrap();
+
+    buf
+}

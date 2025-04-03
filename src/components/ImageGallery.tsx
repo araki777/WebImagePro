@@ -51,24 +51,24 @@ export function ImageGallery() {
   };
 
   // 編集中の画像を保存する関数
-  const handleSaveEdit = async (editedImageBase64: string, isNewImage: boolean) => {
-    if (!editingImage) return; // 編集中の画像がない場合は何もしない
+  const handleSaveEdit = async (editedImageBase64: string, isNewImage: boolean, format: string) => {
+    if (!editingImage) return;
 
     try {
       // Base64からBlobを作成
-      const binaryString = atob(editedImageBase64); // Base64文字列をデコード
+      const binaryString = atob(editedImageBase64);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      const blob = new Blob([bytes], { type: 'image/png' });
+      const blob = new Blob([bytes], { type: `image/${format}` });
 
       // 新規保存の場合、ファイル名を変更
       const fileName = isNewImage
-        ? `copy_${editingImage.name}`
-        : editingImage.name;
+        ? `copy_${editingImage.name.replace(/\.[^/.]+$/, '')}.${format}`
+        : editingImage.name.replace(/\.[^/.]+$/, '') + '.' + format;
 
-      const file = new File([blob], fileName, { type: 'image/png' });
+      const file = new File([blob], fileName, { type: `image/${format}` });
       const formData = new FormData();
       formData.append('file', file);
 
