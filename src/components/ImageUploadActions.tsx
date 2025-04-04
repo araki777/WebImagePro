@@ -45,7 +45,7 @@ export function ImageUploadActions({ images, setImages }: IImageUploadActionsPro
 
   return (
     <div className="flex items-center gap-4">
-      <Button onClick={handleUpload} disabled={images.length === 0} className="flex-1">
+      <Button onClick={handleUpload} disabled={images.length === 0} className="flex-1 upload-button">
         <Upload className="mr-2 h-4 w-4" />
         {images.length > 0 ? `${images.length}枚の画像をアップロード` : 'アップロード'}
       </Button>

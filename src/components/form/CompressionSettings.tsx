@@ -14,7 +14,7 @@ export function CompressionSettings({ compressionSettings, setCompressionSetting
         <Collapsible
           open={isSettingsOpen}
           onOpenChange={setIsSettingsOpen}
-          className="border rounded-lg p-4"
+          className="border rounded-lg p-4 compression-settings"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">

@@ -18,6 +18,7 @@ import { getWasmModule } from '@/lib/wasm-loader';
 import { ImageTransform } from '@/components/ImageTransform';
 import { ImageComposition } from '@/components/ImageComposition';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Joyride, { Step } from 'react-joyride';
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("transform");
@@ -56,8 +57,59 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [mosaic, setMosaic] = useState(0);
   const [oilPainting, setOilPainting] = useState({ radius: 0, intensity: 0 });
   const [selectedFormat, setSelectedFormat] = useState('png');
+  const [run, setRun] = useState(true);
+  const [stepIndex, setStepIndex] = useState(0);
   const imageRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  const steps: Step[] = [
+    {
+      target: '.image-container',
+      content: '編集する画像が表示されます。画像のプレビューを確認しながら編集できます',
+      placement: 'right',
+      disableBeacon: true,
+    },
+    {
+      target: '.main-tabs',
+      content: '4つの主要な編集機能があります：\n- 加工：リサイズ、回転、反転\n- 色調整：明るさ、コントラスト、彩度\n- フィルター：ぼかし、シャープ、エッジ検出\n- 編集・合成：透かし、合成、スタンプ',
+      placement: 'left',
+      disableBeacon: true,
+    },
+    {
+      target: '.format-select',
+      content: '保存する画像のフォーマットを選択できます。PNG、JPEG、WebPから選択可能です',
+      placement: 'top',
+      disableBeacon: true,
+    },
+    {
+      target: '.reset-button',
+      content: 'すべての編集を元に戻すことができます。画像を最初の状態にリセットします',
+      placement: 'top',
+      disableBeacon: true,
+    },
+    {
+      target: '.save-button',
+      content: '編集した画像を保存します。元の画像を上書きして保存されます',
+      placement: 'top',
+      disableBeacon: true,
+    },
+    {
+      target: '.save-new-button',
+      content: '編集した画像を新しい画像として保存します。元の画像はそのまま残ります',
+      placement: 'top',
+      disableBeacon: true,
+    }
+  ];
+
+  const handleJoyrideCallback = (data: { type: string; index: number }) => {
+    const { type, index } = data;
+    if (type === 'step:after') {
+      setStepIndex(index + 1);
+    }
+    if (type === 'step:before') {
+      setStepIndex(index - 1);
+    }
+  };
 
   useEffect(() => {
     const loadImage = async () => {
@@ -718,260 +770,291 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     };
   }, [processedImageUrl]);
 
+  useEffect(() => {
+    if (stepIndex >= steps.length) {
+      setRun(false);
+    }
+  }, [stepIndex, steps.length]);
+
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
-      <div className="flex items-center justify-center h-screen p-4">
-        <Card className="w-[1800px] mx-auto relative">
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute -top-3 -right-3 h-8 w-8 rounded-full border-2 bg-background shadow-md hover:scale-105 transition-transform z-10"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <CardContent className="p-6">
-            <div className="flex gap-6">
-              <div
-                ref={imageContainerRef}
-                className="flex-[1.2] rounded-lg border bg-card h-[500px] relative overflow-hidden"
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              >
-                <div className="absolute inset-0 overflow-auto">
-                  <div className="h-full w-full flex items-center justify-center p-4">
-                    <div ref={imageRef} className="relative min-w-max">
-                      <Image
-                        src={processedImageUrl || imageUrl}
-                        alt="Image being edited"
-                        width={originalDimensions.width}
-                        height={originalDimensions.height}
-                        style={{
-                          width: `${resizeWidth}px`,
-                          height: `${resizeHeight}px`,
-                          objectFit: maintainAspectRatio ? 'contain' : 'fill'
-                        }}
-                        priority
-                        unoptimized
-                      />
-                      {activeTab === "transform" && activeTransformTab === "clip" && (
-                        <ImageCliperControls clipRegion={clipRegion} onMouseDown={handleMouseDown} />
-                      )}
+    <>
+      <Joyride
+        steps={steps}
+        continuous
+        showSkipButton
+        showProgress
+        run={run}
+        stepIndex={stepIndex}
+        callback={handleJoyrideCallback}
+        styles={{
+          options: {
+            primaryColor: '#2563eb',
+            zIndex: 10000,
+          }
+        }}
+        disableOverlayClose
+        spotlightPadding={5}
+        floaterProps={{
+          disableAnimation: true,
+        }}
+      />
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
+        <div className="flex items-center justify-center h-screen p-4">
+          <Card className="w-[1800px] mx-auto relative">
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute -top-3 -right-3 h-8 w-8 rounded-full border-2 bg-background shadow-md hover:scale-105 transition-transform z-10"
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <CardContent className="p-6">
+              <div className="flex gap-6">
+                <div
+                  ref={imageContainerRef}
+                  className="image-container flex-[1.2] rounded-lg border bg-card h-[500px] relative overflow-hidden"
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                >
+                  <div className="absolute inset-0 overflow-auto">
+                    <div className="h-full w-full flex items-center justify-center p-4">
+                      <div ref={imageRef} className="relative min-w-max">
+                        <Image
+                          src={processedImageUrl || imageUrl}
+                          alt="Image being edited"
+                          width={originalDimensions.width}
+                          height={originalDimensions.height}
+                          style={{
+                            width: `${resizeWidth}px`,
+                            height: `${resizeHeight}px`,
+                            objectFit: maintainAspectRatio ? 'contain' : 'fill'
+                          }}
+                          priority
+                          unoptimized
+                        />
+                        {activeTab === "transform" && activeTransformTab === "clip" && (
+                          <ImageCliperControls clipRegion={clipRegion} onMouseDown={handleMouseDown} />
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="absolute bottom-3 left-3 bg-background/90 px-3 py-1 rounded-md text-sm">
-                  {resizeWidth} × {resizeHeight} px
-                </div>
-              </div>
-
-              <div className="w-[400px] flex flex-col shrink-0">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-                  <TabsList className="w-full grid grid-cols-4 gap-1 px-1">
-                    <TabsTrigger value="transform" className="flex-1 min-w-0 px-2 text-xs py-1">
-                      <Maximize2 className="w-3 h-3 mr-1" />
-                      加工
-                    </TabsTrigger>
-                    <TabsTrigger value="color_adjustment" className="flex-1 min-w-0 px-2 text-xs py-1">
-                      <Sliders className="w-3 h-3 mr-1" />
-                      色調整
-                    </TabsTrigger>
-                    <TabsTrigger value="filters" className="flex-1 min-w-0 px-2 text-xs py-1">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      フィルター
-                    </TabsTrigger>
-                    <TabsTrigger value="composition" className="flex-1 min-w-0 px-2 text-xs py-1">
-                      <ImageIcon className="w-3 h-3 mr-1" />
-                      編集・合成
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <div className="mt-4 space-y-4">
-                    <TabsContent value="transform" className="mt-0">
-                      <Tabs value={activeTransformTab} onValueChange={setActiveTransformTab} className="w-full">
-                        <TabsList className="w-full grid grid-cols-3 gap-1 px-1">
-                          <TabsTrigger value="resize" className="flex-1 min-w-0 px-2 text-xs py-1">
-                            <Maximize2 className="w-3 h-3 mr-1" />
-                            リサイズ
-                          </TabsTrigger>
-                          <TabsTrigger value="clip" className="flex-1 min-w-0 px-2 text-xs py-1">
-                            <Scissors className="w-3 h-3 mr-1" />
-                            切り抜き
-                          </TabsTrigger>
-                          <TabsTrigger value="rotate" className="flex-1 min-w-0 px-2 text-xs py-1">
-                            <RotateCw className="w-3 h-3 mr-1" />
-                            回転・反転
-                          </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="resize" className="mt-3">
-                          <ImageResizer
-                            resizeWidth={resizeWidth}
-                            resizeHeight={resizeHeight}
-                            onWidthChange={handleWidthChange}
-                            onHeightChange={handleHeightChange}
-                            onAspectRatioChange={handleAspectRatioChange}
-                            maintainAspectRatio={maintainAspectRatio}
-                          />
-                        </TabsContent>
-
-                        <TabsContent value="clip" className="mt-3">
-                          <ImageCliper
-                            selectedRatio={selectedRatio}
-                            onRatioChange={handleRatioChange}
-                            onClip={handleClip}
-                            isSave={isSave}
-                          />
-                        </TabsContent>
-
-                        <TabsContent value="rotate" className="mt-3">
-                          <ImageTransform
-                            onRotate={handleRotate}
-                            onFlip={handleFlip}
-                            isSave={isSave}
-                          />
-                        </TabsContent>
-                      </Tabs>
-                    </TabsContent>
-
-                    <TabsContent value="color_adjustment" className="mt-0">
-                      <ImageColorAjustment
-                        brightness={brightness}
-                        saturation={saturation}
-                        contrast={contrast}
-                        gamma={gamma}
-                        threshold={threshold}
-                        redFactor={redFactor}
-                        greenFactor={greenFactor}
-                        blueFactor={blueFactor}
-                        isGrayScale={isGrayScale}
-                        isSepia={isSepia}
-                        isInvert={isInvert}
-                        setBrightness={setBrightness}
-                        setSaturation={setSaturation}
-                        setContrast={setContrast}
-                        setGamma={setGamma}
-                        setRedFactor={setRedFactor}
-                        setGreenFactor={setGreenFactor}
-                        setBlueFactor={setBlueFactor}
-                        setThreshold={setThreshold}
-                        setIsGrayScale={setIsGrayScale}
-                        setIsSepia={setIsSepia}
-                        setIsInvert={setIsInvert}
-                        onBrightnessChange={handleBrightness}
-                        onSaturationChange={handleSaturation}
-                        onContrastChange={handleContrast}
-                        onGammaChange={handleGamma}
-                        onThresholdChange={handleThreshold}
-                        onColorBalanceChange={handleColorBalance}
-                        onGrayscaleChange={handleGrayscale}
-                        onSepiaChange={handleSepia}
-                        onInvertChange={handleInvert}
-                        isSave={isSave}
-                      />
-                    </TabsContent>
-
-                    <TabsContent value="filters" className="mt-0">
-                      <ImageFilter
-                        gaussianBlur={gaussianBlur}
-                        motionBlur={motionBlur}
-                        sharpen={sharpen}
-                        edgeDetection={edgeDetection}
-                        noiseReduction={noiseReduction}
-                        vignette={vignette}
-                        hdr={hdr}
-                        mosaic={mosaic}
-                        oilPainting={oilPainting}
-                        setGaussianBlur={setGaussianBlur}
-                        setMotionBlur={setMotionBlur}
-                        setSharpen={setSharpen}
-                        setEdgeDetection={setEdgeDetection}
-                        setNoiseReduction={setNoiseReduction}
-                        setVignette={setVignette}
-                        setHdr={setHdr}
-                        setMosaic={setMosaic}
-                        setOilPainting={setOilPainting}
-                        onGaussianBlurChange={handleGaussianBlur}
-                        onMotionBlurChange={handleMotionBlur}
-                        onSharpenChange={handleSharpen}
-                        onEdgeDetectionChange={handleEdgeDetection}
-                        onNoiseReductionChange={handleNoiseReduction}
-                        onVignetteChange={handleVignette}
-                        onHdrChange={handleHdr}
-                        onMosaicChange={handleMosaic}
-                        onOilPaintingChange={handleOilPainting}
-                      />
-                    </TabsContent>
-
-                    <TabsContent value="composition" className="mt-0">
-                      <ImageComposition
-                        onMakeTransparent={handleMakeTransparent}
-                        onAddWatermark={handleAddWatermark}
-                        onComposite={handleComposite}
-                        onAddStamp={handleAddStamp}
-                        isSave={isSave}
-                      />
-                    </TabsContent>
+                  <div className="absolute bottom-3 left-3 bg-background/90 px-3 py-1 rounded-md text-sm">
+                    {resizeWidth} × {resizeHeight} px
                   </div>
-                </Tabs>
+                </div>
 
-                <Separator className="my-2" />
+                <div className="w-[400px] flex flex-col shrink-0">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="main-tabs flex-1">
+                    <TabsList className="w-full grid grid-cols-4 gap-1 px-1">
+                      <TabsTrigger value="transform" className="flex-1 min-w-0 px-2 text-xs py-1">
+                        <Maximize2 className="w-3 h-3 mr-1" />
+                        加工
+                      </TabsTrigger>
+                      <TabsTrigger value="color_adjustment" className="flex-1 min-w-0 px-2 text-xs py-1">
+                        <Sliders className="w-3 h-3 mr-1" />
+                        色調整
+                      </TabsTrigger>
+                      <TabsTrigger value="filters" className="flex-1 min-w-0 px-2 text-xs py-1">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        フィルター
+                      </TabsTrigger>
+                      <TabsTrigger value="composition" className="flex-1 min-w-0 px-2 text-xs py-1">
+                        <ImageIcon className="w-3 h-3 mr-1" />
+                        編集・合成
+                      </TabsTrigger>
+                    </TabsList>
 
-                <div className="space-y-2">
-                  <Select value={selectedFormat} onValueChange={setSelectedFormat}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="フォーマットを選択" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {IMAGE_FORMATS.map((format) => (
-                        <SelectItem key={format.value} value={format.value}>
-                          {format.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    className="w-full"
-                    onClick={() => handleImageReset()}
-                  >
-                    画像をリセット
-                  </Button>
-                  <Button
-                    className="w-full"
-                    onClick={() => handleSave()}
-                    disabled={isSave}
-                  >
-                    {isSave ? (
-                      <span>処理中...</span>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        変更を保存
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => handleSaveNew()}
-                    disabled={isSave}
-                  >
-                    {isSave ? (
-                      <span>処理中...</span>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        新規として保存
-                      </>
-                    )}
-                  </Button>
+                    <div className="mt-4 space-y-4">
+                      <TabsContent value="transform" className="mt-0">
+                        <Tabs value={activeTransformTab} onValueChange={setActiveTransformTab} className="w-full">
+                          <TabsList className="w-full grid grid-cols-3 gap-1 px-1">
+                            <TabsTrigger value="resize" className="flex-1 min-w-0 px-2 text-xs py-1">
+                              <Maximize2 className="w-3 h-3 mr-1" />
+                              リサイズ
+                            </TabsTrigger>
+                            <TabsTrigger value="clip" className="flex-1 min-w-0 px-2 text-xs py-1 clip-tab">
+                              <Scissors className="w-3 h-3 mr-1" />
+                              切り抜き
+                            </TabsTrigger>
+                            <TabsTrigger value="rotate" className="flex-1 min-w-0 px-2 text-xs py-1">
+                              <RotateCw className="w-3 h-3 mr-1" />
+                              回転・反転
+                            </TabsTrigger>
+                          </TabsList>
+
+                          <TabsContent value="resize" className="mt-3">
+                            <ImageResizer
+                              resizeWidth={resizeWidth}
+                              resizeHeight={resizeHeight}
+                              onWidthChange={handleWidthChange}
+                              onHeightChange={handleHeightChange}
+                              onAspectRatioChange={handleAspectRatioChange}
+                              maintainAspectRatio={maintainAspectRatio}
+                            />
+                          </TabsContent>
+
+                          <TabsContent value="clip" className="mt-3">
+                            <ImageCliper
+                              selectedRatio={selectedRatio}
+                              onRatioChange={handleRatioChange}
+                              onClip={handleClip}
+                              isSave={isSave}
+                            />
+                          </TabsContent>
+
+                          <TabsContent value="rotate" className="mt-3">
+                            <ImageTransform
+                              onRotate={handleRotate}
+                              onFlip={handleFlip}
+                              isSave={isSave}
+                            />
+                          </TabsContent>
+                        </Tabs>
+                      </TabsContent>
+
+                      <TabsContent value="color_adjustment" className="mt-0">
+                        <ImageColorAjustment
+                          brightness={brightness}
+                          saturation={saturation}
+                          contrast={contrast}
+                          gamma={gamma}
+                          threshold={threshold}
+                          redFactor={redFactor}
+                          greenFactor={greenFactor}
+                          blueFactor={blueFactor}
+                          isGrayScale={isGrayScale}
+                          isSepia={isSepia}
+                          isInvert={isInvert}
+                          setBrightness={setBrightness}
+                          setSaturation={setSaturation}
+                          setContrast={setContrast}
+                          setGamma={setGamma}
+                          setRedFactor={setRedFactor}
+                          setGreenFactor={setGreenFactor}
+                          setBlueFactor={setBlueFactor}
+                          setThreshold={setThreshold}
+                          setIsGrayScale={setIsGrayScale}
+                          setIsSepia={setIsSepia}
+                          setIsInvert={setIsInvert}
+                          onBrightnessChange={handleBrightness}
+                          onSaturationChange={handleSaturation}
+                          onContrastChange={handleContrast}
+                          onGammaChange={handleGamma}
+                          onThresholdChange={handleThreshold}
+                          onColorBalanceChange={handleColorBalance}
+                          onGrayscaleChange={handleGrayscale}
+                          onSepiaChange={handleSepia}
+                          onInvertChange={handleInvert}
+                          isSave={isSave}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="filters" className="mt-0">
+                        <ImageFilter
+                          gaussianBlur={gaussianBlur}
+                          motionBlur={motionBlur}
+                          sharpen={sharpen}
+                          edgeDetection={edgeDetection}
+                          noiseReduction={noiseReduction}
+                          vignette={vignette}
+                          hdr={hdr}
+                          mosaic={mosaic}
+                          oilPainting={oilPainting}
+                          setGaussianBlur={setGaussianBlur}
+                          setMotionBlur={setMotionBlur}
+                          setSharpen={setSharpen}
+                          setEdgeDetection={setEdgeDetection}
+                          setNoiseReduction={setNoiseReduction}
+                          setVignette={setVignette}
+                          setHdr={setHdr}
+                          setMosaic={setMosaic}
+                          setOilPainting={setOilPainting}
+                          onGaussianBlurChange={handleGaussianBlur}
+                          onMotionBlurChange={handleMotionBlur}
+                          onSharpenChange={handleSharpen}
+                          onEdgeDetectionChange={handleEdgeDetection}
+                          onNoiseReductionChange={handleNoiseReduction}
+                          onVignetteChange={handleVignette}
+                          onHdrChange={handleHdr}
+                          onMosaicChange={handleMosaic}
+                          onOilPaintingChange={handleOilPainting}
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="composition" className="mt-0">
+                        <ImageComposition
+                          onMakeTransparent={handleMakeTransparent}
+                          onAddWatermark={handleAddWatermark}
+                          onComposite={handleComposite}
+                          onAddStamp={handleAddStamp}
+                          isSave={isSave}
+                        />
+                      </TabsContent>
+                    </div>
+                  </Tabs>
+
+                  <Separator className="my-2" />
+
+                  <div className="space-y-2">
+                    <div className="format-select">
+                      <div className="text-sm font-medium mb-2">保存形式</div>
+                      <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="フォーマットを選択" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {IMAGE_FORMATS.map((format) => (
+                            <SelectItem key={format.value} value={format.value}>
+                              {format.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      className="w-full reset-button"
+                      onClick={() => handleImageReset()}
+                    >
+                      画像をリセット
+                    </Button>
+                    <Button
+                      className="w-full save-button"
+                      onClick={() => handleSave()}
+                      disabled={isSave}
+                    >
+                      {isSave ? (
+                        <span>処理中...</span>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          変更を保存
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full save-new-button"
+                      onClick={() => handleSaveNew()}
+                      disabled={isSave}
+                    >
+                      {isSave ? (
+                        <span>処理中...</span>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          新規として保存
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

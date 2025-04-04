@@ -29,11 +29,11 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="upload" className="space-y-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="upload" className="flex items-center gap-2">
+            <TabsTrigger value="upload" className="flex items-center gap-2" data-tab="upload">
               <Upload className="h-4 w-4" />
               アップロード
             </TabsTrigger>
-            <TabsTrigger value="gallery" className="flex items-center gap-2">
+            <TabsTrigger value="gallery" className="flex items-center gap-2" data-tab="gallery">
               <ImageIcon className="h-4 w-4" />
               ギャラリー
             </TabsTrigger>

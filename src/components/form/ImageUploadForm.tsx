@@ -40,7 +40,7 @@ export function ImageUploadForm({ setImages, compressionSettings, setCompression
 
     return (
         <div className="grid w-full items-center gap-4">
-        <Input type="file" accept="image/*" multiple onChange={handleFileChange} className="cursor-pointer" />
+        <Input type="file" accept="image/*" multiple onChange={handleFileChange} className="cursor-pointer upload-header" />
         <CompressionSettings
           compressionSettings={compressionSettings}
           setCompressionSettings={setCompressionSettings}
