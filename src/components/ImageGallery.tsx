@@ -8,12 +8,49 @@ import { toast } from 'sonner';
 import { IApiImage } from '@/types/types';
 import { ImageList } from '@/components/ImageList';
 import { SearchBar } from '@/components/ui/searchBar';
+import Joyride, { Step } from 'react-joyride';
 
 export function ImageGallery() {
   const [images, setImages] = useState<IApiImage[]>([]); // 画像データの状態
   const [loading, setLoading] = useState(true); // ローディング状態
   const [searchQuery, setSearchQuery] = useState(''); // 検索クエリ
   const [editingImage, setEditingImage] = useState<IApiImage | null>(null); // 編集中の画像
+  const [run, setRun] = useState(true);
+  const [stepIndex, setStepIndex] = useState(0);
+
+  const steps: Step[] = [
+    {
+      target: '[data-tab="gallery"]',
+      content: 'アップロードした画像はギャラリーで管理できます。画像の編集や削除も可能です',
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '.search-bar',
+      content: '画像を検索できます。ファイル名で検索しましょう',
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '.image-list',
+      content: 'アップロードした画像が一覧表示されます。各画像に対して編集、ダウンロード、削除が可能です',
+      placement: 'bottom',
+      disableBeacon: true,
+    }
+  ];
+
+  const handleJoyrideCallback = (data: { type: string; index: number }) => {
+    const { type, index } = data;
+    if (type === 'step:after') {
+      setStepIndex(index + 1);
+    }
+  };
+
+  useEffect(() => {
+    if (stepIndex >= steps.length) {
+      setRun(false);
+    }
+  }, [stepIndex, steps.length]);
 
   // コンポーネントがマウントされた時に画像データを取得
   useEffect(() => {
@@ -145,6 +182,26 @@ export function ImageGallery() {
 
   return (
     <>
+      <Joyride
+        steps={steps}
+        continuous
+        showSkipButton
+        showProgress
+        run={run}
+        stepIndex={stepIndex}
+        callback={handleJoyrideCallback}
+        styles={{
+          options: {
+            primaryColor: '#2563eb',
+            zIndex: 10000,
+          }
+        }}
+        disableOverlayClose
+        spotlightPadding={5}
+        floaterProps={{
+          disableAnimation: true,
+        }}
+      />
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

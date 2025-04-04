@@ -72,6 +72,7 @@ export interface IImageListProps {
   onEditImage: (image: IApiImage) => void;
   onDownload: (image: IApiImage) => void;
   onDelete: (image: IApiImage) => void;
+  className?: string;
 }
 
 export interface IImagePreviewListProps {
@@ -99,6 +100,7 @@ export interface ICompressionSettingsProps {
 export interface ISearchBarProps {
   query: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
 }
 
 export interface IImageUploadFormProps extends ICompressionSettingsProps {

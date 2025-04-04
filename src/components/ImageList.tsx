@@ -4,10 +4,11 @@ import { Pencil, Download, Trash2 } from "lucide-react";
 import { formatFileSize } from "@/lib/utils";
 import Image from "next/image";
 import { IImageListProps } from "@/types/types";
+import { cn } from "@/lib/utils";
 
-export function ImageList({ images, onEditImage, onDownload, onDelete }: IImageListProps) {
+export function ImageList({ images, onEditImage, onDownload, onDelete, className }: IImageListProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-4 image-list", className)}>
       {images.map((image) => (
         <div key={image.url} className="overflow-hidden">
           <div className="p-4">
