@@ -34,9 +34,6 @@ yarn-error.log*
 .env*
 !.env.example
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -44,4 +41,3 @@ next-env.d.ts
 *storybook.log
 
 .task/
-.vercel
