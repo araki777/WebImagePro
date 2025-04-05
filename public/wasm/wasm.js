@@ -23,76 +23,47 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
- * 画像の透過処理を実行
+ * 画像のコントラストを調整する
  * @param {Uint8Array} input
- * @param {number} threshold
+ * @param {number} contrast
  * @returns {Uint8Array}
  */
-export function make_transparent(input, threshold) {
+export function adjust_contrast(input, contrast) {
     const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.make_transparent(ptr0, len0, threshold);
+    const ret = wasm.adjust_contrast(ptr0, len0, contrast);
     var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
     return v2;
 }
 
 /**
- * ウォーターマークを追加
+ * ガンマ補正処理
  * @param {Uint8Array} input
- * @param {Uint8Array} watermark
- * @param {number} x
- * @param {number} y
- * @param {number} opacity
+ * @param {number} gamma
  * @returns {Uint8Array}
  */
-export function add_watermark(input, watermark, x, y, opacity) {
+export function adjust_gamma(input, gamma) {
     const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passArray8ToWasm0(watermark, wasm.__wbindgen_malloc);
-    const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.add_watermark(ptr0, len0, ptr1, len1, x, y, opacity);
-    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    const ret = wasm.adjust_gamma(ptr0, len0, gamma);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v3;
+    return v2;
 }
 
 /**
- * 画像を合成（レイヤー）
+ * グレースケール変換
  * @param {Uint8Array} input
- * @param {Uint8Array} overlay
- * @param {number} x
- * @param {number} y
  * @returns {Uint8Array}
  */
-export function composite(input, overlay, x, y) {
+export function adjust_grayscale(input) {
     const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passArray8ToWasm0(overlay, wasm.__wbindgen_malloc);
-    const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.composite(ptr0, len0, ptr1, len1, x, y);
-    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    const ret = wasm.adjust_grayscale(ptr0, len0);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v3;
-}
-
-/**
- * スタンプを追加
- * @param {Uint8Array} input
- * @param {Uint8Array} stamp
- * @param {number} x
- * @param {number} y
- * @returns {Uint8Array}
- */
-export function add_stamp(input, stamp, x, y) {
-    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passArray8ToWasm0(stamp, wasm.__wbindgen_malloc);
-    const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.add_stamp(ptr0, len0, ptr1, len1, x, y);
-    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v3;
+    return v2;
 }
 
 /**
@@ -111,6 +82,7 @@ export function adjust_saturation(input, saturation) {
 }
 
 /**
+ * セピア調整
  * @param {Uint8Array} input
  * @returns {Uint8Array}
  */
@@ -124,19 +96,42 @@ export function adjust_sepia(input) {
 }
 
 /**
+ * 画像の透過処理を実行
  * @param {Uint8Array} input
- * @param {number} red_factor
- * @param {number} green_factor
- * @param {number} blue_factor
+ * @param {number} threshold
  * @returns {Uint8Array}
  */
-export function adjust_color_balance(input, red_factor, green_factor, blue_factor) {
+export function make_transparent(input, threshold) {
     const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.adjust_color_balance(ptr0, len0, red_factor, green_factor, blue_factor);
+    const ret = wasm.make_transparent(ptr0, len0, threshold);
     var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
     return v2;
+}
+
+const cachedTextDecoder = (typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { ignoreBOM: true, fatal: true }) : { decode: () => { throw Error('TextDecoder not available') } } );
+
+if (typeof TextDecoder !== 'undefined') { cachedTextDecoder.decode(); };
+
+function getStringFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
+}
+/**
+ * @returns {string}
+ */
+export function greet() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.greet();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
 }
 
 /**
@@ -155,48 +150,7 @@ export function adjust_brightness(input, brightness) {
 }
 
 /**
- * 画像のコントラストを調整する
- * @param {Uint8Array} input
- * @param {number} contrast
- * @returns {Uint8Array}
- */
-export function adjust_contrast(input, contrast) {
-    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.adjust_contrast(ptr0, len0, contrast);
-    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v2;
-}
-
-/**
- * @param {Uint8Array} input
- * @param {number} gamma
- * @returns {Uint8Array}
- */
-export function adjust_gamma(input, gamma) {
-    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.adjust_gamma(ptr0, len0, gamma);
-    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v2;
-}
-
-/**
- * @param {Uint8Array} input
- * @returns {Uint8Array}
- */
-export function adjust_grayscale(input) {
-    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.adjust_grayscale(ptr0, len0);
-    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v2;
-}
-
-/**
+ * 反転処理
  * @param {Uint8Array} input
  * @returns {Uint8Array}
  */
@@ -210,6 +164,7 @@ export function adjust_invert(input) {
 }
 
 /**
+ * 画像の白黒変換（2値化）
  * @param {Uint8Array} input
  * @param {number} threshold
  * @returns {Uint8Array}
@@ -218,6 +173,23 @@ export function adjust_threshold(input, threshold) {
     const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.adjust_threshold(ptr0, len0, threshold);
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
+}
+
+/**
+ * カラーバランス調整
+ * @param {Uint8Array} input
+ * @param {number} red_factor
+ * @param {number} green_factor
+ * @param {number} blue_factor
+ * @returns {Uint8Array}
+ */
+export function adjust_color_balance(input, red_factor, green_factor, blue_factor) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.adjust_color_balance(ptr0, len0, red_factor, green_factor, blue_factor);
     var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
     return v2;
@@ -347,6 +319,64 @@ export function convert_image_format(input, format) {
     const ptr1 = passStringToWasm0(format, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
     const ret = wasm.convert_image_format(ptr0, len0, ptr1, len1);
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
+
+/**
+ * ウォーターマークを追加
+ * @param {Uint8Array} input
+ * @param {Uint8Array} watermark
+ * @param {number} x
+ * @param {number} y
+ * @param {number} opacity
+ * @returns {Uint8Array}
+ */
+export function add_watermark(input, watermark, x, y, opacity) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(watermark, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.add_watermark(ptr0, len0, ptr1, len1, x, y, opacity);
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
+
+/**
+ * 画像を合成（レイヤー）
+ * @param {Uint8Array} input
+ * @param {Uint8Array} overlay
+ * @param {number} x
+ * @param {number} y
+ * @returns {Uint8Array}
+ */
+export function composite(input, overlay, x, y) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(overlay, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.composite(ptr0, len0, ptr1, len1, x, y);
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
+
+/**
+ * スタンプを追加
+ * @param {Uint8Array} input
+ * @param {Uint8Array} stamp
+ * @param {number} x
+ * @param {number} y
+ * @returns {Uint8Array}
+ */
+export function add_stamp(input, stamp, x, y) {
+    const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(stamp, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.add_stamp(ptr0, len0, ptr1, len1, x, y);
     var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
     return v3;
