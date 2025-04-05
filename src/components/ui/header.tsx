@@ -1,12 +1,12 @@
 "use client";
 
-import { Upload, LogOut, User, Settings, HelpCircle, Home, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Upload, LogOut, User, Settings, Home, Image as ImageIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { HeaderProps } from "@/types/types";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export function Header({ onLogout, userImage, userName = "User" }: HeaderProps) {
     return (
@@ -70,12 +70,6 @@ export function Header({ onLogout, userImage, userName = "User" }: HeaderProps) 
                                     <Link href="/settings">
                                         <Settings className="mr-2 h-4 w-4" />
                                         設定
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" className="w-full justify-start" asChild>
-                                    <Link href="/help">
-                                        <HelpCircle className="mr-2 h-4 w-4" />
-                                        ヘルプ
                                     </Link>
                                 </Button>
                             </div>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { AuthState, UserSettings } from '@/types/types';
 import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
@@ -72,15 +73,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from("user_settings")
-        .update(settings)
-        .eq("user_id", user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      set({ userSettings: data });
+      // APIを使用してユーザー設定を更新
+      const data = await api.update<UserSettings[]>('user_settings', user.id, settings);
+      
+      // 設定を更新
+      if (data && data.length > 0) {
+        set({ userSettings: data[0] });
+      }
     } catch (error) {
       console.error('設定更新エラー:', error);
     }
@@ -90,40 +89,45 @@ export const useAuthStore = create<AuthState>((set) => ({
 // ユーザー設定を取得する関数
 async function fetchUserSettings(userId: string) {
   try {
-    const { data: settings, error } = await supabase
-      .from("user_settings")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-
-    if (error) {
-      if (error.code === "PGRST116") {
+    // APIを使用してユーザー設定を取得
+    try {
+      const data = await api.get<UserSettings[]>('user_settings', userId);
+      if (data && data.length > 0) {
+        useAuthStore.setState({ userSettings: data[0] });
+      } else {
         // 設定が存在しない場合は新規作成
-        const { data: newSettings, error: createError } = await supabase
-          .from("user_settings")
-          .insert([
-            {
-              user_id: userId,
-              theme: "system",
-              language: "ja",
-              subscription_status: null,
-              subscription_id: null,
-              subscription_end_date: null,
-              stripe_customer_id: null,
-            },
-          ])
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        useAuthStore.setState({ userSettings: newSettings });
+        await createUserSettings(userId);
+      }
+    } catch (error) {
+      // エラーの内容を確認して、設定が存在しない場合は新規作成
+      if (error instanceof Error && error.message.includes('PGRST116')) {
+        await createUserSettings(userId);
       } else {
         throw error;
       }
-    } else {
-      useAuthStore.setState({ userSettings: settings });
     }
   } catch (error) {
     console.error('ユーザー設定取得エラー:', error);
+  }
+}
+
+// ユーザー設定を新規作成する関数
+async function createUserSettings(userId: string) {
+  try {
+    const data = await api.create<UserSettings[]>('user_settings', {
+      user_id: userId,
+      theme: "system",
+      language: "ja",
+      subscription_status: null,
+      subscription_id: null,
+      subscription_end_date: null,
+      stripe_customer_id: null,
+    });
+    
+    if (data && data.length > 0) {
+      useAuthStore.setState({ userSettings: data[0] });
+    }
+  } catch (error) {
+    console.error('ユーザー設定作成エラー:', error);
   }
 }

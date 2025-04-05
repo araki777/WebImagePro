@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 import TourGuid from "@/components/common/TourGuid";
 import { Step } from "react-joyride";
+import { api } from "@/lib/api";
 
 // ツアーステップを定義
 const steps: Step[] = [
@@ -75,6 +76,14 @@ export default function ProfilePage() {
     setIsUpdating(true);
 
     try {
+      // APIを使用してユーザープロフィールデータを更新
+      await api.update('user_profiles', user.id, {
+        full_name: formData.full_name,
+        display_name: formData.display_name,
+        bio: formData.bio,
+      });
+
+      // Auth情報も更新
       const { error } = await supabase.auth.updateUser({
         data: {
           full_name: formData.full_name,
@@ -97,7 +106,7 @@ export default function ProfilePage() {
       toast.success('プロフィールを更新しました');
     } catch (error) {
       console.error('プロフィール更新エラー:', error);
-      toast.error('プロフィールの更新に失敗しました');
+      toast.error(error instanceof Error ? error.message : 'プロフィールの更新に失敗しました');
     } finally {
       setIsUpdating(false);
     }
