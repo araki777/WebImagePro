@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Image as ImageIcon, Settings2 } from "lucide-react";
 import { ImageEditor } from "@/components/ImageEditor";
@@ -9,52 +9,12 @@ import { ICompressionSettings, IImagePreview } from '@/types/types';
 import { ImagePreviewList } from '@/components/ImagePreviewList';
 import { ImageUploadForm } from '@/components/form/ImageUploadForm';
 import { ImageUploadActions } from '@/components/ImageUploadActions';
-import Joyride, { Step } from 'react-joyride';
 
 export function ImageUpload() {
   // 状態管理: アップロードした画像、設定、編集中の画像インデックスなど
   const [images, setImages] = useState<IImagePreview[]>([]);
   const [compressionSettings, setCompressionSettings] = useState<ICompressionSettings>(DEFAULT_COMPRESSION_SETTINGS); // 圧縮設定の状態
   const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null); // 編集中の画像のインデックス
-  const [run, setRun] = useState(true);
-  const [stepIndex, setStepIndex] = useState(0);
-
-  const steps: Step[] = [
-    {
-      target: '.upload-header',
-      content: 'ここでファイルを選択する',
-      placement: 'bottom',
-      disableBeacon: true,
-    },
-    {
-      target: '.compression-settings',
-      content: '画像の圧縮設定を調整できます。画質とファイルサイズのバランスを調整しましょう',
-      placement: 'bottom',
-      disableBeacon: true,
-    },
-    {
-      target: '.upload-button',
-      content: '選択した画像をアップロードするボタンです。複数の画像を一括でアップロードできます',
-      placement: 'bottom',
-      disableBeacon: true,
-    }
-  ];
-
-  useEffect(() => {
-    if (stepIndex >= steps.length) {
-      setRun(false);
-    }
-  }, [stepIndex, steps.length]);
-
-  const handleJoyrideCallback = (data: { type: string; index: number }) => {
-    const { type, index } = data;
-    if (type === 'step:after') {
-      setStepIndex(index + 1);
-    }
-    if (type === 'step:before') {
-      setStepIndex(index - 1);
-    }
-  };
 
   // 画像を削除する関数
   const removeImage = (index: number) => {
@@ -83,25 +43,6 @@ export function ImageUpload() {
 
   return (
     <>
-      <Joyride
-        steps={steps}
-        continuous
-        showSkipButton
-        showProgress
-        run={run}
-        stepIndex={stepIndex}
-        callback={handleJoyrideCallback}
-        styles={{
-          options: {
-            primaryColor: '#2563eb',
-            zIndex: 10000,
-          }
-        }}
-        disableOverlayClose
-        spotlightPadding={5}
-        floaterProps={{
-        }}
-      />
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
