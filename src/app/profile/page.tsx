@@ -10,6 +10,40 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
+import TourGuid from "@/components/common/TourGuid";
+import { Step } from "react-joyride";
+
+// ツアーステップを定義
+const steps: Step[] = [
+  {
+    target: '.profile-avatar',
+    content: 'プロフィール画像です。ログインに使用したサービスのアバターが表示されます。',
+    placement: 'right',
+    disableBeacon: true,
+    spotlightClicks: true,
+  },
+  {
+    target: '.profile-form',
+    content: 'プロフィール情報を編集できます。フルネーム、表示名、自己紹介文を設定しましょう。',
+    placement: 'bottom',
+    disableBeacon: true,
+    spotlightClicks: true,
+  },
+  {
+    target: '.update-button',
+    content: '情報を編集したら、このボタンをクリックして変更を保存します。',
+    placement: 'top',
+    disableBeacon: true,
+    spotlightClicks: true,
+  },
+  {
+    target: '.user-info',
+    content: 'ユーザーIDやログイン方法などのアカウント情報が表示されています。',
+    placement: 'top',
+    disableBeacon: true,
+    spotlightClicks: true,
+  }
+];
 
 export default function ProfilePage() {
   const { user, isLoading, signOut, setUser, checkUser } = useAuthStore();
@@ -71,6 +105,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
         userImage={user.user_metadata.avatar_url}
@@ -83,7 +118,7 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20">
+              <Avatar className="profile-avatar h-20 w-20">
                 <AvatarImage src={user.user_metadata.avatar_url} />
                 <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
               </Avatar>
@@ -93,7 +128,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="profile-form space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="full_name">フルネーム</Label>
                 <Input
@@ -127,21 +162,23 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <Button type="submit" disabled={isUpdating}>
+              <Button type="submit" disabled={isUpdating} className="update-button">
                 {isUpdating ? '更新中...' : 'プロフィールを更新'}
               </Button>
             </form>
 
-            <div className="space-y-2">
-              <h3 className="font-semibold">ユーザーID</h3>
-              <p className="text-gray-600">{user.id}</p>
-            </div>
-            {user.user_metadata.provider && (
+            <div className="user-info space-y-4">
               <div className="space-y-2">
-                <h3 className="font-semibold">ログイン方法</h3>
-                <p className="text-gray-600">{user.user_metadata.provider}</p>
+                <h3 className="font-semibold">ユーザーID</h3>
+                <p className="text-gray-600">{user.id}</p>
               </div>
-            )}
+              {user.user_metadata.provider && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold">ログイン方法</h3>
+                  <p className="text-gray-600">{user.user_metadata.provider}</p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </main>

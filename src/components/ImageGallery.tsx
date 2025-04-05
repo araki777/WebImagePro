@@ -8,49 +8,71 @@ import { toast } from 'sonner';
 import { IApiImage } from '@/types/types';
 import { ImageList } from '@/components/ImageList';
 import { SearchBar } from '@/components/ui/searchBar';
-import Joyride, { Step } from 'react-joyride';
+import { Step } from 'react-joyride';
+import TourGuid from '@/components/common/TourGuid';
 
 export function ImageGallery() {
   const [images, setImages] = useState<IApiImage[]>([]); // 画像データの状態
   const [loading, setLoading] = useState(true); // ローディング状態
   const [searchQuery, setSearchQuery] = useState(''); // 検索クエリ
   const [editingImage, setEditingImage] = useState<IApiImage | null>(null); // 編集中の画像
-  const [run, setRun] = useState(true);
-  const [stepIndex, setStepIndex] = useState(0);
 
-  const steps: Step[] = [
-    {
-      target: '[data-tab="gallery"]',
-      content: 'アップロードした画像はギャラリーで管理できます。画像の編集や削除も可能です',
-      placement: 'bottom',
-      disableBeacon: true,
-    },
-    {
-      target: '.search-bar',
-      content: '画像を検索できます。ファイル名で検索しましょう',
-      placement: 'bottom',
-      disableBeacon: true,
-    },
-    {
-      target: '.image-list',
-      content: 'アップロードした画像が一覧表示されます。各画像に対して編集、ダウンロード、削除が可能です',
-      placement: 'bottom',
-      disableBeacon: true,
-    }
-  ];
+  // ツアーガイドのステップを定義
+  const getTourSteps = (): Step[] => {
+    const baseSteps: Step[] = [
+      {
+        target: '.search-bar',
+        content: '画像名を入力して検索できます。日本語や英語の画像名で検索可能です。',
+        placement: 'bottom',
+        disableBeacon: true,
+        spotlightClicks: true,
+      }
+    ];
 
-  const handleJoyrideCallback = (data: { type: string; index: number }) => {
-    const { type, index } = data;
-    if (type === 'step:after') {
-      setStepIndex(index + 1);
+    // 画像がある場合のみ追加のステップを表示
+    if (images.length > 0) {
+      return [
+        ...baseSteps,
+        {
+          target: '.image-list > div:first-child',
+          content: 'アップロードした画像がここに表示されます。画像のサムネイルとファイル名が表示されます。',
+          placement: 'right',
+          disableBeacon: true,
+          spotlightClicks: true,
+        },
+        {
+          target: '.image-list > div:first-child .aspect-video',
+          content: '画像のプレビューです。クリックして画像を拡大表示することもできます。',
+          placement: 'top',
+          disableBeacon: true,
+          spotlightClicks: true,
+        },
+        {
+          target: '.image-list > div:first-child button:nth-child(1)',
+          content: '編集ボタンをクリックすると画像編集モードが開きます。サイズ変更、切り抜き、色調整など様々な編集が可能です。',
+          placement: 'bottom',
+          disableBeacon: true,
+          spotlightClicks: true,
+        },
+        {
+          target: '.image-list > div:first-child button:nth-child(2)',
+          content: 'ダウンロードボタンをクリックすると画像をダウンロードできます。元のファイル名で保存されます。',
+          placement: 'bottom',
+          disableBeacon: true,
+          spotlightClicks: true,
+        },
+        {
+          target: '.image-list > div:first-child button:nth-child(3)',
+          content: '削除ボタンをクリックすると画像を削除できます。削除した画像は元に戻せないので注意してください。',
+          placement: 'left',
+          disableBeacon: true,
+          spotlightClicks: true,
+        }
+      ];
     }
+    
+    return baseSteps;
   };
-
-  useEffect(() => {
-    if (stepIndex >= steps.length) {
-      setRun(false);
-    }
-  }, [stepIndex, steps.length]);
 
   // コンポーネントがマウントされた時に画像データを取得
   useEffect(() => {
@@ -182,26 +204,7 @@ export function ImageGallery() {
 
   return (
     <>
-      <Joyride
-        steps={steps}
-        continuous
-        showSkipButton
-        showProgress
-        run={run}
-        stepIndex={stepIndex}
-        callback={handleJoyrideCallback}
-        styles={{
-          options: {
-            primaryColor: '#2563eb',
-            zIndex: 10000,
-          }
-        }}
-        disableOverlayClose
-        spotlightPadding={5}
-        floaterProps={{
-          // disableAnimation: true を削除
-        }}
-      />
+      <TourGuid steps={getTourSteps()} />
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

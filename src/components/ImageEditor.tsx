@@ -18,7 +18,8 @@ import { getWasmModule } from '@/lib/wasm-loader';
 import { ImageTransform } from '@/components/ImageTransform';
 import { ImageComposition } from '@/components/ImageComposition';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Joyride, { Step } from 'react-joyride';
+import { Step } from 'react-joyride';
+import TourGuid from '@/components/common/TourGuid';
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("transform");
@@ -57,8 +58,6 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [mosaic, setMosaic] = useState(0);
   const [oilPainting, setOilPainting] = useState({ radius: 0, intensity: 0 });
   const [selectedFormat, setSelectedFormat] = useState('png');
-  const [run, setRun] = useState(true);
-  const [stepIndex, setStepIndex] = useState(0);
   const imageRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -66,50 +65,47 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     {
       target: '.image-container',
       content: '編集する画像が表示されます。画像のプレビューを確認しながら編集できます',
-      placement: 'right',
+      placement: 'auto',
       disableBeacon: true,
+      spotlightClicks: true,
+      offset: 10,
     },
     {
       target: '.main-tabs',
       content: '4つの主要な編集機能があります：\n- 加工：リサイズ、回転、反転\n- 色調整：明るさ、コントラスト、彩度\n- フィルター：ぼかし、シャープ、エッジ検出\n- 編集・合成：透かし、合成、スタンプ',
       placement: 'left',
       disableBeacon: true,
+      spotlightClicks: true,
     },
     {
       target: '.format-select',
       content: '保存する画像のフォーマットを選択できます。PNG、JPEG、WebPから選択可能です',
-      placement: 'top',
+      placement: 'bottom',
       disableBeacon: true,
+      spotlightClicks: true,
     },
     {
       target: '.reset-button',
       content: 'すべての編集を元に戻すことができます。画像を最初の状態にリセットします',
-      placement: 'top',
+      placement: 'bottom',
       disableBeacon: true,
+      spotlightClicks: true,
     },
     {
       target: '.save-button',
       content: '編集した画像を保存します。元の画像を上書きして保存されます',
-      placement: 'top',
+      placement: 'bottom',
       disableBeacon: true,
+      spotlightClicks: true,
     },
     {
       target: '.save-new-button',
       content: '編集した画像を新しい画像として保存します。元の画像はそのまま残ります',
-      placement: 'top',
+      placement: 'bottom',
       disableBeacon: true,
+      spotlightClicks: true,
     }
   ];
-
-  const handleJoyrideCallback = (data: { type: string; index: number }) => {
-    const { type, index } = data;
-    if (type === 'step:after') {
-      setStepIndex(index + 1);
-    }
-    if (type === 'step:before') {
-      setStepIndex(index - 1);
-    }
-  };
 
   useEffect(() => {
     const loadImage = async () => {
@@ -142,6 +138,19 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
     loadImage();
   }, [imageUrl]);
+
+  useEffect(() => {
+    // モーダルが開かれたときにbodyのスクロールを無効にする
+    document.body.style.overflow = 'hidden';
+
+    // コンポーネントのアンマウント時にスクロールを有効に戻す
+    return () => {
+      document.body.style.overflow = 'auto';
+      if (processedImageUrl) {
+        URL.revokeObjectURL(processedImageUrl);
+      }
+    };
+  }, [processedImageUrl]);
 
   const updateProcessedImage = (blob: Blob) => {
     // 既存のURLを解放
@@ -757,47 +766,9 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     updateProcessedImage(stampedBlob);
   };
 
-  useEffect(() => {
-    // モーダルが開かれたときにbodyのスクロールを無効にする
-    document.body.style.overflow = 'hidden';
-
-    // コンポーネントのアンマウント時にスクロールを有効に戻す
-    return () => {
-      document.body.style.overflow = 'auto';
-      if (processedImageUrl) {
-        URL.revokeObjectURL(processedImageUrl);
-      }
-    };
-  }, [processedImageUrl]);
-
-  useEffect(() => {
-    if (stepIndex >= steps.length) {
-      setRun(false);
-    }
-  }, [stepIndex, steps.length]);
-
   return (
     <>
-      <Joyride
-        steps={steps}
-        continuous
-        showSkipButton
-        showProgress
-        run={run}
-        stepIndex={stepIndex}
-        callback={handleJoyrideCallback}
-        styles={{
-          options: {
-            primaryColor: '#2563eb',
-            zIndex: 10000,
-          }
-        }}
-        disableOverlayClose
-        spotlightPadding={5}
-        floaterProps={{
-          // disableAnimation: true を削除
-        }}
-      />
+      <TourGuid steps={steps} />
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
         <div className="flex items-center justify-center h-screen p-4">
           <Card className="w-[1800px] mx-auto relative">
@@ -814,6 +785,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                 <div
                   ref={imageContainerRef}
                   className="image-container flex-[1.2] rounded-lg border bg-card h-[500px] relative overflow-hidden"
+                  style={{ zIndex: 5 }}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}

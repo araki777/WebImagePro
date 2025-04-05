@@ -13,9 +13,29 @@ import { toast } from "sonner";
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import TourGuid from "@/components/common/TourGuid";
+import { Step } from "react-joyride";
 
 // Stripeの公開キーを設定
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+
+// ツアーステップを定義
+const steps: Step[] = [
+  {
+    target: '.theme-switch',
+    content: 'ダークモードとライトモードを切り替えることができます。お好みの表示モードを選択しましょう。',
+    placement: 'left',
+    disableBeacon: true,
+    spotlightClicks: true,
+  },
+  {
+    target: '.premium-button',
+    content: 'プレミアム会員になると、より高度な画像編集機能や保存容量の拡大などの特典が利用できます。',
+    placement: 'left',
+    disableBeacon: true,
+    spotlightClicks: true,
+  },
+];
 
 function SettingsContent() {
   const { user, userSettings, updateUserSettings, signOut } = useAuthStore();
@@ -97,6 +117,7 @@ function SettingsContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
         userImage={user.user_metadata.avatar_url}
@@ -108,7 +129,7 @@ function SettingsContent() {
             <CardTitle>設定</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between theme-switch">
               <div className="space-y-0.5">
                 <Label>ダークモード</Label>
                 <p className="text-sm text-muted-foreground">
@@ -132,7 +153,7 @@ function SettingsContent() {
                   プレミアム機能を利用するには会員登録が必要です
                 </p>
               </div>
-              <Button onClick={handleSubscribe} className="flex items-center gap-2">
+              <Button onClick={handleSubscribe} className="premium-button flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
                 会員登録
               </Button>
