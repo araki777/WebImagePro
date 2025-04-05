@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { Footer } from "@/components/ui/footer";
 import "./globals.css"; // グローバルCSSを適用
@@ -50,8 +48,6 @@ export default function RootLayout({
             </div>
             <Footer />
           </div>
-          <Analytics /> {/* Vercel Analytics */}
-          <SpeedInsights /> {/* Vercel Speed Insights */}
         </ThemeProvider>
       </body>
     </html>
