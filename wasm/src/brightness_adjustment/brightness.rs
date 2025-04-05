@@ -1,5 +1,4 @@
 use wasm_bindgen::prelude::*;
-use std::io::Cursor;
 use image::io::Reader as ImageReader;
 use image::{ImageOutputFormat, imageops};
 
@@ -41,14 +40,14 @@ mod tests {
         
         // 画像をPNGとしてバイト配列に変換
         let mut buf = Vec::new();
-        img.write_to(&mut Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
+        img.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
         
         // 明るさを上げる処理をテスト (+50)
         let brightness_value = 50;
         let brightened_bytes = adjust_brightness(&buf, brightness_value);
         
         // 処理結果をデコード
-        let brightened_img = ImageReader::new(Cursor::new(brightened_bytes))
+        let brightened_img = ImageReader::new(std::io::Cursor::new(brightened_bytes))
             .with_guessed_format().unwrap()
             .decode().unwrap()
             .to_rgb8();
@@ -72,13 +71,13 @@ mod tests {
         img.put_pixel(1, 1, Rgb([original_color, original_color, original_color]));
         
         let mut buf = Vec::new();
-        img.write_to(&mut Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
+        img.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
         
         // 明るさを下げる処理をテスト (-50)
         let brightness_value = -50;
         let darkened_bytes = adjust_brightness(&buf, brightness_value);
         
-        let darkened_img = ImageReader::new(Cursor::new(darkened_bytes))
+        let darkened_img = ImageReader::new(std::io::Cursor::new(darkened_bytes))
             .with_guessed_format().unwrap()
             .decode().unwrap()
             .to_rgb8();
@@ -103,13 +102,13 @@ mod tests {
         img.put_pixel(1, 1, Rgb([max_value, max_value, max_value]));
         
         let mut buf = Vec::new();
-        img.write_to(&mut Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
+        img.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
         
         // 明るさをさらに上げる（クリッピングが発生するケース）
         let brightness_value = 50;
         let brightened_bytes = adjust_brightness(&buf, brightness_value);
         
-        let brightened_img = ImageReader::new(Cursor::new(brightened_bytes))
+        let brightened_img = ImageReader::new(std::io::Cursor::new(brightened_bytes))
             .with_guessed_format().unwrap()
             .decode().unwrap()
             .to_rgb8();
