@@ -1,5 +1,4 @@
 use wasm_bindgen::prelude::*;
-use std::io::Cursor;
 use image::io::Reader as ImageReader;
 use image::ImageOutputFormat;
 
@@ -40,14 +39,14 @@ mod tests {
         
         // PNG形式のバイト配列に変換
         let mut buf = Vec::new();
-        img.write_to(&mut Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
+        img.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
         
         // コントラストを上げる処理をテスト (コントラスト1.5)
         let contrast_value = 1.5;
         let contrasted_bytes = adjust_contrast(&buf, contrast_value);
         
         // 処理結果をデコード
-        let contrasted_img = ImageReader::new(Cursor::new(contrasted_bytes))
+        let contrasted_img = ImageReader::new(std::io::Cursor::new(contrasted_bytes))
             .with_guessed_format().unwrap()
             .decode().unwrap()
             .to_rgb8();
@@ -76,14 +75,14 @@ mod tests {
         
         // PNG形式のバイト配列に変換
         let mut buf = Vec::new();
-        img.write_to(&mut Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
+        img.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageOutputFormat::Png).unwrap();
         
         // コントラスト調整処理をテスト
         let contrast_value = 0.5;
         let contrasted_bytes = adjust_contrast(&buf, contrast_value);
         
         // 処理結果をデコード
-        let contrasted_img = ImageReader::new(Cursor::new(contrasted_bytes))
+        let contrasted_img = ImageReader::new(std::io::Cursor::new(contrasted_bytes))
             .with_guessed_format().unwrap()
             .decode().unwrap()
             .to_rgb8();
