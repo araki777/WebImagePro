@@ -199,7 +199,7 @@ export function ImageGallery() {
         disableOverlayClose
         spotlightPadding={5}
         floaterProps={{
-          disableAnimation: true,
+          // disableAnimation: true を削除
         }}
       />
       <Card className="w-full max-w-4xl mx-auto">

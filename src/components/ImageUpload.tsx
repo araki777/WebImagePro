@@ -100,7 +100,6 @@ export function ImageUpload() {
         disableOverlayClose
         spotlightPadding={5}
         floaterProps={{
-          disableAnimation: true,
         }}
       />
       <Card className="w-full max-w-4xl mx-auto">

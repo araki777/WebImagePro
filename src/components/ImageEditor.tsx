@@ -795,7 +795,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
         disableOverlayClose
         spotlightPadding={5}
         floaterProps={{
-          disableAnimation: true,
+          // disableAnimation: true を削除
         }}
       />
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
