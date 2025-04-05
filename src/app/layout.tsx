@@ -3,7 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { Footer } from "@/components/ui/footer";
 import "./globals.css"; // グローバルCSSを適用
+import { Toaster } from "@/components/ui/sonner";
 
 // GoogleFontsGeist Sansフォントを設定
 const geistSans = Geist({
@@ -41,7 +43,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children} {/* 各ページのコンテンツをレンダリング */}
+          <div className="flex flex-col min-h-screen">
+            <Toaster richColors />
+            <div className="flex-grow">
+              {children} {/* 各ページのコンテンツをレンダリング */}
+            </div>
+            <Footer />
+          </div>
           <Analytics /> {/* Vercel Analytics */}
           <SpeedInsights /> {/* Vercel Speed Insights */}
         </ThemeProvider>

@@ -2,11 +2,16 @@ import { Button } from "@/components/ui/button";
 import { IImageUploadActionsProps } from "@/types/types";
 import { Upload } from "lucide-react";
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 export function ImageUploadActions({ images, setImages }: IImageUploadActionsProps) {
-      // 画像をアップロードする関数
+  const [isUploading, setIsUploading] = useState(false);
+  
+  // 画像をアップロードする関数
   const handleUpload = async () => {
     if (images.length === 0) return;
+    
+    setIsUploading(true);
 
     // 画像ごとにアップロード処理を行う
     const uploadPromises = images.map(async (image) => {
@@ -37,15 +42,24 @@ export function ImageUploadActions({ images, setImages }: IImageUploadActionsPro
       loading: '画像をアップロード中...',
       success: () => {
         setImages([]); // アップロード完了後は画像をクリア
+        setIsUploading(false);
         return `${images.length}枚の画像をアップロードしました`;
       },
-      error: 'アップロードに失敗しました'
+      error: () => {
+        setIsUploading(false);
+        return 'アップロードに失敗しました';
+      }
     });
   };
 
   return (
     <div className="flex items-center gap-4">
-      <Button onClick={handleUpload} disabled={images.length === 0} className="flex-1 upload-button">
+      <Button 
+        onClick={handleUpload} 
+        disabled={images.length === 0} 
+        className="flex-1 upload-button"
+        isLoading={isUploading}
+      >
         <Upload className="mr-2 h-4 w-4" />
         {images.length > 0 ? `${images.length}枚の画像をアップロード` : 'アップロード'}
       </Button>

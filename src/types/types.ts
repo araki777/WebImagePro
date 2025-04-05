@@ -44,6 +44,24 @@ export interface AuthState {
 }
 
 // ============================================================================
+// お問い合わせ関連の型定義
+// ============================================================================
+
+export interface IContactForm {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export interface IContact extends IContactForm {
+  id: string;
+  user_id: string | null;
+  created_at: string;
+  status: 'pending' | 'replied' | 'closed';
+}
+
+// ============================================================================
 // 画像データ関連の型定義
 // ============================================================================
 
