@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { AzureStorageService } from '@/lib/azure-storage';
 
 const azureStorage = new AzureStorageService(
@@ -6,7 +6,8 @@ const azureStorage = new AzureStorageService(
 );
 
 export async function DELETE(
-  {params}: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }>}
 ) {
   try {
     const id = (await params).id;
