@@ -601,9 +601,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
       const wasm = await getWasmModule();
       const convertedImage = wasm.convert_image_format(imageData, selectedFormat);
-
-      const base64 = btoa(String.fromCharCode(...convertedImage));
-      onSave(base64, false, selectedFormat);
+      
+      // Blobを作成し、直接それを渡す（base64エンコードせずに）
+      const blob = new Blob([convertedImage], { type: `image/${selectedFormat}` });
+      // isNewImageをfalseに設定して上書き保存
+      onSave(URL.createObjectURL(blob), false, selectedFormat);
     } catch (error) {
       console.error('Error saving image:', error);
     } finally {
@@ -623,9 +625,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
       const wasm = await getWasmModule();
       const convertedImage = wasm.convert_image_format(imageData, selectedFormat);
-
-      const base64 = btoa(String.fromCharCode(...convertedImage));
-      onSave(base64, true, selectedFormat);
+      
+      // Blobを作成し、直接それを渡す（base64エンコードせずに）
+      const blob = new Blob([convertedImage], { type: `image/${selectedFormat}` });
+      // isNewImageをtrueに設定して新規保存
+      onSave(URL.createObjectURL(blob), true, selectedFormat);
     } catch (error) {
       console.error('Error saving image:', error);
     } finally {

@@ -136,7 +136,7 @@ export interface IImageUploadActionsProps {
 
 export interface IImageEditorProps {
   imageUrl: string;
-  onSave: (editedImage: string, isNewImage: boolean, format: string) => void;
+  onSave: (editedImageUrl: string, isNewImage: boolean, format: string) => void;
   onClose: () => void;
 }
 
