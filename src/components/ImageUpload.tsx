@@ -35,6 +35,17 @@ export function ImageUpload() {
         ? { ...img, preview: editedImageUrl }
         : img
     ));
+    
+    // 使い終わった古いObjectURLを解放（編集前のURL）
+    if (editingImageIndex !== null && images[editingImageIndex]) {
+      // 新たに置き換えるURLは別の場所（useEffect）で解放するので、ここでは元のURLだけ解放
+      const oldUrl = images[editingImageIndex].preview;
+      // 注意: 元のURLがdata:URLの場合は解放不要（ファイル新規選択時など）
+      if (oldUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(oldUrl);
+      }
+    }
+    
     setEditingImageIndex(null);
   };
 

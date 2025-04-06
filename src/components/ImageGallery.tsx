@@ -110,17 +110,13 @@ export function ImageGallery() {
   };
 
   // 編集中の画像を保存する関数
-  const handleSaveEdit = async (editedImageBase64: string, isNewImage: boolean, format: string) => {
+  const handleSaveEdit = async (editedImageUrl: string, isNewImage: boolean, format: string) => {
     if (!editingImage) return;
 
     try {
-      // Base64からBlobを作成
-      const binaryString = atob(editedImageBase64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const blob = new Blob([bytes], { type: `image/${format}` });
+      // URLからBlobを取得
+      const response = await fetch(editedImageUrl);
+      const blob = await response.blob();
 
       // 新規保存の場合、ファイル名を変更
       const fileName = isNewImage
@@ -140,9 +136,20 @@ export function ImageGallery() {
 
       // 元の画像を更新する場合のみ古い画像を削除
       if (!isNewImage) {
-        const encodedUrl = Buffer.from(editingImage.url).toString('base64');
-        await fetch(`/api/images/${encodedUrl}`, { method: 'DELETE' });
+        // handleDelete関数と同じエンコード方法を使用
+        const encodedUrl = encodeURIComponent(Buffer.from(editingImage.url).toString("base64"));
+        
+        const deleteResponse = await fetch(`/api/images/${encodedUrl}`, { 
+          method: 'DELETE' 
+        });
+        
+        if (!deleteResponse.ok) {
+          console.warn('元の画像の削除に失敗しましたが、処理を続行します');
+        }
       }
+
+      // 使い終わったObjectURLを解放
+      URL.revokeObjectURL(editedImageUrl);
 
       // 画像一覧を更新
       await fetchImages();
