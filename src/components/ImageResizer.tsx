@@ -1,5 +1,4 @@
 import React from 'react'
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Lock, Unlock } from 'lucide-react';
 import { Label } from '@/components/ui/label';
@@ -12,56 +11,51 @@ export const ImageResizer = ({ resizeWidth, resizeHeight, onWidthChange, onHeigh
   return (
     <Tabs defaultValue="basic" className="space-y-3">
       <TabsContent value="basic" className="space-y-3">
-        <div className="space-y-4">
+        <div className="space-y-3 lg:mt-2">
           <Button
             variant="outline"
-            className="w-full h-8 text-xs"
+            className="w-full text-[8px] sm:text-xs h-6 lg:h-9"
             onClick={() => onAspectRatioChange()}
           >
             {maintainAspectRatio ? (
-              <Lock className="w-4 h-4 mr-2" />
+              <Lock className="w-1 h-1 lg:w-4 lg:h-4 mr-2" />
             ) : (
-              <Unlock className="w-4 h-4 mr-2" />
+              <Unlock className="w-1 h-1 lg:w-4 lg:h-4 mr-2" />
             )}
             アスペクト比を{maintainAspectRatio ? 'ロック' : 'アンロック'}
           </Button>
-
-          <Separator />
-
-          <div className="space-y-4">
-            <div>
-              <Label className="text-xs text-muted-foreground">幅</Label>
-              <div className="flex items-center gap-4">
-                <Slider
-                  value={[resizeWidth]}
-                  onValueChange={([value]) => onWidthChange(value)}
-                  min={10}
-                  max={1000}
-                  step={1}
-                  className="flex-1"
-                />
-                <span className="text-xs tabular-nums">
-                  {resizeWidth}px
-                </span>
-              </div>
+          <div>
+            <Label className="text-[8px] lg:text-sm text-muted-foreground">幅</Label>
+            <div className="flex items-center gap-4">
+              <Slider
+                value={[resizeWidth]}
+                onValueChange={([value]) => onWidthChange(value)}
+                min={10}
+                max={1000}
+                step={1}
+                className="flex-1"
+              />
+              <span className="text-[8px] lg:text-sm tabular-nums">
+                {resizeWidth}px
+              </span>
             </div>
+          </div>
 
-            <div>
-              <Label className="text-xs text-muted-foreground">高さ</Label>
-              <div className="flex items-center gap-4">
-                <Slider
-                  value={[resizeHeight]}
-                  onValueChange={([value]) => onHeightChange(value)}
-                  min={10}
-                  max={1000}
-                  step={1}
-                  className="flex-1"
-                  disabled={maintainAspectRatio}
-                />
-                <span className="text-xs tabular-nums">
-                  {resizeHeight}px
-                </span>
-              </div>
+          <div>
+            <Label className="text-[8px] lg:text-sm text-muted-foreground">高さ</Label>
+            <div className="flex items-center gap-4">
+              <Slider
+                value={[resizeHeight]}
+                onValueChange={([value]) => onHeightChange(value)}
+                min={10}
+                max={1000}
+                step={1}
+                className="flex-1"
+                disabled={maintainAspectRatio}
+              />
+              <span className="text-[8px] lg:text-sm tabular-nums">
+                {resizeHeight}px
+              </span>
             </div>
           </div>
         </div>

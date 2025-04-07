@@ -51,7 +51,7 @@ export class AzureStorageService {
   private async generateSasUrl(blobClient: BlobClient): Promise<string> {
     const now = new Date();
     const startsOn = new Date(now.getTime() - 5 * 60 * 1000); // 5分前
-    const expiresOn = new Date(now.getTime() + 60 * 60 * 1000); // 1時間後
+    const expiresOn = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 1日後
 
     const properties = await blobClient.getProperties();
     const sasOptions = {

@@ -601,7 +601,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
       const wasm = await getWasmModule();
       const convertedImage = wasm.convert_image_format(imageData, selectedFormat);
-      
+
       // Blobを作成し、直接それを渡す（base64エンコードせずに）
       const blob = new Blob([convertedImage], { type: `image/${selectedFormat}` });
       // isNewImageをfalseに設定して上書き保存
@@ -625,7 +625,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
       const wasm = await getWasmModule();
       const convertedImage = wasm.convert_image_format(imageData, selectedFormat);
-      
+
       // Blobを作成し、直接それを渡す（base64エンコードせずに）
       const blob = new Blob([convertedImage], { type: `image/${selectedFormat}` });
       // isNewImageをtrueに設定して新規保存
@@ -774,18 +774,18 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     <>
       <TourGuid steps={steps} />
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
-        <div className="flex items-center justify-center h-screen p-4">
-          <Card className="w-[1800px] mx-auto relative">
+        <div className="flex items-center justify-center min-h-screen p-5 sm:p-4">
+          <Card className="w-full mx-auto relative py-3">
             <Button
               variant="outline"
               size="icon"
-              className="absolute -top-3 -right-3 h-8 w-8 rounded-full border-2 bg-background shadow-md hover:scale-105 transition-transform z-10"
+              className="absolute -top-3 -right-3 h-6 w-6 lg:h-8 lg:w-8 rounded-full border-2 bg-background shadow-md hover:scale-105 transition-transform z-10"
               onClick={onClose}
             >
-              <X className="h-4 w-4" />
+              <X className="h-1 w-1 lg:h-4 lg:w-4" />
             </Button>
-            <CardContent className="p-6">
-              <div className="flex gap-6">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
                 <div
                   ref={imageContainerRef}
                   className="image-container flex-[1.2] rounded-lg border bg-card h-[500px] relative overflow-hidden"
@@ -794,7 +794,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                 >
-                  <div className="absolute inset-0 overflow-auto">
+                  <div className="h-[200px] flex-grow relative lg:h-full lg:absolute lg:inset-0 overflow-auto">
                     <div className="h-full w-full flex items-center justify-center p-4">
                       <div ref={imageRef} className="relative min-w-max">
                         <Image
@@ -816,51 +816,51 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                       </div>
                     </div>
                   </div>
-                  <div className="absolute bottom-3 left-3 bg-background/90 px-3 py-1 rounded-md text-sm">
+                  <div className="absolute bottom-3 left-3 bg-background/90 px-3 py-1 rounded-md text-[8px] lg:text-sm">
                     {resizeWidth} × {resizeHeight} px
                   </div>
                 </div>
 
-                <div className="w-[400px] flex flex-col shrink-0">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="main-tabs flex-1">
-                    <TabsList className="w-full grid grid-cols-4 gap-1 px-1">
-                      <TabsTrigger value="transform" className="flex-1 min-w-0 px-2 text-xs py-1">
-                        <Maximize2 className="w-3 h-3 mr-1" />
+                <div className="w-full lg:w-[450px] flex flex-col shrink-0">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="main-tabs flex-1 gap-2">
+                    <TabsList className="w-full flex items-center h-6 lg:h-9">
+                      <TabsTrigger value="transform" className="flex items-center justify-center gap-1 min-w-0 px-1.5 sm:px-2 text-[8px] sm:text-xs py-1.5">
+                        <Maximize2 className="w-1 h-1 mr-1 lg:w-4 lg:h-4" />
                         加工
                       </TabsTrigger>
-                      <TabsTrigger value="color_adjustment" className="flex-1 min-w-0 px-2 text-xs py-1">
-                        <Sliders className="w-3 h-3 mr-1" />
+                      <TabsTrigger value="color_adjustment" className="flex items-center justify-center gap-1 min-w-0 px-1.5 sm:px-2 text-[8px] sm:text-xs py-1.5">
+                        <Sliders className="w-1 h-1 mr-1 lg:w-4 lg:h-4" />
                         色調整
                       </TabsTrigger>
-                      <TabsTrigger value="filters" className="flex-1 min-w-0 px-2 text-xs py-1">
-                        <Sparkles className="w-3 h-3 mr-1" />
+                      <TabsTrigger value="filters" className="flex items-center justify-center gap-1 min-w-0 px-1.5 sm:px-2 text-[8px] sm:text-xs py-1.5">
+                        <Sparkles className="w-1 h-1 mr-1 lg:w-4 lg:h-4" />
                         フィルター
                       </TabsTrigger>
-                      <TabsTrigger value="composition" className="flex-1 min-w-0 px-2 text-xs py-1">
-                        <ImageIcon className="w-3 h-3 mr-1" />
+                      <TabsTrigger value="composition" className="flex items-center justify-center gap-1 min-w-0 px-1.5 sm:px-2 text-[8px] sm:text-xs py-1.5">
+                        <ImageIcon className="w-1 h-1 mr-1 lg:w-4 lg:h-4" />
                         編集・合成
                       </TabsTrigger>
                     </TabsList>
 
-                    <div className="mt-4 space-y-4">
+                    <div className="space-y-4">
                       <TabsContent value="transform" className="mt-0">
                         <Tabs value={activeTransformTab} onValueChange={setActiveTransformTab} className="w-full">
-                          <TabsList className="w-full grid grid-cols-3 gap-1 px-1">
-                            <TabsTrigger value="resize" className="flex-1 min-w-0 px-2 text-xs py-1">
-                              <Maximize2 className="w-3 h-3 mr-1" />
+                          <TabsList className="w-full flex items-center h-6 lg:h-9">
+                            <TabsTrigger value="resize" className="flex items-center justify-center gap-1 min-w-0 px-1.5 sm:px-2 text-[8px] sm:text-xs py-1.5">
+                              <Maximize2 className="w-1 h-1 mr-1 lg:w-4 lg:h-4" />
                               リサイズ
                             </TabsTrigger>
-                            <TabsTrigger value="clip" className="flex-1 min-w-0 px-2 text-xs py-1 clip-tab">
-                              <Scissors className="w-3 h-3 mr-1" />
+                            <TabsTrigger value="clip" className="flex items-center justify-center gap-1 min-w-0 px-1.5 sm:px-2 text-[8px] sm:text-xs py-1.5 clip-tab">
+                              <Scissors className="w-1 h-1 mr-1 lg:w-4 lg:h-4" />
                               切り抜き
                             </TabsTrigger>
-                            <TabsTrigger value="rotate" className="flex-1 min-w-0 px-2 text-xs py-1">
-                              <RotateCw className="w-3 h-3 mr-1" />
+                            <TabsTrigger value="rotate" className="flex items-center justify-center gap-1 min-w-0 px-1.5 sm:px-2 text-[8px] sm:text-xs py-1.5">
+                              <RotateCw className="w-1 h-1 mr-1 lg:w-4 lg:h-4" />
                               回転・反転
                             </TabsTrigger>
                           </TabsList>
 
-                          <TabsContent value="resize" className="mt-3">
+                          <TabsContent value="resize" className="lg:mt-3">
                             <ImageResizer
                               resizeWidth={resizeWidth}
                               resizeHeight={resizeHeight}
@@ -871,7 +871,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                             />
                           </TabsContent>
 
-                          <TabsContent value="clip" className="mt-3">
+                          <TabsContent value="clip" className="lg:lg:mt-3">
                             <ImageCliper
                               selectedRatio={selectedRatio}
                               onRatioChange={handleRatioChange}
@@ -880,7 +880,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                             />
                           </TabsContent>
 
-                          <TabsContent value="rotate" className="mt-3">
+                          <TabsContent value="rotate" className="lg:mt-3">
                             <ImageTransform
                               onRotate={handleRotate}
                               onFlip={handleFlip}
@@ -890,7 +890,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                         </Tabs>
                       </TabsContent>
 
-                      <TabsContent value="color_adjustment" className="mt-0">
+                      <TabsContent value="color_adjustment">
                         <ImageColorAjustment
                           brightness={brightness}
                           saturation={saturation}
@@ -927,7 +927,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                         />
                       </TabsContent>
 
-                      <TabsContent value="filters" className="mt-0">
+                      <TabsContent value="filters">
                         <ImageFilter
                           gaussianBlur={gaussianBlur}
                           motionBlur={motionBlur}
@@ -959,7 +959,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                         />
                       </TabsContent>
 
-                      <TabsContent value="composition" className="mt-0">
+                      <TabsContent value="composition">
                         <ImageComposition
                           onMakeTransparent={handleMakeTransparent}
                           onAddWatermark={handleAddWatermark}
@@ -974,56 +974,62 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                   <Separator className="my-2" />
 
                   <div className="space-y-2">
-                    <div className="format-select">
-                      <div className="text-sm font-medium mb-2">保存形式</div>
+                    <div className="format-select flex items-center gap-3">
+                      <div className="text-[8px] lg:text-sm font-medium mb-1">保存形式</div>
                       <Select value={selectedFormat} onValueChange={setSelectedFormat}>
-                        <SelectTrigger>
+                        <SelectTrigger className="text-[8px] lg:text-sm h-6! lg:h-9! sm:h-8 px-1 py-0">
                           <SelectValue placeholder="フォーマットを選択" />
                         </SelectTrigger>
                         <SelectContent>
                           {IMAGE_FORMATS.map((format) => (
-                            <SelectItem key={format.value} value={format.value}>
+                            <SelectItem
+                              key={format.value}
+                              value={format.value}
+                              className="text-[8px] lg:text-sm h-7 sm:h-8"
+                            >
                               {format.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button
-                      className="w-full reset-button"
-                      onClick={() => handleImageReset()}
-                    >
-                      画像をリセット
-                    </Button>
-                    <Button
-                      className="w-full save-button"
-                      onClick={() => handleSave()}
-                      disabled={isSave}
-                    >
-                      {isSave ? (
-                        <span>処理中...</span>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          変更を保存
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full save-new-button"
-                      onClick={() => handleSaveNew()}
-                      disabled={isSave}
-                    >
-                      {isSave ? (
-                        <span>処理中...</span>
-                      ) : (
-                        <>
-                          <Plus className="w-4 h-4 mr-2" />
-                          新規として保存
-                        </>
-                      )}
-                    </Button>
+                    <div className="grid grid-cols-3 sm:grid-cols-1 gap-2">
+                      <Button
+                        className="w-full reset-button text-[8px] lg:text-sm h-6 lg:h-9"
+                        onClick={() => handleImageReset()}
+                      >
+                        画像をリセット
+                      </Button>
+                      <Button
+                        className="w-full save-button text-[8px] lg:text-sm h-6 lg:h-9"
+                        onClick={() => handleSave()}
+                        disabled={isSave}
+                      >
+                        {isSave ? (
+                          <span>処理中...</span>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            変更を保存
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full save-new-button text-[8px] lg:text-sm sm:col-span-1 h-6 lg:h-9"
+                        onClick={() => handleSaveNew()}
+                        disabled={isSave}
+                      >
+                        {isSave ? (
+                          <span>処理中...</span>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-2" />
+                            新規として保存
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
