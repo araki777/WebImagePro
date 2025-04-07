@@ -31,10 +31,30 @@ export const useAuthStore = create<AuthState>((set) => ({
       await fetchUserSettings(user.id);
 
       // 認証状態の変更を監視（一度だけ登録）
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_OUT') {
           set({ user: null, userSettings: null, isLoading: false });
           window.location.href = '/login';
+        } else if (event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            try {
+              set({
+                user: {
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  user_metadata: session.user.user_metadata
+                },
+                isLoading: false
+              });
+              await fetchUserSettings(session.user.id);
+
+              console.log('ユーザー設定取得成功');
+            } catch (error) {
+              console.error('ユーザー設定取得エラー:', error);
+              set({ user: null, isLoading: false, userSettings: null });
+              window.location.href = '/login';
+            }
+          }
         } else if (session?.user) {
           set({
             user: {
