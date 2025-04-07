@@ -48,29 +48,29 @@ export function ImageComposition({
   return (
     <div className="flex flex-col h-full">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="w-full flex justify-between gap-1 px-1">
-          <TabsTrigger value="transparent" className="flex-1 min-w-0 px-2 text-xs py-1">
-            <ImageIcon className="w-3 h-3 mr-1" />
+        <TabsList className="w-full flex justify-between gap-1 px-1 h-6 lg:h-9">
+          <TabsTrigger value="transparent" className="flex-1 min-w-0 px-2 text-[8px] lg:text-sm py-1">
+            <ImageIcon className="w-1 h-1 lg:w-4 lg:h-4" />
             透過
           </TabsTrigger>
-          <TabsTrigger value="watermark" className="flex-1 min-w-0 px-2 text-xs py-1">
-            <Upload className="w-3 h-3 mr-1" />
+          <TabsTrigger value="watermark" className="flex-1 min-w-0 px-2 text-[8px] lg:text-sm py-1">
+            <Upload className="w-1 h-1 lg:w-4 lg:h-4" />
             ウォーターマーク
           </TabsTrigger>
-          <TabsTrigger value="composite" className="flex-1 min-w-0 px-2 text-xs py-1">
-            <ImageIcon className="w-3 h-3 mr-1" />
+          <TabsTrigger value="composite" className="flex-1 min-w-0 px-2 text-[8px] lg:text-sm py-1">
+            <ImageIcon className="w-1 h-1 lg:w-4 lg:h-4" />
             合成
           </TabsTrigger>
-          <TabsTrigger value="stamp" className="flex-1 min-w-0 px-2 text-xs py-1">
-            <Stamp className="w-3 h-3 mr-1" />
+          <TabsTrigger value="stamp" className="flex-1 min-w-0 px-2 text-[8px] lg:text-sm py-1">
+            <Stamp className="w-1 h-1 lg:w-4 lg:h-4" />
             スタンプ
           </TabsTrigger>
         </TabsList>
 
         <div className="flex-1 overflow-y-auto mt-1 px-4">
           <TabsContent value="transparent" className="space-y-2">
-            <div className="space-y-1">
-              <Label className="text-xs">透過度の閾値</Label>
+            <div className="space-y-2">
+              <Label className="text-[8px] lg:text-sm">透過度の閾値</Label>
               <Slider
                 value={[threshold]}
                 onValueChange={(value) => setThreshold(value[0])}
@@ -78,12 +78,12 @@ export function ImageComposition({
                 max={255}
                 step={1}
               />
-              <div className="text-xs text-muted-foreground">
+              <div className="text-[8px] lg:text-sm text-muted-foreground">
                 閾値: {threshold}
               </div>
             </div>
             <Button
-              className="w-full h-7 text-xs"
+              className="w-full text-[8px] lg:text-sm h-6 lg:h-9"
               onClick={() => onMakeTransparent(threshold)}
               disabled={isSave}
             >
@@ -92,8 +92,8 @@ export function ImageComposition({
           </TabsContent>
 
           <TabsContent value="watermark" className="space-y-3">
-            <div className="space-y-1">
-              <Label className="text-xs">ウォーターマーク画像</Label>
+            <div className="space-y-2">
+              <Label className="text-[8px] lg:text-sm">ウォーターマーク画像</Label>
               <div className="flex items-center gap-1">
                 <Input
                   id="watermark-file"
@@ -105,17 +105,17 @@ export function ImageComposition({
                 />
                 <Button
                   variant="outline"
-                  className="h-7 text-xs flex-1"
+                  className="text-[8px] lg:text-sm flex-1 h-6 lg:h-9"
                   onClick={() => document.getElementById('watermark-file')?.click()}
                 >
-                  <Upload className="w-3 h-3 mr-1" />
+                  <Upload className="w-1 h-1 lg:w-4 lg:h-4" />
                   {watermarkFile ? watermarkFile.name : "画像を選択"}
                 </Button>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">X座標</Label>
+              <div className="space-y-2">
+                <Label className="text-[8px] lg:text-sm">X座標</Label>
                 <Slider
                   value={[watermarkX]}
                   onValueChange={(value) => setWatermarkX(value[0])}
@@ -123,12 +123,12 @@ export function ImageComposition({
                   max={1000}
                   step={1}
                 />
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[8px] lg:text-sm text-muted-foreground">
                   X: {watermarkX}px
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Y座標</Label>
+              <div className="space-y-2">
+                <Label className="text-[8px] lg:text-sm">Y座標</Label>
                 <Slider
                   value={[watermarkY]}
                   onValueChange={(value) => setWatermarkY(value[0])}
@@ -136,13 +136,13 @@ export function ImageComposition({
                   max={1000}
                   step={1}
                 />
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[8px] lg:text-sm text-muted-foreground">
                   Y: {watermarkY}px
                 </div>
               </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">透明度</Label>
+            <div className="space-y-2">
+              <Label className="text-[8px] lg:text-sm">透明度</Label>
               <Slider
                 value={[watermarkOpacity]}
                 onValueChange={(value) => setWatermarkOpacity(value[0])}
@@ -150,12 +150,12 @@ export function ImageComposition({
                 max={1}
                 step={0.1}
               />
-              <div className="text-xs text-muted-foreground">
+              <div className="text-[8px] lg:text-sm text-muted-foreground">
                 透明度: {Math.round(watermarkOpacity * 100)}%
               </div>
             </div>
             <Button
-              className="w-full h-7 text-xs"
+              className="w-full text-[8px] lg:text-sm h-6 lg:h-9"
               onClick={() => watermarkFile && onAddWatermark(watermarkFile, watermarkX, watermarkY, watermarkOpacity)}
               disabled={isSave || !watermarkFile}
             >
@@ -164,8 +164,8 @@ export function ImageComposition({
           </TabsContent>
 
           <TabsContent value="composite" className="space-y-3">
-            <div className="space-y-1">
-              <Label className="text-xs">合成する画像</Label>
+            <div className="space-y-2">
+              <Label className="text-[8px] lg:text-sm">合成する画像</Label>
               <div className="flex items-center gap-1">
                 <Input
                   id="overlay-file"
@@ -177,17 +177,17 @@ export function ImageComposition({
                 />
                 <Button
                   variant="outline"
-                  className="h-7 text-xs flex-1"
+                  className="text-[8px] lg:text-sm flex-1 h-6 lg:h-9"
                   onClick={() => document.getElementById('overlay-file')?.click()}
                 >
-                  <ImageIcon className="w-3 h-3 mr-1" />
+                  <ImageIcon className="w-1 h-1 lg:w-4 lg:h-4" />
                   {overlayFile ? overlayFile.name : "画像を選択"}
                 </Button>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">X座標</Label>
+              <div className="space-y-2">
+                <Label className="text-[8px] lg:text-sm">X座標</Label>
                 <Slider
                   value={[overlayX]}
                   onValueChange={(value) => setOverlayX(value[0])}
@@ -195,12 +195,12 @@ export function ImageComposition({
                   max={1000}
                   step={1}
                 />
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[8px] lg:text-sm text-muted-foreground">
                   X: {overlayX}px
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Y座標</Label>
+              <div className="space-y-2">
+                <Label className="text-[8px] lg:text-sm">Y座標</Label>
                 <Slider
                   value={[overlayY]}
                   onValueChange={(value) => setOverlayY(value[0])}
@@ -208,13 +208,13 @@ export function ImageComposition({
                   max={1000}
                   step={1}
                 />
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[8px] lg:text-sm text-muted-foreground">
                   Y: {overlayY}px
                 </div>
               </div>
             </div>
             <Button
-              className="w-full h-7 text-xs"
+              className="w-full text-[8px] lg:text-sm h-6 lg:h-9"
               onClick={() => overlayFile && onComposite(overlayFile, overlayX, overlayY)}
               disabled={isSave || !overlayFile}
             >
@@ -223,8 +223,8 @@ export function ImageComposition({
           </TabsContent>
 
           <TabsContent value="stamp" className="space-y-3">
-            <div className="space-y-1">
-              <Label className="text-xs">スタンプ画像</Label>
+            <div className="space-y-2">
+              <Label className="text-[8px] lg:text-sm">スタンプ画像</Label>
               <div className="flex items-center gap-1">
                 <Input
                   id="stamp-file"
@@ -236,17 +236,17 @@ export function ImageComposition({
                 />
                 <Button
                   variant="outline"
-                  className="h-7 text-xs flex-1"
+                  className="text-[8px] lg:text-sm flex-1 h-6 lg:h-9"
                   onClick={() => document.getElementById('stamp-file')?.click()}
                 >
-                  <Stamp className="w-3 h-3 mr-1" />
+                  <Stamp className="w-1 h-1 lg:w-4 lg:h-4" />
                   {stampFile ? stampFile.name : "画像を選択"}
                 </Button>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">X座標</Label>
+              <div className="space-y-2">
+                <Label className="text-[8px] lg:text-sm">X座標</Label>
                 <Slider
                   value={[stampX]}
                   onValueChange={(value) => setStampX(value[0])}
@@ -254,12 +254,12 @@ export function ImageComposition({
                   max={1000}
                   step={1}
                 />
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[8px] lg:text-sm text-muted-foreground">
                   X: {stampX}px
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Y座標</Label>
+              <div className="space-y-2">
+                <Label className="text-[8px] lg:text-sm">Y座標</Label>
                 <Slider
                   value={[stampY]}
                   onValueChange={(value) => setStampY(value[0])}
@@ -267,13 +267,13 @@ export function ImageComposition({
                   max={1000}
                   step={1}
                 />
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[8px] lg:text-sm text-muted-foreground">
                   Y: {stampY}px
                 </div>
               </div>
             </div>
             <Button
-              className="w-full h-7 text-xs"
+              className="w-full text-[8px] lg:text-sm h-6 lg:h-9"
               onClick={() => stampFile && onAddStamp(stampFile, stampX, stampY)}
               disabled={isSave || !stampFile}
             >

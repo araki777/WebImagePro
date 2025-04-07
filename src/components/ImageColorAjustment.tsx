@@ -42,12 +42,12 @@ export const ImageColorAjustment = ({
 
   return (
 		<Tabs defaultValue="basic" className="w-full">
-			<TabsList className="w-full flex justify-between gap-1 px-1">
-				<TabsTrigger value="basic" className="flex-1 min-w-0 px-2 text-xs py-1">
+			<TabsList className="w-full flex justify-between gap-1 px-1 h-6 lg:h-9">
+				<TabsTrigger value="basic" className="flex-1 min-w-0 px-2 py-1 text-[8px] sm:text-xs">
 					<Sliders className="w-3 h-3 mr-1" />
 					基本調整
 				</TabsTrigger>
-				<TabsTrigger value="advanced" className="flex-1 min-w-0 px-2 text-xs py-1">
+				<TabsTrigger value="advanced" className="flex-1 min-w-0 px-2 py-1 text-[8px] sm:text-xs">
 					<Settings className="w-3 h-3 mr-1" />
 					高度な調整
 				</TabsTrigger>
@@ -58,8 +58,8 @@ export const ImageColorAjustment = ({
 				<div className="grid grid-cols-2 gap-2">
 					{/* Brightness */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-xs font-medium">
-							<Sun className="w-3.5 h-3.5" />
+						<label className="flex items-center gap-1.5 font-medium text-[8px] lg:text-sm">
+							<Sun className="w-1 h-1 lg:w-4 lg:h-4" />
 							明度
 						</label>
 						<Slider
@@ -74,7 +74,7 @@ export const ImageColorAjustment = ({
 							disabled={isSave}
 							className="w-full"
 						/>
-						<div className="flex justify-between text-xs text-gray-500">
+						<div className="flex justify-between text-[8px] lg:text-sm text-gray-500">
 							<span>-100</span>
 							<span>{brightness}</span>
 							<span>100</span>
@@ -83,8 +83,8 @@ export const ImageColorAjustment = ({
 
 					{/* Saturation */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-xs font-medium">
-							<Palette className="w-3.5 h-3.5" />
+						<label className="flex items-center gap-1.5 text-[8px] lg:text-sm font-medium">
+							<Palette className="w-1 h-1 lg:w-4 lg:h-4" />
 							彩度
 						</label>
 						<Slider
@@ -99,7 +99,7 @@ export const ImageColorAjustment = ({
 							disabled={isSave}
 							className="w-full"
 						/>
-						<div className="flex justify-between text-xs text-gray-500">
+						<div className="flex justify-between text-[8px] lg:text-sm text-gray-500">
 							<span>0</span>
 							<span>{saturation}</span>
 							<span>2</span>
@@ -108,8 +108,8 @@ export const ImageColorAjustment = ({
 
 					{/* Contrast */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-xs font-medium">
-							<Contrast className="w-3.5 h-3.5" />
+						<label className="flex items-center gap-1.5 text-[8px] lg:text-sm font-medium">
+							<Contrast className="w-1 h-1 lg:w-4 lg:h-4" />
 							コントラスト
 						</label>
 						<Slider
@@ -124,7 +124,7 @@ export const ImageColorAjustment = ({
 							disabled={isSave}
 							className="w-full"
 						/>
-						<div className="flex justify-between text-xs text-gray-500">
+						<div className="flex justify-between text-[8px] lg:text-sm text-gray-500">
 							<span>-100</span>
 							<span>{contrast}</span>
 							<span>100</span>
@@ -134,8 +134,8 @@ export const ImageColorAjustment = ({
 
 				{/* Effect Switches */}
 				<div className="grid grid-cols-3 gap-2">
-					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-						<label className="text-xs font-medium whitespace-nowrap">グレースケール</label>
+					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors h-6 lg:h-9">
+						<label className="text-[8px] lg:text-sm font-medium whitespace-nowrap">グレースケール</label>
 						<Switch
 							checked={isGrayScale}
 							onCheckedChange={(checked) => {
@@ -147,8 +147,8 @@ export const ImageColorAjustment = ({
 						/>
 					</div>
 
-					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-						<label className="text-xs font-medium whitespace-nowrap">セピア</label>
+					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors h-6 lg:h-9">
+						<label className="text-[8px] lg:text-sm font-medium whitespace-nowrap">セピア</label>
 						<Switch
 							checked={isSepia}
 							onCheckedChange={(checked) => {
@@ -160,8 +160,8 @@ export const ImageColorAjustment = ({
 						/>
 					</div>
 
-					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-						<label className="text-xs font-medium whitespace-nowrap">反転</label>
+					<div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors h-6 lg:h-9">
+						<label className="text-[8px] lg:text-sm font-medium whitespace-nowrap">反転</label>
 						<Switch
 							checked={isInvert}
 							onCheckedChange={(checked) => {
@@ -180,8 +180,8 @@ export const ImageColorAjustment = ({
 				<div className="grid grid-cols-2 gap-2">
 					{/* Gamma */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-xs font-medium">
-							<Contrast className="w-3.5 h-3.5" />
+						<label className="flex items-center gap-1.5 text-[8px] lg:text-sm font-medium">
+							<Contrast className="w-1 h-1 lg:w-4 lg:h-4" />
 							ガンマ
 						</label>
 						<Slider
@@ -196,7 +196,7 @@ export const ImageColorAjustment = ({
 							disabled={isSave}
 							className="w-full"
 						/>
-						<div className="flex justify-between text-xs text-gray-500">
+						<div className="flex justify-between text-[8px] lg:text-sm text-gray-500">
 							<span>0</span>
 							<span>{gamma}</span>
 							<span>3</span>
@@ -205,8 +205,8 @@ export const ImageColorAjustment = ({
 
 					{/* Threshold */}
 					<div className="space-y-1">
-						<label className="flex items-center gap-1.5 text-xs font-medium">
-							<Contrast className="w-3.5 h-3.5" />
+						<label className="flex items-center gap-1.5 text-[8px] lg:text-sm font-medium">
+							<Contrast className="w-1 h-1 lg:w-4 lg:h-4" />
 							白黒
 						</label>
 						<Slider
@@ -221,7 +221,7 @@ export const ImageColorAjustment = ({
 							disabled={isSave}
 							className="w-full"
 						/>
-						<div className="flex justify-between text-xs text-gray-500">
+						<div className="flex justify-between text-[8px] lg:text-sm text-gray-500">
 							<span>0</span>
 							<span>{threshold}</span>
 							<span>255</span>
@@ -231,11 +231,11 @@ export const ImageColorAjustment = ({
 
 				{/* Color Balance */}
 				<div className="space-y-1">
-					<label className="text-xs font-medium">カラーバランス</label>
+					<label className="text-[8px] lg:text-sm font-medium">カラーバランス</label>
 					<div className="grid grid-cols-2 gap-2">
 						<div className="space-y-1">
-							<label className="flex items-center gap-1.5 text-xs font-medium text-red-500">
-								<Palette className="w-3.5 h-3.5" />
+							<label className="flex items-center gap-1.5 text-[8px] lg:text-sm font-medium text-red-500">
+								<Palette className="w-1 h-1 lg:w-4 lg:h-4" />
 								赤
 							</label>
 							<Slider
@@ -250,7 +250,7 @@ export const ImageColorAjustment = ({
 								disabled={isSave}
 								className="w-full"
 							/>
-							<div className="flex justify-between text-xs text-gray-500">
+							<div className="flex justify-between text-[8px] lg:text-sm text-gray-500">
 								<span>0</span>
 								<span>{redFactor}</span>
 								<span>2</span>
@@ -258,8 +258,8 @@ export const ImageColorAjustment = ({
 						</div>
 
 						<div className="space-y-1">
-							<label className="flex items-center gap-1.5 text-xs font-medium text-green-500">
-								<Palette className="w-3.5 h-3.5" />
+							<label className="flex items-center gap-1.5 text-[8px] lg:text-sm font-medium text-green-500">
+								<Palette className="w-1 h-1 lg:w-4 lg:h-4" />
 								緑
 							</label>
 							<Slider
@@ -274,7 +274,7 @@ export const ImageColorAjustment = ({
 								disabled={isSave}
 								className="w-full"
 							/>
-							<div className="flex justify-between text-xs text-gray-500">
+							<div className="flex justify-between text-[8px] lg:text-sm text-gray-500">
 								<span>0</span>
 								<span>{greenFactor}</span>
 								<span>2</span>
@@ -282,8 +282,8 @@ export const ImageColorAjustment = ({
 						</div>
 
 						<div className="space-y-1">
-							<label className="flex items-center gap-1.5 text-xs font-medium text-blue-500">
-								<Palette className="w-3.5 h-3.5" />
+							<label className="flex items-center gap-1.5 text-[8px] lg:text-sm font-medium text-blue-500">
+								<Palette className="w-1 h-1 lg:w-4 lg:h-4" />
 								青
 							</label>
 							<Slider
@@ -298,7 +298,7 @@ export const ImageColorAjustment = ({
 								disabled={isSave}
 								className="w-full"
 							/>
-							<div className="flex justify-between text-xs text-gray-500">
+							<div className="flex justify-between text-[8px] lg:text-sm text-gray-500">
 								<span>0</span>
 								<span>{blueFactor}</span>
 								<span>2</span>

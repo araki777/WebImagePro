@@ -35,29 +35,29 @@ export function ImageFilter({
 }: IImageFilterProps) {
   return (
     <Tabs defaultValue="blur" className="w-full">
-      <TabsList className="w-full flex justify-between gap-1 px-1">
-        <TabsTrigger value="blur" className="flex-1 min-w-0 px-2 text-xs py-1">
-          <Droplet className="w-3 h-3 mr-1" />
+      <TabsList className="w-full flex justify-between gap-1 px-1 h-6 lg:h-9">
+        <TabsTrigger value="blur" className="flex-1 min-w-0 px-2 text-[8px] lg:text-sm py-1">
+          <Droplet className="w-1 h-1 lg:w-4 lg:h-4" />
           ぼかし
         </TabsTrigger>
-        <TabsTrigger value="sharp" className="flex-1 min-w-0 px-2 text-xs py-1">
-          <Scissors className="w-3 h-3 mr-1" />
+        <TabsTrigger value="sharp" className="flex-1 min-w-0 px-2 text-[8px] lg:text-sm py-1">
+          <Scissors className="w-1 h-1 lg:w-4 lg:h-4" />
           シャープ
         </TabsTrigger>
-        <TabsTrigger value="artistic" className="flex-1 min-w-0 px-2 text-xs py-1">
-          <Palette className="w-3 h-3 mr-1" />
+        <TabsTrigger value="artistic" className="flex-1 min-w-0 px-2 text-[8px] lg:text-sm py-1">
+          <Palette className="w-1 h-1 lg:w-4 lg:h-4" />
           アーティスティック
         </TabsTrigger>
-        <TabsTrigger value="other" className="flex-1 min-w-0 px-2 text-xs py-1">
-          <MoreHorizontal className="w-3 h-3 mr-1" />
+        <TabsTrigger value="other" className="flex-1 min-w-0 px-2 text-[8px] lg:text-sm py-1">
+          <MoreHorizontal className="w-1 h-1 lg:w-4 lg:h-4" />
           その他
         </TabsTrigger>
       </TabsList>
 
       <div className="mt-4">
-        <TabsContent value="blur" className="space-y-6">
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">ガウシアンボカシ</Label>
+        <TabsContent value="blur" className="space-y-3 lg:space-y-6">
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">ガウシアンボカシ</Label>
             <Slider
               min={0}
               max={10}
@@ -70,11 +70,11 @@ export function ImageFilter({
             />
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">モーションボカシ</Label>
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">モーションボカシ</Label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground mb-2">角度</Label>
+                <Label className="text-[8px] lg:text-sm text-muted-foreground mb-2">角度</Label>
                 <Slider
                   min={0}
                   max={360}
@@ -87,7 +87,7 @@ export function ImageFilter({
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground mb-2">距離</Label>
+                <Label className="text-[8px] lg:text-sm text-muted-foreground mb-2">距離</Label>
                 <Slider
                   min={0}
                   max={20}
@@ -102,8 +102,8 @@ export function ImageFilter({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">ノイズ除去</Label>
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">ノイズ除去</Label>
             <Slider
               min={0}
               max={5}
@@ -118,11 +118,11 @@ export function ImageFilter({
         </TabsContent>
 
         <TabsContent value="sharp" className="space-y-6">
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">シャープ化</Label>
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">シャープ化</Label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground mb-2">強さ</Label>
+                <Label className="text-[8px] lg:text-sm text-muted-foreground mb-2">強さ</Label>
                 <Slider
                   min={0}
                   max={5}
@@ -135,7 +135,7 @@ export function ImageFilter({
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground mb-2">閾値</Label>
+                <Label className="text-[8px] lg:text-sm text-muted-foreground mb-2">閾値</Label>
                 <Slider
                   min={0}
                   max={100}
@@ -150,8 +150,8 @@ export function ImageFilter({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">エッジ検出</Label>
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">エッジ検出</Label>
             <Slider
               min={0}
               max={100}
@@ -166,11 +166,11 @@ export function ImageFilter({
         </TabsContent>
 
         <TabsContent value="artistic" className="space-y-6">
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">油彩効果</Label>
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">油彩効果</Label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground mb-2">半径</Label>
+                <Label className="text-[8px] lg:text-sm text-muted-foreground mb-2">半径</Label>
                 <Slider
                   min={0}
                   max={5}
@@ -183,7 +183,7 @@ export function ImageFilter({
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground mb-2">強さ</Label>
+                <Label className="text-[8px] lg:text-sm text-muted-foreground mb-2">強さ</Label>
                 <Slider
                   min={0}
                   max={255}
@@ -198,8 +198,8 @@ export function ImageFilter({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">モザイク</Label>
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">モザイク</Label>
             <Slider
               min={1}
               max={20}
@@ -214,8 +214,8 @@ export function ImageFilter({
         </TabsContent>
 
         <TabsContent value="other" className="space-y-6">
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">HDR</Label>
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">HDR</Label>
             <Slider
               min={0}
               max={2}
@@ -228,8 +228,8 @@ export function ImageFilter({
             />
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-xs font-medium">ビネット</Label>
+          <div className="space-y-2 lg:space-y-3">
+            <Label className="text-[8px] lg:text-sm font-medium">ビネット</Label>
             <Slider
               min={0}
               max={1}

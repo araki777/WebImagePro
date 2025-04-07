@@ -6,7 +6,7 @@ import { IImageCliperProps } from '@/types/types'
 export const ImageCliper = ({ selectedRatio, onRatioChange, onClip, isSave }: IImageCliperProps) => {
   return (
     <div className="space-y-3">
-      <div className="text-xs text-muted-foreground">
+      <div className="text-[8px] lg:text-sm text-muted-foreground">
         切り抜き領域をドラッグして移動、またはハンドルをドラッグしてサイズを変更できます
       </div>
 
@@ -15,7 +15,7 @@ export const ImageCliper = ({ selectedRatio, onRatioChange, onClip, isSave }: II
           <Button
             key={ratio.name}
             variant={selectedRatio.name === ratio.name ? "default" : "outline"}
-            className="w-full h-8 text-xs"
+            className="w-full text-[8px] lg:text-sm h-6 lg:h-9"
             onClick={() => onRatioChange(ratio)}
           >
             {ratio.name}
@@ -24,7 +24,7 @@ export const ImageCliper = ({ selectedRatio, onRatioChange, onClip, isSave }: II
       </div>
 
       <Button
-        className="w-full h-8 text-xs"
+        className="w-full text-[8px] lg:text-sm h-6 lg:h-9"
         onClick={onClip}
         disabled={isSave}
       >
