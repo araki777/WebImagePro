@@ -268,38 +268,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     return imageRect.width / resizeWidth;
   };
 
-  const handleMouseDown = (e: React.MouseEvent, handle?: string) => {
-    if (activeTransformTab !== 'clip') return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const imageElement = imageRef.current;
-    if (!imageElement) return;
-
-    const rect = imageElement.getBoundingClientRect();
-    const scale = getScaleFactor();
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
-
-    setIsDragging(true);
-    setDragStart({ x, y });
-    setResizeHandle(handle || null);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || activeTransformTab !== 'clip') return;
-
-    const imageElement = imageRef.current;
-    if (!imageElement) return;
-
-    const rect = imageElement.getBoundingClientRect();
-    const scale = getScaleFactor();
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
-    const deltaX = (x - dragStart.x);
-    const deltaY = (y - dragStart.y);
-
+  const handleRegionResize = (deltaX: number, deltaY: number) => {
     if (resizeHandle) {
       const newClipRegion = { ...clipRegion };
       const minSize = 50;
@@ -356,6 +325,41 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
         y: Math.max(0, Math.min(resizeHeight - prev.height, prev.y + deltaY))
       }));
     }
+  }
+
+  const handleMouseDown = (e: React.MouseEvent, handle?: string) => {
+    if (activeTransformTab !== 'clip') return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const imageElement = imageRef.current;
+    if (!imageElement) return;
+
+    const rect = imageElement.getBoundingClientRect();
+    const scale = getScaleFactor();
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
+
+    setIsDragging(true);
+    setDragStart({ x, y });
+    setResizeHandle(handle || null);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || activeTransformTab !== 'clip') return;
+
+    const imageElement = imageRef.current;
+    if (!imageElement) return;
+
+    const rect = imageElement.getBoundingClientRect();
+    const scale = getScaleFactor();
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
+    const deltaX = (x - dragStart.x);
+    const deltaY = (y - dragStart.y);
+
+    handleRegionResize(deltaX, deltaY);
 
     setDragStart({ x, y });
   };
@@ -364,6 +368,54 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     setIsDragging(false);
     setResizeHandle(null);
   };
+
+  const handleTouchStart = (e: React.TouchEvent, handle?: string) => {
+    if (activeTransformTab !== 'clip') return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const imageElement = imageRef.current;
+    if (!imageElement) return;
+
+    const touch = e.touches[0];
+    const rect = imageElement.getBoundingClientRect();
+    const scale = getScaleFactor();
+    const x = (touch.clientX - rect.left) / scale;
+    const y = (touch.clientY - rect.top) / scale;
+
+    setIsDragging(true);
+    setDragStart({ x, y });
+    setResizeHandle(handle || null);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || activeTransformTab !== 'clip') return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const imageElement = imageRef.current;
+    if (!imageElement) return;
+
+    const touch = e.touches[0];
+    const rect = imageElement.getBoundingClientRect();
+    const scale = getScaleFactor();
+    const x = (touch.clientX - rect.left) / scale;
+    const y = (touch.clientY - rect.top) / scale;
+
+    const deltaX = (x - dragStart.x);
+    const deltaY = (y - dragStart.y);
+
+    handleRegionResize(deltaX, deltaY);
+
+    setDragStart({ x, y });
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    setResizeHandle(null);
+  }
 
   const handleRatioChange = (ratio: typeof RATIOS[0]) => {
     setSelectedRatio(ratio);
@@ -793,6 +845,9 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                 >
                   <div className="h-[200px] flex-grow relative lg:h-full lg:absolute lg:inset-0 overflow-auto">
                     <div className="h-full w-full flex items-center justify-center p-4">
@@ -811,7 +866,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
                           unoptimized
                         />
                         {activeTab === "transform" && activeTransformTab === "clip" && (
-                          <ImageCliperControls clipRegion={clipRegion} onMouseDown={handleMouseDown} />
+                          <ImageCliperControls clipRegion={clipRegion} onMouseDown={handleMouseDown} onTouchStart={handleTouchStart} />
                         )}
                       </div>
                     </div>

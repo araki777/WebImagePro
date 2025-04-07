@@ -157,6 +157,7 @@ export type ResizeHandle = "se" | "e" | "s";
 export interface IImageCliperContolesProps {
   clipRegion: IClipRegion;
   onMouseDown: (event: React.MouseEvent<HTMLDivElement>, handle?: ResizeHandle) => void;
+  onTouchStart: (event: React.TouchEvent<HTMLDivElement>, handle?: ResizeHandle) => void;
 }
 
 // ============================================================================
