@@ -14,6 +14,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       if (!user) {
         set({ user: null, isLoading: false, userSettings: null });
+        window.location.href = '/login';
         return;
       }
 
@@ -31,8 +32,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // 認証状態の変更を監視（一度だけ登録）
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_OUT') {
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
           set({ user: null, userSettings: null, isLoading: false });
+          window.location.href = '/login';
         } else if (session?.user) {
           set({
             user: {
@@ -54,6 +56,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       console.error('認証エラー:', error);
       set({ user: null, isLoading: false, userSettings: null });
+      // リフレッシュトークンのエラーの場合はログインページにリダイレクト
+      if (error instanceof Error && error.message.includes('Invalid Refresh Token')) {
+        window.location.href = '/login';
+      }
     }
   },
   signOut: async () => {
@@ -75,7 +81,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // APIを使用してユーザー設定を更新
       const data = await api.update<UserSettings[]>('user_settings', user.id, settings);
-      
+
       // 設定を更新
       if (data && data.length > 0) {
         set({ userSettings: data[0] });
@@ -114,16 +120,27 @@ async function fetchUserSettings(userId: string) {
 // ユーザー設定を新規作成する関数
 async function createUserSettings(userId: string) {
   try {
-    const data = await api.create<UserSettings[]>('user_settings', {
-      user_id: userId,
-      theme: "system",
-      language: "ja",
-      subscription_status: null,
-      subscription_id: null,
-      subscription_end_date: null,
-      stripe_customer_id: null,
-    });
-    
+    const { data, error } = await supabase
+      .from('user_settings')
+      .insert({
+        user_id: userId,
+        theme: "light",
+        language: "ja",
+        subscription_status: null,
+        subscription_id: null,
+        subscription_end_date: null,
+        stripe_customer_id: null,
+      })
+      .select();
+
+    if (error) {
+      console.error('ユーザー設定作成エラー:', error);
+      if (error.code === '42501') {
+        console.error('RLSポリシーエラー: テーブルへのアクセス権限がありません');
+      }
+      return;
+    }
+
     if (data && data.length > 0) {
       useAuthStore.setState({ userSettings: data[0] });
     }

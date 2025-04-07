@@ -49,9 +49,9 @@ export class AzureStorageService {
   }
 
   private async generateSasUrl(blobClient: BlobClient): Promise<string> {
-    const startsOn = new Date();
-    const expiresOn = new Date(startsOn);
-    expiresOn.setMinutes(startsOn.getMinutes() + 60); // 1時間有効
+    const now = new Date();
+    const startsOn = new Date(now.getTime() - 5 * 60 * 1000); // 5分前
+    const expiresOn = new Date(now.getTime() + 60 * 60 * 1000); // 1時間後
 
     const properties = await blobClient.getProperties();
     const sasOptions = {
@@ -83,7 +83,7 @@ export class AzureStorageService {
         const blobClient = containerClient.getBlobClient(blob.name);
         const properties = await blobClient.getProperties();
         const sasUrl = await this.generateSasUrl(blobClient);
-        
+
         images.push({
           url: sasUrl,
           name: properties.metadata?.originalName || blob.name,
@@ -150,7 +150,7 @@ export class AzureStorageService {
 
       const containerClient = await this.getContainerClient(containerName);
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      
+
       await blockBlobClient.delete();
     } catch (error) {
       console.error('File deletion failed:', error);
