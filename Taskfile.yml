@@ -10,15 +10,3 @@ tasks:
       - wasm/src/**
     generates:
       - wasm/**
-
-build:
-  desc: "WasmをビルドしてNext.jsをビルド"
-  cmds:
-    - tasks: build:wasm
-    - cd next && npm run build
-
-dev:
-  desc: "WasmをビルドしてビルドしてNext.jsを開発サーバーを起動"
-  cmds:
-    - tasks: build:wasm
-    - cd next && npm run dev
