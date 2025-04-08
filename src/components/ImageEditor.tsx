@@ -14,12 +14,14 @@ import { IImageEditorProps, IClipRegion, IPosition, IMAGE_FORMATS } from '@/type
 import { ImageCliperControls } from '@/components/ImageCliperControls';
 import { ImageColorAjustment } from '@/components/ImageColorAjustment';
 import { ImageFilter } from '@/components/ImageFilter';
-import { getWasmModule } from '@/lib/wasm-loader';
 import { ImageTransform } from '@/components/ImageTransform';
 import { ImageComposition } from '@/components/ImageComposition';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Step } from 'react-joyride';
 import TourGuid from '@/components/common/TourGuid';
+import init, * as wasmExports from '@/pkg/wasm';
+
+type WasmFunction = (imageData: Uint8Array, ...args: number[]) => Uint8Array;
 
 export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [activeTab, setActiveTab] = useState("transform");
@@ -106,6 +108,10 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       spotlightClicks: true,
     }
   ];
+
+  useEffect(() => {
+    init();
+  }, []);
 
   useEffect(() => {
     const loadImage = async () => {
@@ -458,7 +464,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
 
   // 共通の画像処理関数
   const processImage = async (
-    processFunctionName: string,
+    processFunctionName: keyof typeof wasmExports,
     ...args: number[]
   ) => {
     if (!originalImageBlob) return;
@@ -466,13 +472,12 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     const arrayBuffer = await originalImageBlob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm[processFunctionName] !== 'function') {
+    const func = wasmExports[processFunctionName] as WasmFunction;
+    if (typeof func !== 'function') {
       throw new Error(`${processFunctionName} function not found`);
     }
 
-    const adjustedImage = wasm[processFunctionName](imageData, ...args);
+    const adjustedImage = func(imageData, ...args);
 
     if (!(adjustedImage instanceof Uint8Array)) {
       throw new Error(`Invalid ${processFunctionName} result format`);
@@ -504,13 +509,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     const arrayBuffer = await originalImageBlob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.adjust_grayscale !== 'function') {
+    if (typeof wasmExports.adjust_grayscale !== 'function') {
       throw new Error('Adjust grayscale function not found');
     }
 
-    const adjustedImage = isGrayScale ? wasm.adjust_grayscale(imageData) : imageData;
+    const adjustedImage = isGrayScale ? wasmExports.adjust_grayscale(imageData) : imageData;
     const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
     updateProcessedImage(adjustedBlob);
   }
@@ -521,13 +524,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     const arrayBuffer = await originalImageBlob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.adjust_sepia !== 'function') {
+    if (typeof wasmExports.adjust_sepia !== 'function') {
       throw new Error('Adjust sepia function not found');
     }
 
-    const adjustedImage = isSepia ? wasm.adjust_sepia(imageData) : imageData;
+    const adjustedImage = isSepia ? wasmExports.adjust_sepia(imageData) : imageData;
     const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
     updateProcessedImage(adjustedBlob);
   }
@@ -538,13 +539,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     const arrayBuffer = await originalImageBlob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.adjust_invert !== 'function') {
+    if (typeof wasmExports.adjust_invert !== 'function') {
       throw new Error('Adjust invert function not found');
     }
 
-    const adjustedImage = isInvert ? wasm.adjust_invert(imageData) : imageData;
+    const adjustedImage = isInvert ? wasmExports.adjust_invert(imageData) : imageData;
     const adjustedBlob = new Blob([adjustedImage], { type: 'image/png' });
     updateProcessedImage(adjustedBlob);
   }
@@ -569,13 +568,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       imageData = new Uint8Array(arrayBuffer);
     }
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.clip_image !== 'function') {
+    if (typeof wasmExports.clip_image !== 'function') {
       throw new Error('Clip function not found');
     }
 
-    const clipedImage = wasm.clip_image(imageData, clipRegion.x, clipRegion.y, clipRegion.width, clipRegion.height);
+    const clipedImage = wasmExports.clip_image(imageData, clipRegion.x, clipRegion.y, clipRegion.width, clipRegion.height);
 
     if (!(clipedImage instanceof Uint8Array)) {
       throw new Error('Invalid resize result format');
@@ -597,13 +594,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       imageData = new Uint8Array(arrayBuffer);
     }
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.rotate_image !== 'function') {
+    if (typeof wasmExports.rotate_image !== 'function') {
       throw new Error('Rotate function not found');
     }
 
-    const rotatedImage = wasm.rotate_image(imageData, degrees);
+    const rotatedImage = wasmExports.rotate_image(imageData, degrees);
 
     if (!(rotatedImage instanceof Uint8Array)) {
       throw new Error('Invalid rotate result format');
@@ -625,13 +620,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       imageData = new Uint8Array(arrayBuffer);
     }
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.flip_image !== 'function') {
+    if (typeof wasmExports.flip_image !== 'function') {
       throw new Error('Flip function not found');
     }
 
-    const flippedImage = wasm.flip_image(imageData, horizontal);
+    const flippedImage = wasmExports.flip_image(imageData, horizontal);
 
     if (!(flippedImage instanceof Uint8Array)) {
       throw new Error('Invalid flip result format');
@@ -651,8 +644,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       const arrayBuffer = await imageToSave.arrayBuffer();
       const imageData = new Uint8Array(arrayBuffer);
 
-      const wasm = await getWasmModule();
-      const convertedImage = wasm.convert_image_format(imageData, selectedFormat);
+      const convertedImage = wasmExports.convert_image_format(imageData, selectedFormat);
 
       // Blobを作成し、直接それを渡す（base64エンコードせずに）
       const blob = new Blob([convertedImage], { type: `image/${selectedFormat}` });
@@ -675,8 +667,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
       const arrayBuffer = await imageToSave.arrayBuffer();
       const imageData = new Uint8Array(arrayBuffer);
 
-      const wasm = await getWasmModule();
-      const convertedImage = wasm.convert_image_format(imageData, selectedFormat);
+      const convertedImage = wasmExports.convert_image_format(imageData, selectedFormat);
 
       // Blobを作成し、直接それを渡す（base64エンコードせずに）
       const blob = new Blob([convertedImage], { type: `image/${selectedFormat}` });
@@ -731,13 +722,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     const arrayBuffer = await originalImageBlob.arrayBuffer();
     const imageData = new Uint8Array(arrayBuffer);
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.make_transparent !== 'function') {
+    if (typeof wasmExports.make_transparent !== 'function') {
       throw new Error('Make transparent function not found');
     }
 
-    const transparentImage = wasm.make_transparent(imageData, threshold);
+    const transparentImage = wasmExports.make_transparent(imageData, threshold);
 
     if (!(transparentImage instanceof Uint8Array)) {
       throw new Error('Invalid make transparent result format');
@@ -756,13 +745,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     const watermarkArrayBuffer = await watermark.arrayBuffer();
     const watermarkImageData = new Uint8Array(watermarkArrayBuffer);
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.add_watermark !== 'function') {
+    if (typeof wasmExports.add_watermark !== 'function') {
       throw new Error('Add watermark function not found');
     }
 
-    const watermarkedImage = wasm.add_watermark(baseImageData, watermarkImageData, x, y, opacity);
+    const watermarkedImage = wasmExports.add_watermark(baseImageData, watermarkImageData, x, y, opacity);
 
     if (!(watermarkedImage instanceof Uint8Array)) {
       throw new Error('Invalid add watermark result format');
@@ -781,13 +768,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     const overlayArrayBuffer = await overlay.arrayBuffer();
     const overlayImageData = new Uint8Array(overlayArrayBuffer);
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.composite !== 'function') {
+    if (typeof wasmExports.composite !== 'function') {
       throw new Error('Composite function not found');
     }
 
-    const compositeImage = wasm.composite(baseImageData, overlayImageData, x, y);
+    const compositeImage = wasmExports.composite(baseImageData, overlayImageData, x, y);
 
     if (!(compositeImage instanceof Uint8Array)) {
       throw new Error('Invalid composite result format');
@@ -806,13 +791,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     const stampArrayBuffer = await stamp.arrayBuffer();
     const stampImageData = new Uint8Array(stampArrayBuffer);
 
-    const wasm = await getWasmModule();
-
-    if (typeof wasm.add_stamp !== 'function') {
+    if (typeof wasmExports.add_stamp !== 'function') {
       throw new Error('Add stamp function not found');
     }
 
-    const stampedImage = wasm.add_stamp(baseImageData, stampImageData, x, y);
+    const stampedImage = wasmExports.add_stamp(baseImageData, stampImageData, x, y);
 
     if (!(stampedImage instanceof Uint8Array)) {
       throw new Error('Invalid add stamp result format');
