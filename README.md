@@ -181,6 +181,9 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target" -L 3 | se
 > task build:wasm
 ```
 
+### .env.exampleファイルを元に.env.localファイルを作成
+環境値はそれぞれの値に合わせて設定してください
+
 ### 開発サーバーの起動
 ```sh
 > npm run dev
