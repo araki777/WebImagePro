@@ -1,7 +1,9 @@
 [package]
-name = "wasm"
+name = "wasm-image-pro"
 version = "0.1.0"
-edition = "2024"
+edition = "2025"
+description = "WebAssembly image processing library"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib"]

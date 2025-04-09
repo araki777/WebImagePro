@@ -1,0 +1,103 @@
+name: Publish WASM Package
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "wasm/**"
+  workflow_dispatch:
+
+jobs:
+  check_version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.check.outputs.should_publish }}
+      current_version: ${{ steps.check.outputs.current_version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get current version
+        id: check
+        run: |
+          CURRENT_VERSION=$(grep '^version = ' wasm/Cargo.toml | cut -d '"' -f2)
+          echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+
+          # npmjsレジストリで既存のバージョンをチェック
+          if ! npm view "@araki777/wasm-image-pro@${CURRENT_VERSION}" version &> /dev/null; then
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+          fi
+
+  build_and_publish:
+    needs: check_version
+    if: needs.check_version.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal
+          override: true
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM
+        run: |
+          cd wasm
+          wasm-pack build --target bundler --release
+
+      - name: Create package.json
+        run: |
+          cat > package.json << EOF
+          {
+            "name": "@araki777/wasm-image-pro",
+            "version": "${{ needs.check_version.outputs.current_version }}",
+            "description": "WebAssembly image processing package",
+            "main": "wasm/pkg/wasm_image_pro.js",
+            "types": "wasm/pkg/wasm_image_pro.d.ts",
+            "files": [
+              "wasm/pkg"
+            ],
+            "publishConfig": {
+              "registry": "https://npm.pkg.github.com"
+            }
+          }
+          EOF
+
+      - name: Publish to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.check_version.outputs.current_version }}
+          release_name: Release v${{ needs.check_version.outputs.current_version }}
+          body: |
+            WASM package version ${{ needs.check_version.outputs.current_version }} has been published.
+
+            Changes in this release:
+            - WASM module updates
+          draft: false
+          prerelease: false
