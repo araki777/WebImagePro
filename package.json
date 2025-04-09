@@ -1,7 +1,11 @@
 {
-  "name": "next",
+  "name": "@araki777/wasm-image-pro",
   "version": "0.1.0",
   "private": true,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
