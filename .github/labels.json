@@ -1,63 +1,63 @@
 [
 	{
 		"name": "bug🐛",
-		"color": "#d73a4a",
+		"color": "d73a4a",
 		"aliases": ["バグ", "バグ報告"],
 		"description": "バグを報告するためのラベルです。",
 		"deleted": false
 	},
 	{
 		"name": "doc📄",
-		"color": "#0e8a16",
+		"color": "0e8a16",
 		"aliases": ["ドキュメント", "ドキュメント更新"],
 		"description": "ドキュメントを更新するためのラベルです。",
 		"deleted": false
 	},
 	{
 		"name": "duplicate🔄",
-		"color": "#cfd3d7",
+		"color": "cfd3d7",
 		"aliases": ["重複", "重複報告"],
 		"description": "重複報告をするためのラベルです。",
 		"deleted": false
 	},
 	{
 		"name": "enhancement🔧",
-		"color": "#a2eeef",
+		"color": "a2eeef",
 		"aliases": ["改善", "改善提案"],
 		"description": "改善提案をするためのラベルです。",
 		"deleted": false
 	},
 	{
 		"name": "good first issue👍",
-		"color": "#7057ff",
+		"color": "7057ff",
 		"aliases": ["簡単な問題", "簡単な問題の報告"],
 		"description": "簡単な問題を解決するためのラベルです。",
 		"deleted": false
 	},
 	{
 		"name": "help wanted🤔",
-		"color": "#008672",
+		"color": "008672",
 		"aliases": ["助けてほしい", "助けてほしい報告"],
 		"description": "助けてほしい問題を報告するためのラベルです。",
 		"deleted": false
 	},
 	{
 		"name": "invalid🚫",
-		"color": "#cfd3d7",
+		"color": "cfd3d7",
 		"aliases": ["無効", "無効報告"],
 		"description": "無効な報告をするためのラベルです。",
 		"deleted": false
 	},
 	{
 		"name": "question💬",
-		"color": "#d876e3",
+		"color": "d876e3",
 		"aliases": ["質問", "質問報告"],
 		"description": "質問をするためのラベルです。",
 		"deleted": false
 	},
 	{
 		"name": "refactor🔨",
-		"color": "#fbca04",
+		"color": "fbca04",
 		"aliases": ["リファクタリング", "リファクタリング報告"],
 		"description": "リファクタリングをするためのラベルです。",
 		"deleted": false
