@@ -90,18 +90,3 @@ jobs:
         run: npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ needs.check_version.outputs.current_version }}
-          name: Release v${{ needs.check_version.outputs.current_version }}
-          body: |
-            WASM package version ${{ needs.check_version.outputs.current_version }} has been published.
-
-            Changes in this release:
-            - WASM module updates
-          draft: false
-          prerelease: false
