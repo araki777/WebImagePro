@@ -19,7 +19,7 @@ import { ImageComposition } from '@/components/ImageComposition';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Step } from 'react-joyride';
 import TourGuid from '@/components/common/TourGuid';
-import init, * as wasmExports from '@/pkg/wasm';
+import init, * as wasmExports from '@araki777/wasm-image-pro';
 
 type WasmFunction = (imageData: Uint8Array, ...args: number[]) => Uint8Array;
 
