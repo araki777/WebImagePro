@@ -8,6 +8,10 @@ on:
       - "wasm/**"
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   check_version:
     runs-on: ubuntu-latest
