@@ -10,8 +10,10 @@ import { ImageList } from '@/components/ImageList';
 import { SearchBar } from '@/components/ui/searchBar';
 import { Step } from 'react-joyride';
 import TourGuid from '@/components/common/TourGuid';
+import { useRouter } from 'next/navigation';
 
 export function ImageGallery() {
+  const router = useRouter();
   const [images, setImages] = useState<IApiImage[]>([]); // 画像データの状態
   const [loading, setLoading] = useState(true); // ローディング状態
   const [searchQuery, setSearchQuery] = useState(''); // 検索クエリ
@@ -106,7 +108,8 @@ export function ImageGallery() {
 
   // 編集中の画像を設定する関数
   const handleEditImage = (image: IApiImage) => {
-    setEditingImage(image); // 編集中の画像を設定
+    // エディターページに遷移
+    router.push(`/editor?url=${encodeURIComponent(image.url)}`);
   };
 
   // 編集中の画像を保存する関数

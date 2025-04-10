@@ -1,6 +1,7 @@
 'use client';
 
 import { Header } from "@/components/ui/header";
+import { Footer } from "@/components/ui/footer";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
@@ -44,16 +45,17 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
         userImage={user.user_metadata.avatar_url}
         userName={user.user_metadata.full_name || user.email}
       />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-grow">
         <ImageUpload />
       </main>
+      <Footer />
     </div>
   );
 } 

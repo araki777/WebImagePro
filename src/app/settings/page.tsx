@@ -1,6 +1,7 @@
 'use client';
 
 import { Header } from "@/components/ui/header";
+import { Footer } from "@/components/ui/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
@@ -116,14 +117,14 @@ function SettingsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
         userImage={user.user_metadata.avatar_url}
         userName={user.user_metadata.full_name || user.email}
       />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-grow">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>設定</CardTitle>
@@ -161,6 +162,7 @@ function SettingsContent() {
           </CardContent>
         </Card>
       </main>
+      <Footer />
     </div>
   );
 }
