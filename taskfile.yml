@@ -1,0 +1,11 @@
+version: 3
+
+tasks:
+  build:wasm:
+    desc: "Rust Assemblyをビルド"
+    cmds:
+      - cd wasm && wasm-pack build --target web
+    sources:
+      - wasm/src/**
+    generates:
+      - wasm/**
