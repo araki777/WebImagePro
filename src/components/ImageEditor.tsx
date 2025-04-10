@@ -111,7 +111,11 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   ];
 
   useEffect(() => {
-    init();
+    const initializeWasm = async () => {
+      await init();
+    };
+
+    initializeWasm();
   }, []);
 
   useEffect(() => {
