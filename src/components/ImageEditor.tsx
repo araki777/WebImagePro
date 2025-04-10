@@ -111,16 +111,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   ];
 
   useEffect(() => {
-    const initializeWasm = async () => {
-      try {
-        await init();
-        setIsWasmInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize WASM:', error);
-      }
-    };
-
-    initializeWasm();
+    init();
   }, []);
 
   useEffect(() => {
