@@ -12,8 +12,7 @@
     "start": "next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "setup": "bash scripts/install-with-env.sh"
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@araki777/wasm-image-pro": "latest",
@@ -80,5 +79,9 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
-  }
+  },
+  "resolutions": {
+    "@araki777/wasm-image-pro": "latest"
+  },
+  "packageManager": "npm@10.2.4"
 }
