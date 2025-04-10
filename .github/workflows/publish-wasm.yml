@@ -69,19 +69,23 @@ jobs:
 
       - name: Create package.json
         run: |
+          cd wasm/pkg
           cat > package.json << EOF
           {
             "name": "@araki777/wasm-image-pro",
             "version": "${{ needs.check_version.outputs.current_version }}",
             "description": "WebAssembly image processing package",
-            "main": "wasm/pkg/wasm_image_pro.js",
-            "types": "wasm/pkg/wasm_image_pro.d.ts",
+            "main": "wasm_image_pro.js",
+            "types": "wasm_image_pro.d.ts",
             "repository": {
               "type": "git",
               "url": "git+https://github.com/${{ github.repository }}.git"
             },
             "files": [
-              "wasm/pkg"
+              "wasm_image_pro.js",
+              "wasm_image_pro.d.ts",
+              "wasm_image_pro_bg.wasm",
+              "wasm_image_pro_bg.wasm.d.ts"
             ],
             "publishConfig": {
               "registry": "https://npm.pkg.github.com"
@@ -90,6 +94,8 @@ jobs:
           EOF
 
       - name: Publish to GitHub Packages
-        run: npm publish
+        run: |
+          cd wasm/pkg
+          npm publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
