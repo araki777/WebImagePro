@@ -27,7 +27,6 @@ jobs:
           CURRENT_VERSION=$(grep '^version = ' wasm/Cargo.toml | cut -d '"' -f2)
           echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
 
-          # npmjsレジストリで既存のバージョンをチェック
           if ! npm view "@araki777/wasm-image-pro@${CURRENT_VERSION}" version &> /dev/null; then
             echo "should_publish=true" >> $GITHUB_OUTPUT
           else
@@ -66,40 +65,10 @@ jobs:
       - name: Build WASM
         run: |
           cd wasm
-          # 現在のディレクトリ構造を確認
-          echo "Current directory structure:"
-          ls -la
-
-          # Cargo.tomlの内容を確認
-          echo "Cargo.toml contents:"
-          cat Cargo.toml
-
-          # ビルドコマンドの実行（詳細なログを出力）
-          echo "Building WASM..."
-          RUST_BACKTRACE=1 wasm-pack build --target web --release --verbose
-
-          # ビルド後のディレクトリ構造を確認
-          echo "Directory structure after build:"
-          ls -la
-
-          # pkgディレクトリの存在を確認
-          if [ ! -d "pkg" ]; then
-            echo "Error: pkg directory not found after build"
-            echo "Build artifacts:"
-            ls -la target/wasm32-unknown-unknown/release/
-            exit 1
-          fi
-
-          echo "Build artifacts in pkg directory:"
-          ls -la pkg/
+          wasm-pack build --target web --release
 
       - name: Create package.json
         run: |
-          # pkgディレクトリの存在を確認
-          if [ ! -d "wasm/pkg" ]; then
-            echo "Error: wasm/pkg directory not found"
-            exit 1
-          fi
           cat > package.json << EOF
           {
             "name": "@araki777/wasm-image-pro",
@@ -119,17 +88,6 @@ jobs:
             }
           }
           EOF
-
-      - name: Verify package contents
-        run: |
-          # 必要なファイルの存在を確認
-          if [ ! -f "wasm/pkg/wasm_image_pro.js" ] || [ ! -f "wasm/pkg/wasm_image_pro.d.ts" ]; then
-            echo "Error: Required WASM files not found"
-            echo "Contents of wasm/pkg:"
-            ls -la wasm/pkg/
-            exit 1
-          fi
-          ls -la wasm/pkg/
 
       - name: Publish to GitHub Packages
         run: npm publish
