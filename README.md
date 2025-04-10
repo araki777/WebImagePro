@@ -185,6 +185,9 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg" -L 3 
 > brew install taskfile
 ```
 
+### .env.exampleファイルを元に.env.localファイルを作成
+環境値はそれぞれの値に合わせて設定してください
+
 ### 独自パッケージをインストールするために以下の環境変数を設定
 bashの場合
 ```sh
@@ -196,7 +199,7 @@ powershellの場合
 > $env:NPM_TOKEN = "your-npm-token-here"
 ```
 
-### クローンしたリポジトリを開き、パッケージをインストール
+### パッケージをインストール
 ```sh
 > npm install
 ```
@@ -205,9 +208,6 @@ powershellの場合
 ```sh
 > task build:wasm
 ```
-
-### .env.exampleファイルを元に.env.localファイルを作成
-環境値はそれぞれの値に合わせて設定してください
 
 ### 開発サーバーの起動
 ```sh
