@@ -66,25 +66,38 @@ jobs:
       - name: Build WASM
         run: |
           cd wasm
-          wasm-pack build --target web --release
+          # ビルドコマンドの実行結果を確認
+          if ! wasm-pack build --target web --release; then
+            echo "WASM build failed"
+            exit 1
+          fi
           # ビルド成果物の確認
+          if [ ! -d "pkg" ]; then
+            echo "pkg directory not found after build"
+            exit 1
+          fi
           ls -la pkg/
 
       - name: Create package.json
         run: |
+          # pkgディレクトリの存在を確認
+          if [ ! -d "wasm/pkg" ]; then
+            echo "wasm/pkg directory not found"
+            exit 1
+          fi
           cat > package.json << EOF
           {
             "name": "@araki777/wasm-image-pro",
             "version": "${{ needs.check_version.outputs.current_version }}",
             "description": "WebAssembly image processing package",
-            "main": "pkg/wasm_image_pro.js",
-            "types": "pkg/wasm_image_pro.d.ts",
+            "main": "wasm/pkg/wasm_image_pro.js",
+            "types": "wasm/pkg/wasm_image_pro.d.ts",
             "repository": {
               "type": "git",
               "url": "git+https://github.com/${{ github.repository }}.git"
             },
             "files": [
-              "pkg"
+              "wasm/pkg"
             ],
             "publishConfig": {
               "registry": "https://npm.pkg.github.com"
@@ -94,8 +107,12 @@ jobs:
 
       - name: Verify package contents
         run: |
-          ls -la
-          ls -la pkg/
+          # 必要なファイルの存在を確認
+          if [ ! -f "wasm/pkg/wasm_image_pro.js" ] || [ ! -f "wasm/pkg/wasm_image_pro.d.ts" ]; then
+            echo "Required WASM files not found"
+            exit 1
+          fi
+          ls -la wasm/pkg/
 
       - name: Publish to GitHub Packages
         run: npm publish
