@@ -98,6 +98,14 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > wasm/pkg/.npmrc
           echo "@araki777:registry=https://npm.pkg.github.com" >> wasm/pkg/.npmrc
 
+      - name: Check .npmrc content
+        run: cat wasm/pkg/.npmrc
+
+      - name: Check if authenticated with npm
+        run: npm whoami
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish to GitHub Packages
         run: |
           cd wasm/pkg
