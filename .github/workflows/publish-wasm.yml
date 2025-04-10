@@ -77,6 +77,10 @@ jobs:
             "description": "WebAssembly image processing package",
             "main": "wasm/pkg/wasm_image_pro.js",
             "types": "wasm/pkg/wasm_image_pro.d.ts",
+            "repository": {
+              "type": "git",
+              "url": "git+https://github.com/${{ github.repository }}.git"
+            },
             "files": [
               "wasm/pkg"
             ],
