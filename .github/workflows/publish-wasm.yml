@@ -95,8 +95,8 @@ jobs:
 
       - name: Setup npm authentication
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > .npmrc
-          echo "@araki777:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > wasm/pkg/.npmrc
+          echo "@araki777:registry=https://npm.pkg.github.com" >> wasm/pkg/.npmrc
 
       - name: Publish to GitHub Packages
         run: |
