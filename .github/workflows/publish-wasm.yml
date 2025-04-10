@@ -66,7 +66,9 @@ jobs:
       - name: Build WASM
         run: |
           cd wasm
-          wasm-pack build --target bundler --release
+          wasm-pack build --target web --release
+          # ビルド成果物の確認
+          ls -la pkg/
 
       - name: Create package.json
         run: |
@@ -75,20 +77,25 @@ jobs:
             "name": "@araki777/wasm-image-pro",
             "version": "${{ needs.check_version.outputs.current_version }}",
             "description": "WebAssembly image processing package",
-            "main": "wasm/pkg/wasm_image_pro.js",
-            "types": "wasm/pkg/wasm_image_pro.d.ts",
+            "main": "pkg/wasm_image_pro.js",
+            "types": "pkg/wasm_image_pro.d.ts",
             "repository": {
               "type": "git",
               "url": "git+https://github.com/${{ github.repository }}.git"
             },
             "files": [
-              "wasm/pkg"
+              "pkg"
             ],
             "publishConfig": {
               "registry": "https://npm.pkg.github.com"
             }
           }
           EOF
+
+      - name: Verify package contents
+        run: |
+          ls -la
+          ls -la pkg/
 
       - name: Publish to GitHub Packages
         run: npm publish
