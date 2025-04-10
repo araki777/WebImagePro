@@ -62,6 +62,7 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   const [selectedFormat, setSelectedFormat] = useState('png');
   const imageRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const [isWasmInitialized, setIsWasmInitialized] = useState(false);
 
   const steps: Step[] = [
     {
@@ -110,7 +111,16 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
   ];
 
   useEffect(() => {
-    init();
+    const initializeWasm = async () => {
+      try {
+        await init();
+        setIsWasmInitialized(true);
+      } catch (error) {
+        console.error('Failed to initialize WASM:', error);
+      }
+    };
+
+    initializeWasm();
   }, []);
 
   useEffect(() => {
@@ -467,6 +477,9 @@ export function ImageEditor({ imageUrl, onSave, onClose }: IImageEditorProps) {
     processFunctionName: keyof typeof wasmExports,
     ...args: number[]
   ) => {
+    if (!isWasmInitialized) {
+      throw new Error('WASM module is not initialized');
+    }
     if (!originalImageBlob) return;
 
     const arrayBuffer = await originalImageBlob.arrayBuffer();
