@@ -8,6 +8,13 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true
   },
+  webpack: (config) => {
+    config.experiments = {
+      asyncWebAssembly: true,
+      layers: true,
+    };
+    return config;
+  }
 };
 
 export default nextConfig;
