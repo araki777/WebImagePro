@@ -75,17 +75,24 @@
 ## ディレクトリ構成
 
 ```sh
-$ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target" -L 3 | sed 's/│/|/g; s/├──/|--/g; s/└──/`--/g' | sed 's/|--/├──/g'
-.
+$ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg" -L 3 | sed 's/│/|/g; s/├──/|--/g; s/└──/`--/g' | sed 's/|--/├──/g'.
 ├── .env.example
 ├── .env.local
+├── .github
+|   |                                               `-- ISSUE_TEMPLATE
+|   |   |                                           `-- bug_report.md
+|   |                                               `-- feature_request.md
+|   ├── labels.json
+|   `-- workflows
+|       |                                           `-- publish-wasm.yml
+|                                                   `-- update-labels.yml
 ├── .gitignore
+├── .npmrc
 ├── README.md
-├── Taskfile.yml
 ├── components.json
 ├── docs
-|   |                                               `-- architecture.drawio
-|                                                   `-- architecture.png
+|   ├── architecture.drawio
+|   `-- architecture.png
 ├── eslint.config.mjs
 ├── next-env.d.ts
 ├── next.config.ts
@@ -93,13 +100,13 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target" -L 3 | se
 ├── package.json
 ├── postcss.config.mjs
 ├── public
-|   |                                               `-- file.svg
-|   |                                               `-- globe.svg
-|   |                                               `-- next.svg
-|   |                                               `-- vercel.svg
-|                                                   `-- window.svg
+|   ├── file.svg
+|   ├── globe.svg
+|   ├── next.svg
+|   ├── vercel.svg
+|   `-- window.svg
 ├── src
-|   |                                               `-- app
+|   ├── app
 |   |   |                                           `-- api
 |   |   |                                           `-- contact
 |   |   |                                           `-- favicon.ico
@@ -138,13 +145,6 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target" -L 3 | se
 |   |   |                                           `-- supabase.ts
 |   |                                               `-- utils.ts
 |   ├── middleware.ts
-|   ├── pkg
-|   |   |                                           `-- .gitignore
-|   |   |                                           `-- package.json
-|   |   |                                           `-- wasm.d.ts
-|   |   |                                           `-- wasm.js
-|   |   |                                           `-- wasm_bg.wasm
-|   |                                               `-- wasm_bg.wasm.d.ts
 |   ├── providers
 |   |                                               `-- ThemeProvider.tsx
 |   ├── store
@@ -152,6 +152,7 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target" -L 3 | se
 |   `-- types
 |       |                                           `-- types.ts
 |                                                   `-- wasm-module.d.ts
+├── taskfile.yml
 ├── tsconfig.json
 ├── vitest.config.ts
 `-- wasm
@@ -168,7 +169,7 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target" -L 3 | se
         |                                           `-- image_operations
                                                     `-- lib.rs
 
-30 directories, 60 files
+32 directories, 60 files
 ```
 <p align="right">(<a href="#top">トップへ</a>)</p>
 
@@ -182,6 +183,17 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target" -L 3 | se
 ### taskfileのインストール
 ```sh
 > brew install taskfile
+```
+
+### 独自パッケージをインストールするために以下の環境変数を設定
+bashの場合
+```sh
+> export NPM_TOKEN=your-npm-token-here
+```
+
+powershellの場合
+```powershell
+> $env:NPM_TOKEN = "your-npm-token-here"
 ```
 
 ### クローンしたリポジトリを開き、パッケージをインストール
