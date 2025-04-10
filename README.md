@@ -1,20 +1,6 @@
 <div id="top"></div>
 
 # WebImagePro
-
-## WASM Image Processing Package
-
-このリポジトリには、WebAssemblyを使用した画像処理パッケージが含まれています。
-
-### パッケージ情報
-
-- パッケージ名: [@araki777/wasm-image-pro](https://github.com/araki777/WebImagePro/pkgs/npm/wasm-image-pro)
-- バージョン: 0.1.0
-- インストール方法:
-  ```bash
-  npm install @araki777/wasm-image-pro
-  ```
-
 画像をネット上にアップロードし、加工・圧縮等の機能を利用することが出来るwebアプリです。
 
 ## 使用技術一覧
