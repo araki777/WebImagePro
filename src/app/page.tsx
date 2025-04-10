@@ -1,6 +1,7 @@
 'use client';
 
 import { Header } from "@/components/ui/header";
+import { Footer } from "@/components/ui/footer";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, Image as ImageIcon } from "lucide-react";
@@ -40,14 +41,14 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
         userImage={user.user_metadata.avatar_url}
         userName={user.user_metadata.full_name || user.email}
       />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-3xl font-bold mb-8 text-center">WebImagePro</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -92,6 +93,7 @@ export default function Home() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

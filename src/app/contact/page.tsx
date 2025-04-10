@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IContactForm } from "@/types/types";
 import { api } from "@/lib/api";
+import { Footer } from "@/components/ui/footer";
 
 export default function ContactPage() {
   const { user, isLoading, checkUser } = useAuthStore();
@@ -90,104 +91,107 @@ export default function ContactPage() {
   };
 
   return (
-    <Container>
-      <div className="space-y-10 pb-6 pt-6">
-        <div className="space-y-4">
-          <h1 className="text-3xl font-bold tracking-tight">お問い合わせ</h1>
-          <p className="text-gray-500">
-            WebImageProに関するご質問やご意見をお聞かせください。
-          </p>
-        </div>
-        <Separator />
-        
-        {isLoading ? (
-          <div className="flex justify-center py-10">
-            <div className="animate-pulse text-center">
-              <p className="text-gray-500">ユーザー情報を読み込み中...</p>
-            </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Container>
+        <div className="space-y-10 pb-6 pt-6 flex-grow">
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold tracking-tight">お問い合わせ</h1>
+            <p className="text-gray-500">
+              WebImageProに関するご質問やご意見をお聞かせください。
+            </p>
           </div>
-        ) : (
-          <div className={user ? "max-w-2xl mx-auto" : "max-w-md mx-auto"}>
-            <div>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {user ? (
-                  <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                      <div className="mb-2 sm:mb-0">
-                        <p className="text-sm font-medium text-gray-700">お名前</p>
-                        <p className="text-sm">{formData.name}</p>
+          <Separator />
+          
+          {isLoading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-pulse text-center">
+                <p className="text-gray-500">ユーザー情報を読み込み中...</p>
+              </div>
+            </div>
+          ) : (
+            <div className={user ? "max-w-2xl mx-auto" : "max-w-md mx-auto"}>
+              <div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {user ? (
+                    <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div className="mb-2 sm:mb-0">
+                          <p className="text-sm font-medium text-gray-700">お名前</p>
+                          <p className="text-sm">{formData.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">メールアドレス</p>
+                          <p className="text-sm">{formData.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">メールアドレス</p>
-                        <p className="text-sm">{formData.email}</p>
-                      </div>
+                      <p className="text-xs text-gray-500 mt-2">ログイン情報から自動入力されています</p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">ログイン情報から自動入力されています</p>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="name">お名前</Label>
+                        <Input 
+                          id="name"
+                          name="name"
+                          placeholder="山田 太郎" 
+                          value={formData.name}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email">メールアドレス</Label>
+                        <Input 
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="example@example.com" 
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">件名</Label>
+                    <Input 
+                      id="subject"
+                      name="subject"
+                      placeholder="お問い合わせの件名" 
+                      value={formData.subject}
+                      onChange={handleChange}
+                      required
+                      className="text-lg"
+                    />
                   </div>
-                ) : (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="name">お名前</Label>
-                      <Input 
-                        id="name"
-                        name="name"
-                        placeholder="山田 太郎" 
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="email">メールアドレス</Label>
-                      <Input 
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="example@example.com" 
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="subject">件名</Label>
-                  <Input 
-                    id="subject"
-                    name="subject"
-                    placeholder="お問い合わせの件名" 
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    className="text-lg"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="message">メッセージ</Label>
-                  <Textarea 
-                    id="message"
-                    name="message"
-                    placeholder="お問い合わせ内容を入力してください" 
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={10}
-                    className="min-h-[200px] text-base"
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full" isLoading={isSubmitting}>
-                  送信する
-                </Button>
-              </form>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message">メッセージ</Label>
+                    <Textarea 
+                      id="message"
+                      name="message"
+                      placeholder="お問い合わせ内容を入力してください" 
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      rows={10}
+                      className="min-h-[200px] text-base"
+                    />
+                  </div>
+                  
+                  <Button type="submit" className="w-full" isLoading={isSubmitting}>
+                    送信する
+                  </Button>
+                </form>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    </Container>
+          )}
+        </div>
+      </Container>
+      <Footer />
+    </div>
   );
 } 
