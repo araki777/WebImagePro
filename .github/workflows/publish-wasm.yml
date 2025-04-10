@@ -93,6 +93,11 @@ jobs:
           }
           EOF
 
+      - name: Setup npm authentication
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@araki777:registry=https://npm.pkg.github.com" >> .npmrc
+
       - name: Publish to GitHub Packages
         run: |
           cd wasm/pkg
