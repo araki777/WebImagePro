@@ -93,16 +93,12 @@ jobs:
           }
           EOF
 
-      - name: Setup npm authentication
+      - name: Login to npm
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > wasm/pkg/.npmrc
-          echo "@araki777:registry=https://npm.pkg.github.com" >> wasm/pkg/.npmrc
-
-      - name: Check .npmrc content
-        run: cat wasm/pkg/.npmrc
-
-      - name: Check if authenticated with npm
-        run: npm whoami
+          cd wasm/pkg
+          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > .npmrc
+          echo "@araki777:registry=https://npm.pkg.github.com" >> .npmrc
+          npm login --registry=https://npm.pkg.github.com --scope=@araki777
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
