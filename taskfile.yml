@@ -4,7 +4,7 @@ tasks:
   build:wasm:
     desc: "Rust Assemblyをビルド"
     cmds:
-      - cd wasm && wasm-pack build --target web
+      - cd wasm && wasm-pack build --target web --release
     sources:
       - wasm/src/**
     generates:
