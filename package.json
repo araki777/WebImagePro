@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "preinstall": "node scripts/preinstall.js"
   },
   "dependencies": {
     "@araki777/wasm-image-pro": "^0.1.2",
