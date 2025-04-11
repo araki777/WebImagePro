@@ -16,7 +16,7 @@ export function Header({ onLogout, userImage, userName = "User" }: HeaderProps) 
                     <Upload className="h-6 w-6" />
                     <span className="text-xl font-bold">Web Image Pro</span>
                 </Link>
-                
+
                 <div className="flex items-center space-x-4">
                     <Sheet>
                         <SheetTrigger asChild>

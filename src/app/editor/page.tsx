@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from "@/components/ui/header";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -12,6 +12,9 @@ export default function EditorPage() {
   const [backgroundOffset, setBackgroundOffset] = useState({ x: 0, y: 0 }); // 背景キャンバスの位置オフセット
   const [isDragging, setIsDragging] = useState(false); // ドラッグ中かどうかの状態
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 }); // ドラッグ開始時の位置
+  const [imageScale, setImageScale] = useState(1);
+  const [zoomLeft, setZoomLeft] = useState(0);
+  const [zoomTop, setZoomTop] = useState(0);
 
   // 参照
   const canvasRef = useRef<HTMLCanvasElement>(null); // 画像を表示するキャンバス
@@ -21,6 +24,88 @@ export default function EditorPage() {
   // 認証関連
   const searchParams = useSearchParams();
   const { user, isLoading, checkUser, signOut } = useAuthStore();
+
+  // ズーム処理
+  useEffect(() => {
+    // キャンパス要素が存在しない場合は処理を中断
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // 画面全体のスクロールを禁止
+    const handleWheel = (e: WheelEvent) => {
+      // キャンパス要素がターゲットでない場合はスクロールを禁止
+      if (!canvas.contains(e.target as Node)) {
+        e.preventDefault();
+      }
+    }
+
+    // キャンパス要素のズーム処理
+    const handleCanvasWheel = (e: WheelEvent) => {
+      // デフォルトのスクロールを禁止
+      e.preventDefault();
+
+      // キャンパスの座標を取得
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // ズームのステップ
+      const scaleStep = 0.1;
+      const delta = e.deltaY < 0 ? 1 : -1;
+      const newScale = Math.max(0.1, Math.min(5, imageScale + delta * scaleStep));
+
+      // ズームが変更されていない場合は処理を中断
+      if (newScale === imageScale) return;
+
+      // 画像のアスペクト比を維持しながら、親要素の80%のサイズに収まるように計算
+      const imageAspectRatio = image!.width / image!.height;
+      const parent = canvas.parentElement;
+      if (!parent) return;
+
+      // 親要素の幅と高さを取得
+      const parentWidth = parent.clientWidth;
+      const parentHeight = parent.clientHeight;
+
+      // 画像のアスペクト比を維持しながら、親要素の80%のサイズに収まるように計算
+      let baseWidth, baseHeight;
+      if (imageAspectRatio > parentWidth / parentHeight) {
+        baseWidth = parentWidth * 0.8;
+        baseHeight = baseWidth / imageAspectRatio;
+      } else {
+        baseHeight = parentHeight * 0.8;
+        baseWidth = baseHeight * imageAspectRatio;
+      }
+
+      // ズームの計算
+      const oldWidth = baseWidth * imageScale;
+      const oldHeight = baseHeight * imageScale;
+      const newWidth = baseWidth * newScale;
+      const newHeight = baseHeight * newScale;
+
+      // ズームの中心位置を計算
+      const xRatio = (mouseX - zoomLeft) / oldWidth;
+      const yRatio = (mouseY - zoomTop) / oldHeight;
+
+      // 新しいズームの中心位置を計算
+      const newZoomLeft = mouseX - xRatio * newWidth;
+      const newZoomTop = mouseY - yRatio * newHeight;
+
+      // ズームのステートを更新
+      setImageScale(newScale);
+      setZoomLeft(newZoomLeft);
+      setZoomTop(newZoomTop);
+    }
+
+    // イベント登録
+    document.addEventListener('wheel', handleWheel, { passive: false });
+    canvas.addEventListener('wheel', handleCanvasWheel, { passive: false });
+
+    // クリーンアップ
+    return () => {
+      document.removeEventListener('wheel', handleWheel);
+      canvas.removeEventListener('wheel', handleCanvasWheel);
+    };
+  }, [canvasRef.current, imageScale, zoomLeft, zoomTop, image]);
 
   // 画像の読み込み処理
   useEffect(() => {
@@ -256,55 +341,106 @@ export default function EditorPage() {
         userImage={user.user_metadata.avatar_url}
         userName={user.user_metadata.full_name || user.email}
       />
-      <main className="mx-auto h-[calc(100vh-3.5rem)] overflow-hidden">
-        {!imageUrl ? (
-          <div className="flex items-center justify-center h-full">
-            <p>画像が見つかりません</p>
-          </div>
-        ) : (
-          <div
-            ref={containerRef}
-            className="flex-1 h-full overflow-hidden relative"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* 背景キャンバス（グリッド表示） */}
-            <canvas
-              ref={backgroundCanvasRef}
-              className="w-full h-full"
-              style={{
+      <div className="flex h-[calc(100vh-3.5rem)]">
+        <main className="flex-1 h-full overflow-hidden">
+          {!imageUrl ? (
+            <div className="flex items-center justify-center h-full">
+              <p>画像が見つかりません</p>
+            </div>
+          ) : (
+            <div
+              ref={containerRef}
+              className="flex-1 h-full overflow-hidden relative"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {/* 背景キャンバス（グリッド表示） */}
+              <canvas
+                ref={backgroundCanvasRef}
+                className="w-full h-full"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: `translate(calc(-50% + ${backgroundOffset.x}px), calc(-50% + ${backgroundOffset.y}px))`,
+                  backgroundColor: 'white',
+                  cursor: isDragging ? 'grabbing' : 'grab',
+                  touchAction: 'none',
+                  width: '400%',
+                  height: '400%',
+                }}
+              />
+              {/* 画像キャンバス */}
+              <div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
-                transform: `translate(calc(-50% + ${backgroundOffset.x}px), calc(-50% + ${backgroundOffset.y}px))`,
-                backgroundColor: 'white',
-                cursor: isDragging ? 'grabbing' : 'grab',
-                touchAction: 'none',
-                width: '400%',
-                height: '400%',
-              }}
-            />
-            {/* 画像キャンバス */}
-            <canvas
-              ref={canvasRef}
-              className="w-full h-full"
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: `translate(calc(-50% + ${backgroundOffset.x}px), calc(-50% + ${backgroundOffset.y}px))`,
-                backgroundColor: 'transparent',
-                pointerEvents: 'none',
-              }}
-            />
+                transform: `translate(calc(-50% + ${backgroundOffset.x}px), calc(-50% + ${backgroundOffset.y}px)) scale(${imageScale})`,
+                transformOrigin: 'center',
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'auto',
+              }}>
+                <canvas
+                  ref={canvasRef}
+                  className="w-full h-full"
+                  style={{
+                    backgroundColor: 'transparent',
+                    pointerEvents: 'auto',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </main>
+        <aside className="w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">ズーム</h3>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setImageScale(prev => Math.max(0.1, prev - 0.1))}
+                  className="p-2 rounded-md hover:bg-gray-100"
+                  title="ズームアウト"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                <span className="text-sm">{Math.round(imageScale * 100)}%</span>
+                <button
+                  onClick={() => setImageScale(prev => Math.min(5, prev + 0.1))}
+                  className="p-2 rounded-md hover:bg-gray-100"
+                  title="ズームイン"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">リセット</h3>
+              <button
+                onClick={() => {
+                  setImageScale(1);
+                  setZoomLeft(0);
+                  setZoomTop(0);
+                  setBackgroundOffset({ x: 0, y: 0 });
+                }}
+                className="w-full px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600"
+              >
+                リセット
+              </button>
+            </div>
           </div>
-        )}
-      </main>
+        </aside>
+      </div>
     </div>
   );
 }
