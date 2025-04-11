@@ -174,17 +174,6 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg" -L 3 
 ### .env.exampleファイルを元に.env.localファイルを作成
 環境値はそれぞれの値に合わせて設定してください
 
-### 独自パッケージをインストールするために以下の環境変数を設定
-bashの場合
-```sh
-> export NPM_TOKEN=your-npm-token-here
-```
-
-powershellの場合
-```powershell
-> $env:NPM_TOKEN = "your-npm-token-here"
-```
-
 ### パッケージをインストール
 ```sh
 > npm install
