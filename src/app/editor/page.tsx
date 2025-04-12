@@ -10,8 +10,8 @@ export default function EditorPage() {
   // 状態管理
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const pixiContainerRef = useRef<HTMLDivElement>(null);
-
-  let app: PIXI.Application | null = null;
+  const appRef = useRef<PIXI.Application | null>(null);
+  const containerRef = useRef<PIXI.Container | null>(null);
 
   // 認証関連
   const searchParams = useSearchParams();
@@ -26,16 +26,34 @@ export default function EditorPage() {
 
   useEffect(() => {
     if (!pixiContainerRef.current) return;
-    
     createPixiApp();
 
     return () => {
-      if (app && app.renderer) {
-        app.destroy(true, true);
-        app = null;
+      if (appRef.current?.renderer) {
+        appRef.current.destroy(true, true);
+        appRef.current = null;
       }
     };
   }, [pixiContainerRef.current]);
+
+    // imageUrlが変わったときに画像を描画
+    useEffect(() => {
+      if (!imageUrl || !appRef.current) return;
+  
+      PIXI.Assets.load(imageUrl).then((texture) => {
+        const sprite = new PIXI.Sprite(texture);
+        sprite.anchor.set(0.5);
+        sprite.x = appRef.current!.screen.width / 2;
+        sprite.y = appRef.current!.screen.height / 2;
+        const scale = Math.min(
+          (appRef.current!.screen.width * 0.8) / sprite.width,
+          (appRef.current!.screen.height * 0.8) / sprite.height
+        );
+        sprite.scale.set(scale);
+        containerRef.current?.removeChildren();
+        containerRef.current?.addChild(sprite);
+      });
+    }, [imageUrl]);
 
   // 認証状態の確認
   useEffect(() => {
@@ -43,12 +61,12 @@ export default function EditorPage() {
   }, [checkUser]);
 
   const createPixiApp = () => {
-    if (pixiContainerRef.current && !app) {
+    if (pixiContainerRef.current && !appRef.current) {
       const parent = pixiContainerRef.current.parentElement;
       if (!parent) return;
 
-      app = new PIXI.Application();
-      app.init({
+      appRef.current = new PIXI.Application();
+      appRef.current.init({
         width: parent.clientWidth,
         height: parent.clientHeight,
         background: "#ffffff",
@@ -56,23 +74,35 @@ export default function EditorPage() {
         resolution: window.devicePixelRatio || 1,
         resizeTo: parent
       }).then(() => {
-        if (app && pixiContainerRef.current) {
-          pixiContainerRef.current.appendChild(app.canvas);
+        if (appRef.current && pixiContainerRef.current) {
+          pixiContainerRef.current.appendChild(appRef.current.canvas);
 
           // リサイズイベントの設定
           const handleResize = () => {
-            if (app && parent) {
-              app.renderer.resize(parent.clientWidth, parent.clientHeight);
+            if (appRef.current && parent) {
+              appRef.current.renderer.resize(parent.clientWidth, parent.clientHeight);
             }
           };
           window.addEventListener('resize', handleResize);
 
-          // 簡単な図形を描画
-          const graphics = new PIXI.Graphics();
-          graphics.setFillStyle(0x000000);
-          graphics.circle(app.screen.width / 2, app.screen.height / 2, 50);
-          graphics.fill();
-          app.stage.addChild(graphics);
+          const container = new PIXI.Container();
+          appRef.current.stage.addChild(container);
+          containerRef.current = container;
+
+          if (imageUrl && appRef.current) {
+            PIXI.Assets.load(imageUrl).then((texture) => {
+              const sprite = new PIXI.Sprite(texture);
+              sprite.anchor.set(0.5);
+              sprite.x = appRef.current!.screen.width / 2;
+              sprite.y = appRef.current!.screen.height / 2;
+              const scale = Math.min(
+                (appRef.current!.screen.width * 0.8) / sprite.width,
+                (appRef.current!.screen.height * 0.8) / sprite.height
+              );
+              sprite.scale.set(scale);
+              container.addChild(sprite);
+            });
+          }
         }
       });
     }
