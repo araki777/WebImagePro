@@ -18,6 +18,14 @@ export default function EditorPage() {
   const { user, isLoading, checkUser, signOut } = useAuthStore();
 
   useEffect(() => {
+    document.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      document.removeEventListener('wheel', handleWheel);
+    }
+  }, []);
+
+  useEffect(() => {
     const url = searchParams.get('url');
     if (url) {
       setImageUrl(url);
@@ -50,6 +58,42 @@ export default function EditorPage() {
         (appRef.current.screen.height * 0.8) / sprite.height
       );
       sprite.scale.set(scale);
+
+      // ドラッグ機能の追加
+      sprite.eventMode = 'static';
+      sprite.cursor = 'grab';
+
+      let isDragging = false;
+      let dragStart: PIXI.Point | null = null;
+
+      sprite.on('pointerdown', (event) => {
+        isDragging = true;
+        dragStart = event.global.clone();
+        sprite.cursor = 'grabbing';
+      });
+
+      sprite.on('pointermove', (event) => {
+        if (isDragging && dragStart) {
+          const moveX = event.global.x - dragStart.x;
+          const moveY = event.global.y - dragStart.y;
+          sprite.x += moveX;
+          sprite.y += moveY;
+          dragStart = event.global.clone();
+        }
+      });
+
+      sprite.on('pointerup', () => {
+        isDragging = false;
+        dragStart = null;
+        sprite.cursor = 'grab';
+      });
+
+      sprite.on('pointerupoutside', () => {
+        isDragging = false;
+        dragStart = null;
+        sprite.cursor = 'grab';
+      });
+
       containerRef.current.removeChildren();
       containerRef.current.addChild(sprite);
     } catch (error) {
@@ -104,6 +148,10 @@ export default function EditorPage() {
         }
       });
     }
+  }
+
+  const handleWheel = (event: WheelEvent) => {
+    event.preventDefault();
   }
 
   if (isLoading || !user) {
