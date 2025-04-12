@@ -5,13 +5,19 @@ import { useSearchParams } from 'next/navigation';
 import { Header } from "@/components/ui/header";
 import { useAuthStore } from "@/store/useAuthStore";
 import * as PIXI from 'pixi.js';
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 
 export default function EditorPage() {
   // 状態管理
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [showGrid, setShowGrid] = useState(false);
+  const [gridSize, setGridSize] = useState(20);
   const pixiContainerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const containerRef = useRef<PIXI.Container | null>(null);
+  const gridRef = useRef<PIXI.Graphics | null>(null);
 
   // 認証関連
   const searchParams = useSearchParams();
@@ -134,6 +140,9 @@ export default function EditorPage() {
           const handleResize = () => {
             if (appRef.current && parent) {
               appRef.current.renderer.resize(parent.clientWidth, parent.clientHeight);
+              if (showGrid) {
+                drawGrid();
+              }
             }
           };
           window.addEventListener('resize', handleResize);
@@ -142,6 +151,12 @@ export default function EditorPage() {
           appRef.current.stage.addChild(container);
           containerRef.current = container;
 
+          // グリッド用のコンテナを作成（画像の下に配置）
+          const gridContainer = new PIXI.Container();
+          appRef.current.stage.addChildAt(gridContainer, 0); // 0番目（最下層）に配置
+          gridRef.current = new PIXI.Graphics();
+          gridContainer.addChild(gridRef.current);
+
           if (imageUrl) {
             loadImage();
           }
@@ -149,6 +164,44 @@ export default function EditorPage() {
       });
     }
   }
+
+  const drawGrid = () => {
+    if (!appRef.current || !gridRef.current) return;
+
+    const width = appRef.current.screen.width;
+    const height = appRef.current.screen.height;
+
+    gridRef.current.clear();
+    
+    // グリッドの描画
+    for (let x = 0; x <= width; x += gridSize) {
+      gridRef.current.moveTo(x, 0);
+      gridRef.current.lineTo(x, height);
+    }
+
+    for (let y = 0; y <= height; y += gridSize) {
+      gridRef.current.moveTo(0, y);
+      gridRef.current.lineTo(width, y);
+    }
+
+    // 線のスタイルを設定
+    gridRef.current.stroke({
+      width: 1,
+      color: 0x000000,
+      alpha: 0.1
+    });
+  };
+
+  // グリッド表示の切り替えとサイズ変更
+  useEffect(() => {
+    if (!appRef.current || !gridRef.current) return;
+
+    if (showGrid) {
+      drawGrid();
+    } else {
+      gridRef.current.clear();
+    }
+  }, [showGrid, gridSize]);
 
   const handleWheel = (event: WheelEvent) => {
     event.preventDefault();
@@ -174,6 +227,39 @@ export default function EditorPage() {
           <div ref={pixiContainerRef} className="w-full h-full" />
         </main>
         <aside className="w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-gray-900">グリッド設定</h3>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="grid-toggle" className="text-sm">グリッド表示</Label>
+                <Switch
+                  id="grid-toggle"
+                  checked={showGrid}
+                  onCheckedChange={setShowGrid}
+                />
+              </div>
+            </div>
+            {showGrid && (
+              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="grid-size" className="text-sm">グリッドサイズ</Label>
+                  <span className="text-sm font-medium text-gray-900">{gridSize}px</span>
+                </div>
+                <Slider
+                  id="grid-size"
+                  min={5}
+                  max={100}
+                  step={5}
+                  value={[gridSize]}
+                  onValueChange={(value) => setGridSize(value[0])}
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>5px</span>
+                  <span>100px</span>
+                </div>
+              </div>
+            )}
+          </div>
         </aside>
       </div>
     </div>
