@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from "@/components/ui/header";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -864,140 +864,142 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        onLogout={signOut}
-        userImage={user.user_metadata.avatar_url}
-        userName={user.user_metadata.full_name || user.email}
-      />
-      <div className="flex h-[calc(100vh-3.5rem)]">
-        <main className="flex-1 h-full overflow-hidden">
-          <div ref={pixiContainerRef} className="w-full h-full" />
-        </main>
-        <aside className="w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-900">グリッド設定</h3>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="grid-toggle" className="text-sm">グリッド表示</Label>
-                <Switch
-                  id="grid-toggle"
-                  checked={showGrid}
-                  onCheckedChange={setShowGrid}
-                />
-              </div>
-            </div>
-            {showGrid && (
-              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="min-h-screen bg-background">
+        <Header
+          onLogout={signOut}
+          userImage={user.user_metadata.avatar_url}
+          userName={user.user_metadata.full_name || user.email}
+        />
+        <div className="flex h-[calc(100vh-3.5rem)]">
+          <main className="flex-1 h-full overflow-hidden">
+            <div ref={pixiContainerRef} className="w-full h-full" />
+          </main>
+          <aside className="w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-gray-900">グリッド設定</h3>
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="grid-size" className="text-sm">グリッドサイズ</Label>
-                  <span className="text-sm font-medium text-gray-900">{gridSize}px</span>
-                </div>
-                <Slider
-                  id="grid-size"
-                  min={5}
-                  max={100}
-                  step={5}
-                  value={[gridSize]}
-                  onValueChange={(value) => setGridSize(value[0])}
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>5px</span>
-                  <span>100px</span>
-                </div>
-              </div>
-            )}
-            
-            {/* 画像サイズ設定 */}
-            {spriteRef.current && (
-              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
-                <h3 className="text-sm font-medium text-gray-900">画像サイズ</h3>
-                
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="aspect-ratio-toggle" className="text-sm">アスペクト比を固定</Label>
+                  <Label htmlFor="grid-toggle" className="text-sm">グリッド表示</Label>
                   <Switch
-                    id="aspect-ratio-toggle"
-                    checked={maintainAspectRatio}
-                    onCheckedChange={setMaintainAspectRatio}
+                    id="grid-toggle"
+                    checked={showGrid}
+                    onCheckedChange={setShowGrid}
                   />
                 </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label htmlFor="image-width" className="text-xs">幅 (px)</Label>
-                    <Input
-                      id="image-width"
-                      type="number"
-                      value={tempWidth}
-                      onChange={(e) => handleWidthChange(e.target.value)}
-                      className="h-8"
-                    />
+              </div>
+              {showGrid && (
+                <div className="space-y-3 rounded-lg border border-gray-200 p-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="grid-size" className="text-sm">グリッドサイズ</Label>
+                    <span className="text-sm font-medium text-gray-900">{gridSize}px</span>
                   </div>
-                  <div>
-                    <Label htmlFor="image-height" className="text-xs">高さ (px)</Label>
-                    <Input
-                      id="image-height"
-                      type="number"
-                      value={tempHeight}
-                      onChange={(e) => handleHeightChange(e.target.value)}
-                      className="h-8"
-                    />
+                  <Slider
+                    id="grid-size"
+                    min={5}
+                    max={100}
+                    step={5}
+                    value={[gridSize]}
+                    onValueChange={(value) => setGridSize(value[0])}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>5px</span>
+                    <span>100px</span>
                   </div>
                 </div>
-              </div>
-            )}
-            
-            {/* 画像回転/反転設定 */}
-            {spriteRef.current && (
-              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
-                <h3 className="text-sm font-medium text-gray-900">画像回転/反転</h3>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <button 
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
-                    onClick={() => rotateImage(-90)}
-                  >
-                    左に90°
-                  </button>
-                  <button 
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
-                    onClick={() => rotateImage(90)}
-                  >
-                    右に90°
-                  </button>
+              )}
+              
+              {/* 画像サイズ設定 */}
+              {spriteRef.current && (
+                <div className="space-y-3 rounded-lg border border-gray-200 p-3">
+                  <h3 className="text-sm font-medium text-gray-900">画像サイズ</h3>
+                  
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="aspect-ratio-toggle" className="text-sm">アスペクト比を固定</Label>
+                    <Switch
+                      id="aspect-ratio-toggle"
+                      checked={maintainAspectRatio}
+                      onCheckedChange={setMaintainAspectRatio}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="image-width" className="text-xs">幅 (px)</Label>
+                      <Input
+                        id="image-width"
+                        type="number"
+                        value={tempWidth}
+                        onChange={(e) => handleWidthChange(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="image-height" className="text-xs">高さ (px)</Label>
+                      <Input
+                        id="image-height"
+                        type="number"
+                        value={tempHeight}
+                        onChange={(e) => handleHeightChange(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <button 
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
-                    onClick={() => flipImage('horizontal')}
-                  >
-                    水平反転
-                  </button>
-                  <button 
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
-                    onClick={() => flipImage('vertical')}
-                  >
-                    垂直反転
-                  </button>
+              )}
+              
+              {/* 画像回転/反転設定 */}
+              {spriteRef.current && (
+                <div className="space-y-3 rounded-lg border border-gray-200 p-3">
+                  <h3 className="text-sm font-medium text-gray-900">画像回転/反転</h3>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <button 
+                      className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
+                      onClick={() => rotateImage(-90)}
+                    >
+                      左に90°
+                    </button>
+                    <button 
+                      className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
+                      onClick={() => rotateImage(90)}
+                    >
+                      右に90°
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <button 
+                      className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
+                      onClick={() => flipImage('horizontal')}
+                    >
+                      水平反転
+                    </button>
+                    <button 
+                      className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
+                      onClick={() => flipImage('vertical')}
+                    >
+                      垂直反転
+                    </button>
+                  </div>
                 </div>
+              )}
+              
+              {/* 画像加工リセットボタン */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-gray-900">画像編集</h3>
+                <button 
+                  className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors"
+                  onClick={resetImageTransform}
+                >
+                  加工をリセット
+                </button>
+                <p className="text-xs text-gray-500 mt-1">位置・サイズ・回転を初期状態に戻します</p>
               </div>
-            )}
-            
-            {/* 画像加工リセットボタン */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-900">画像編集</h3>
-              <button 
-                className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors"
-                onClick={resetImageTransform}
-              >
-                加工をリセット
-              </button>
-              <p className="text-xs text-gray-500 mt-1">位置・サイズ・回転を初期状態に戻します</p>
             </div>
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
-    </div>
+    </Suspense>
   );
 }
