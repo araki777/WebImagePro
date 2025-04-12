@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Header } from "@/components/ui/header";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -36,24 +36,33 @@ export default function EditorPage() {
     };
   }, [pixiContainerRef.current]);
 
-    // imageUrlが変わったときに画像を描画
-    useEffect(() => {
-      if (!imageUrl || !appRef.current) return;
-  
-      PIXI.Assets.load(imageUrl).then((texture) => {
-        const sprite = new PIXI.Sprite(texture);
-        sprite.anchor.set(0.5);
-        sprite.x = appRef.current!.screen.width / 2;
-        sprite.y = appRef.current!.screen.height / 2;
-        const scale = Math.min(
-          (appRef.current!.screen.width * 0.8) / sprite.width,
-          (appRef.current!.screen.height * 0.8) / sprite.height
-        );
-        sprite.scale.set(scale);
-        containerRef.current?.removeChildren();
-        containerRef.current?.addChild(sprite);
-      });
-    }, [imageUrl]);
+  const loadImage = useCallback(async () => {
+    if (!imageUrl || !appRef.current || !containerRef.current) return;
+
+    try {
+      const texture = await PIXI.Assets.load(imageUrl);
+      const sprite = new PIXI.Sprite(texture);
+      sprite.anchor.set(0.5);
+      sprite.x = appRef.current.screen.width / 2;
+      sprite.y = appRef.current.screen.height / 2;
+      const scale = Math.min(
+        (appRef.current.screen.width * 0.8) / sprite.width,
+        (appRef.current.screen.height * 0.8) / sprite.height
+      );
+      sprite.scale.set(scale);
+      containerRef.current.removeChildren();
+      containerRef.current.addChild(sprite);
+    } catch (error) {
+      console.error('画像の読み込みに失敗しました:', error);
+    }
+  }, [imageUrl, appRef.current, containerRef.current]);
+
+  // imageUrlが変わったときに画像を描画
+  useEffect(() => {
+    if (appRef.current && containerRef.current) {
+      loadImage();
+    }
+  }, [loadImage, appRef.current, containerRef.current]);
 
   // 認証状態の確認
   useEffect(() => {
@@ -89,19 +98,8 @@ export default function EditorPage() {
           appRef.current.stage.addChild(container);
           containerRef.current = container;
 
-          if (imageUrl && appRef.current) {
-            PIXI.Assets.load(imageUrl).then((texture) => {
-              const sprite = new PIXI.Sprite(texture);
-              sprite.anchor.set(0.5);
-              sprite.x = appRef.current!.screen.width / 2;
-              sprite.y = appRef.current!.screen.height / 2;
-              const scale = Math.min(
-                (appRef.current!.screen.width * 0.8) / sprite.width,
-                (appRef.current!.screen.height * 0.8) / sprite.height
-              );
-              sprite.scale.set(scale);
-              container.addChild(sprite);
-            });
+          if (imageUrl) {
+            loadImage();
           }
         }
       });
