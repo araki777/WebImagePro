@@ -23,7 +23,7 @@ export default function EditorPage() {
 
   // 認証関連
   const searchParams = useSearchParams();
-  const { user, isLoading, checkUser, signOut } = useAuthStore();
+  const { user, isLoading, checkUser, signOut } = useAuthStore(); // ログイン認証
 
   // ズーム処理
   useEffect(() => {
