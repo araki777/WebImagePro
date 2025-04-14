@@ -72,7 +72,7 @@ export function ImageGallery() {
         }
       ];
     }
-    
+
     return baseSteps;
   };
 
@@ -109,8 +109,8 @@ export function ImageGallery() {
   // 編集中の画像を設定する関数
   const handleEditImage = (image: IApiImage) => {
     // エディターページに遷移
-    // router.push(`/editor?url=${encodeURIComponent(image.url)}`);
-    setEditingImage(image); // 編集中の画像を設定
+    router.push(`/editor?url=${encodeURIComponent(image.url)}`);
+    // setEditingImage(image); // 編集中の画像を設定
   };
 
   // 編集中の画像を保存する関数
@@ -142,11 +142,11 @@ export function ImageGallery() {
       if (!isNewImage) {
         // handleDelete関数と同じエンコード方法を使用
         const encodedUrl = encodeURIComponent(Buffer.from(editingImage.url).toString("base64"));
-        
-        const deleteResponse = await fetch(`/api/images/${encodedUrl}`, { 
-          method: 'DELETE' 
+
+        const deleteResponse = await fetch(`/api/images/${encodedUrl}`, {
+          method: 'DELETE'
         });
-        
+
         if (!deleteResponse.ok) {
           console.warn('元の画像の削除に失敗しましたが、処理を続行します');
         }
