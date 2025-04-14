@@ -36,11 +36,13 @@ export default function ImageEditor2() {
     contrast,
     hueRotation,
     sepiaIntensity,
+    isInverted,
     applyBrightness,
     applySaturation,
     applyContrast,
     applyHueRotation,
     applySepia,
+    applyInvert,
     resetFilters,
   } = useImageFilters(spriteRef);
 
@@ -1285,6 +1287,22 @@ export default function ImageEditor2() {
                       <span>最大</span>
                     </div>
                   </div>
+
+                  <div className="pt-2 border-t border-gray-200 mt-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="invert-toggle" className="text-sm">
+                        ネガポジ反転
+                      </Label>
+                      <Switch
+                        id="invert-toggle"
+                        checked={isInverted}
+                        onCheckedChange={(value) => applyInvert(value)}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      写真のネガフィルムのような効果を適用します
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -1338,7 +1356,7 @@ export default function ImageEditor2() {
                 加工をリセット
               </button>
               <p className="text-xs text-gray-500 mt-1">
-                位置・サイズ・回転・明度・彩度・コントラスト・色相・セピアを初期状態に戻します
+                位置・サイズ・回転・明度・彩度・コントラスト・色相・セピア・ネガポジ反転を初期状態に戻します
               </p>
             </div>
           </div>

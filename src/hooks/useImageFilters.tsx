@@ -7,6 +7,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
   const [contrast, setContrast] = useState(0); // コントラストの状態 (-100〜100の範囲)
   const [hueRotation, setHueRotation] = useState(0); // 色相回転の状態 (0〜360の範囲)
   const [sepiaIntensity, setSepiaIntensity] = useState(0); // セピア効果の強度 (0〜100の範囲)
+  const [isInverted, setIsInverted] = useState(false); // ネガポジ反転の状態 (true/false)
 
   // 明度を適用する関数
   const applyBrightness = (value: number) => {
@@ -410,6 +411,68 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     }
   };
 
+  // ネガポジ反転（インバート）を適用する関数
+  const applyInvert = (value: boolean) => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // インバートフィルターを探す
+      let invertFilter = existingFilters.find(
+        (f: PIXI.Filter) =>
+          f instanceof PIXI.ColorMatrixFilter &&
+          (f as any)._filterType === "invert"
+      ) as PIXI.ColorMatrixFilter | undefined;
+
+      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
+      const newFilters = [...existingFilters];
+
+      if (!invertFilter) {
+        // 新しいフィルターを作成
+        invertFilter = new PIXI.ColorMatrixFilter();
+        (invertFilter as any)._filterType = "invert";
+        // 新しい配列に追加
+        newFilters.push(invertFilter);
+      } else {
+        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
+        const index = existingFilters.indexOf(invertFilter);
+        if (index !== -1) {
+          invertFilter = new PIXI.ColorMatrixFilter();
+          (invertFilter as any)._filterType = "invert";
+          newFilters[index] = invertFilter;
+        } else {
+          newFilters.push(invertFilter);
+        }
+      }
+
+      // フィルターをリセット
+      invertFilter.reset();
+
+      if (value) {
+        // ネガポジ反転行列
+        // 色を反転させるための行列（RGB値を1から引いた値にする）
+        invertFilter.matrix = [
+          -1, 0, 0, 0, 1, 0, -1, 0, 0, 1, 0, 0, -1, 0, 1, 0, 0, 0, 1, 0,
+        ] as PIXI.ColorMatrix;
+      } else {
+        // 通常の行列（変更なし）
+        invertFilter.matrix = [
+          1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+        ] as PIXI.ColorMatrix;
+      }
+
+      // フィルターを更新
+      spriteRef.current.filters = newFilters;
+
+      setIsInverted(value);
+    } catch (error) {
+      console.error("ネガポジ反転の適用でエラーが発生しました:", error);
+    }
+  };
+
   // フィルターをすべてリセットする関数
   const resetFilters = () => {
     if (!spriteRef.current) return;
@@ -423,6 +486,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     setContrast(0);
     setHueRotation(0);
     setSepiaIntensity(0);
+    setIsInverted(false);
   };
 
   return {
@@ -432,6 +496,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     contrast,
     hueRotation,
     sepiaIntensity,
+    isInverted,
 
     // フィルター関数
     applyBrightness,
@@ -439,6 +504,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     applyContrast,
     applyHueRotation,
     applySepia,
+    applyInvert,
     resetFilters,
   };
 };
