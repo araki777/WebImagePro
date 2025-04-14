@@ -16,6 +16,8 @@ export default function ImageEditor2() {
   const [gridSize, setGridSize] = useState(20);
   const [imageWidth, setImageWidth] = useState(0);
   const [imageHeight, setImageHeight] = useState(0);
+  const [parentContainerSize, setParentContainerSize] = useState({ width: 3, height: 3 }); // 親コンテナの初期サイズは固定
+  const [showScrollbar, setShowScrollbar] = useState(false); // スクロールバーの表示状態
   const pixiContainerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
   const parentContainerRef = useRef<PIXI.Container | null>(null);
@@ -24,6 +26,7 @@ export default function ImageEditor2() {
   const sizeContainerRef = useRef<PIXI.Container | null>(null);
   const spriteRef = useRef<PIXI.Sprite | null>(null);
   const sizeTextRef = useRef<PIXI.Text | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null); // スクロールタイムアウト用ref
 
   // 認証関連
   const searchParams = useSearchParams();
@@ -86,47 +89,23 @@ export default function ImageEditor2() {
     };
   }, [pixiContainerRef.current]);
 
-  // 初期化後、一度だけドラッグ可能な透明な背景を追加
+  // 初期化後、ドラッグ可能な透明な背景を追加
   useEffect(() => {
     if (!appRef.current || !parentContainerRef.current) return;
 
-    // 初期表示時に一度だけ実行
-    const setupDragArea = () => {
-      // 透明な背景を追加
-      const width = appRef.current!.screen.width * 4;
-      const height = appRef.current!.screen.height * 4;
-
-      const background = new PIXI.Graphics();
-      background.beginFill(0x000000, 0);
-      background.drawRect(
-        -width/2,
-        -height/2,
-        width,
-        height
-      );
-      background.endFill();
-      background.eventMode = 'static';
-
-      // 既存の子要素をすべて除去
-      parentContainerRef.current!.removeChildren();
-
-      // 背景と既存のコンポーネントコンテナを追加
-      parentContainerRef.current!.addChild(background);
-      if (componentContainerRef.current) {
-        parentContainerRef.current!.addChild(componentContainerRef.current);
-      }
-
-      // グリッドが表示されていれば描画
-      if (showGrid) {
-        drawGrid();
-      }
-    };
-
-    setupDragArea();
+    // 初期表示時に実行
+    updateBackground();
   }, [appRef.current, parentContainerRef.current]);
 
+  // グリッド表示の変更時に再描画
+  useEffect(() => {
+    if (parentContainerRef.current && appRef.current) {
+      updateBackground();
+    }
+  }, [showGrid, gridSize]);
+
   const loadImage = useCallback(async () => {
-    if (!imageUrl || !appRef.current || !imageContainerRef.current) return;
+    if (!imageUrl || !appRef.current || !imageContainerRef.current || !componentContainerRef.current) return;
 
     try {
       const texture = await PIXI.Assets.load(imageUrl);
@@ -135,7 +114,7 @@ export default function ImageEditor2() {
       // スプライトのアンカーポイントを中心に設定
       sprite.anchor.set(0.5);
 
-      // スプライトの位置は0,0に設定
+      // スプライトの位置は0,0に設定（コンテナの中心）
       sprite.x = 0;
       sprite.y = 0;
 
@@ -173,6 +152,9 @@ export default function ImageEditor2() {
         const padding = 20; // 余白
         componentContainerRef.current.width = sprite.width + padding;
         componentContainerRef.current.height = sprite.height + padding + 30; // サイズ表示の高さ分を追加
+
+        // コンポーネントコンテナの位置を親コンテナの中心に設定
+        componentContainerRef.current.position.set(0, 0);
       }
 
       // コンテナを中央に配置
@@ -181,7 +163,7 @@ export default function ImageEditor2() {
     } catch (error) {
       console.error('画像の読み込みに失敗しました:', error);
     }
-  }, [imageUrl, appRef.current, imageContainerRef.current]);
+  }, [imageUrl, appRef.current, imageContainerRef.current, componentContainerRef.current]);
 
   // imageUrlが変わったときに画像を描画
   useEffect(() => {
@@ -204,7 +186,7 @@ export default function ImageEditor2() {
       appRef.current.init({
         width: parent.clientWidth,
         height: parent.clientHeight,
-        background: "#ffffff",
+        background: "#f5f5f5", // 背景色を少し変更して、見やすくする
         autoDensity: true,
         resolution: window.devicePixelRatio || 1,
         resizeTo: parent
@@ -212,68 +194,129 @@ export default function ImageEditor2() {
         if (appRef.current && pixiContainerRef.current) {
           pixiContainerRef.current.appendChild(appRef.current.canvas);
 
+          // 全体の背景を追加（ステージ全体）
+          const stageBg = new PIXI.Graphics();
+          stageBg.beginFill(0xFFFFFF);
+          stageBg.drawRect(0, 0, appRef.current.screen.width, appRef.current.screen.height);
+          stageBg.endFill();
+          appRef.current.stage.addChild(stageBg);
+
           // 親コンテナを作成
           const parentContainer = new PIXI.Container();
           appRef.current.stage.addChild(parentContainer);
           parentContainerRef.current = parentContainer;
 
-          // 親コンテナを画面の4倍のサイズに設定
-          parentContainer.width = appRef.current.screen.width * 4;
-          parentContainer.height = appRef.current.screen.height * 4;
+          // 親コンテナを画面の3倍のサイズに設定（初期サイズ）
+          parentContainer.width = appRef.current.screen.width * parentContainerSize.width;
+          parentContainer.height = appRef.current.screen.height * parentContainerSize.height;
 
-          // 親コンテナを中央に配置
-          parentContainer.x = appRef.current.screen.width / 2;
-          parentContainer.y = appRef.current.screen.height / 2;
+          // 親コンテナを中央に配置（位置を明示的に設定）
+          parentContainer.position.set(
+            appRef.current.screen.width / 2,
+            appRef.current.screen.height / 2
+          );
 
-          // 親コンテナのイベントモードを'static'に設定（ドラッグ可能）
+          // クリッピングマスクを追加して、親コンテナの外側が見えないようにする
+          const mask = new PIXI.Graphics();
+          mask.beginFill(0xFFFFFF);
+          mask.drawRect(
+            -appRef.current.screen.width / 2,
+            -appRef.current.screen.height / 2,
+            appRef.current.screen.width,
+            appRef.current.screen.height
+          );
+          mask.endFill();
+          parentContainer.addChild(mask);
+          parentContainer.mask = mask;
+
+          // stageの位置を調整して、親コンテナの中心が初期表示されるようにする
+          appRef.current.stage.position.set(0, 0);
+
+          // 親コンテナのイベントモードを'static'に設定（イベント検出可能）
           parentContainer.eventMode = 'static';
           // 親コンテナのカーソルスタイルをデフォルトに設定
           parentContainer.cursor = 'default';
 
-          // 親コンテナのドラッグイベント
-          let isParentDragging = false;
-          let parentDragStart: { x: number, y: number } | null = null;
-
+          // 親コンテナのイベント処理（コンポーネントコンテナのドラッグを妨げないように）
           parentContainer.on('pointerdown', (event) => {
-            // コンポーネントコンテナ上でドラッグを開始した場合は親コンテナのドラッグを無効化
-            if (componentContainerRef.current && (event.target === componentContainerRef.current || event.target.parent === componentContainerRef.current)) {
+            // コンポーネントコンテナ上でのクリックは処理しない
+            if (componentContainerRef.current &&
+               (event.target === componentContainerRef.current ||
+                event.target.parent === componentContainerRef.current ||
+                event.target.parent?.parent === componentContainerRef.current)) {
+              event.stopPropagation();
               return;
             }
-            isParentDragging = true;
-            parentDragStart = { x: event.global.x, y: event.global.y };
-            // ドラッグ中もカーソルはデフォルトのまま
-          });
 
-          parentContainer.on('pointermove', (event) => {
-            if (isParentDragging && parentDragStart) {
-              const moveX = event.global.x - parentDragStart.x;
-              const moveY = event.global.y - parentDragStart.y;
-              parentContainer.x += moveX;
-              parentContainer.y += moveY;
-              parentDragStart = { x: event.global.x, y: event.global.y };
+            // スクロールバーを表示
+            setShowScrollbar(true);
+
+            // 既存のタイムアウトがあればクリア
+            if (scrollTimeoutRef.current) {
+              clearTimeout(scrollTimeoutRef.current);
             }
-          });
 
-          parentContainer.on('pointerup', () => {
-            isParentDragging = false;
-            parentDragStart = null;
-            // カーソルはデフォルトのまま
-          });
+            // 背景部分のドラッグ開始
+            const startPosition = { x: event.global.x, y: event.global.y };
+            const startContainerPosition = { x: parentContainer.position.x, y: parentContainer.position.y };
 
-          parentContainer.on('pointerupoutside', () => {
-            isParentDragging = false;
-            parentDragStart = null;
-            // カーソルはデフォルトのまま
+            // ドラッグ処理の関数を定義
+            const onDragMove = (moveEvent: PIXI.FederatedPointerEvent) => {
+              if (!appRef.current) return;
+
+              // 移動量を計算
+              const dx = moveEvent.global.x - startPosition.x;
+              const dy = moveEvent.global.y - startPosition.y;
+
+              // 新しい位置を計算
+              let newX = startContainerPosition.x + dx;
+              let newY = startContainerPosition.y + dy;
+
+              // 親コンテナの寸法を取得
+              const parentWidth = appRef.current.screen.width * parentContainerSize.width;
+              const parentHeight = appRef.current.screen.height * parentContainerSize.height;
+
+              // 表示領域のサイズを取得
+              const viewWidth = appRef.current.screen.width;
+              const viewHeight = appRef.current.screen.height;
+
+              // 境界を計算（親コンテナが表示領域から外れないようにする）
+              const minX = viewWidth / 2 - parentWidth / 2 + viewWidth / 2;
+              const maxX = viewWidth / 2 + parentWidth / 2 - viewWidth / 2;
+              const minY = viewHeight / 2 - parentHeight / 2 + viewHeight / 2;
+              const maxY = viewHeight / 2 + parentHeight / 2 - viewHeight / 2;
+
+              // 境界チェック - 親コンテナの境界までしかスクロールできないようにする
+              newX = Math.max(minX, Math.min(newX, maxX));
+              newY = Math.max(minY, Math.min(newY, maxY));
+
+              // 親コンテナの位置を更新
+              parentContainer.position.set(newX, newY);
+            };
+
+            // ドラッグ終了処理の関数を定義
+            const onDragEnd = () => {
+              // イベントリスナーを削除
+              appRef.current?.stage.off('pointermove', onDragMove);
+              appRef.current?.stage.off('pointerup', onDragEnd);
+              appRef.current?.stage.off('pointerupoutside', onDragEnd);
+
+              // 一定時間後にスクロールバーを非表示にする
+              scrollTimeoutRef.current = setTimeout(() => {
+                setShowScrollbar(false);
+              }, 1500); // 1.5秒後に非表示
+            };
+
+            // イベントリスナーを設定
+            appRef.current?.stage.on('pointermove', onDragMove);
+            appRef.current?.stage.on('pointerup', onDragEnd);
+            appRef.current?.stage.on('pointerupoutside', onDragEnd);
           });
 
           // コンポーネントコンテナを作成（ドラッグイベント用）
           const componentContainer = new PIXI.Container();
           parentContainer.addChild(componentContainer);
           componentContainerRef.current = componentContainer;
-
-          // コンポーネントコンテナのイベントモードを設定
-          componentContainer.eventMode = 'static';
-          componentContainer.cursor = 'grab';
 
           // 画像用のコンテナを作成
           const imageContainer = new PIXI.Container();
@@ -333,8 +376,9 @@ export default function ImageEditor2() {
   const drawGrid = () => {
     if (!appRef.current || !parentContainerRef.current) return;
 
-    const width = appRef.current.screen.width * 4;
-    const height = appRef.current.screen.height * 4;
+    // 親コンテナのサイズに合わせてグリッドを描画（固定サイズ）
+    const width = appRef.current.screen.width * parentContainerSize.width;
+    const height = appRef.current.screen.height * parentContainerSize.height;
 
     // グリッドのみを削除（背景とコンポーネントは保持）
     // 子要素を一時保存
@@ -406,6 +450,54 @@ export default function ImageEditor2() {
     }
   }, [showGrid, gridSize]);
 
+  // 背景とグリッドを更新する関数を修正
+  const updateBackground = () => {
+    if (!appRef.current || !parentContainerRef.current) return;
+
+    // 透明な背景を追加（親コンテナサイズは固定）
+    const width = appRef.current.screen.width * parentContainerSize.width;
+    const height = appRef.current.screen.height * parentContainerSize.height;
+
+    // 既存の子要素をすべて除去（マスクは保持）
+    while (parentContainerRef.current.children.length > 1) {
+      parentContainerRef.current.removeChildAt(0);
+    }
+
+    // 背景（不透明な白色）- 親コンテナ全体を覆う
+    const background = new PIXI.Graphics();
+    background.beginFill(0xFFFFFF, 1); // 完全不透明な白
+    background.drawRect(
+      -width/2,
+      -height/2,
+      width,
+      height
+    );
+    background.endFill();
+    background.eventMode = 'none';
+
+    // 境界線を追加（親コンテナの境界を視覚的に示す）
+    background.lineStyle(2, 0x888888, 0.7); // 線の太さを2pxに、透明度を0.7に調整
+    background.drawRect(
+      -width/2,
+      -height/2,
+      width,
+      height
+    );
+
+    // 背景を先頭に追加
+    parentContainerRef.current.addChildAt(background, 0);
+
+    // コンポーネントコンテナを追加
+    if (componentContainerRef.current) {
+      parentContainerRef.current.addChild(componentContainerRef.current);
+    }
+
+    // グリッドが表示されていれば描画
+    if (showGrid) {
+      drawGrid();
+    }
+  };
+
   // ウィンドウのリサイズ時にグリッドを再描画
   useEffect(() => {
     if (showGrid) {
@@ -413,21 +505,84 @@ export default function ImageEditor2() {
     }
   }, [parentContainerRef.current?.scale.x]);
 
-  // ホイールによるズーム処理を簡略化
+  // ホイールによるスクロール処理を修正
   const handleWheel = (event: WheelEvent) => {
-    // デフォルトの動作（ページスクロール）を防ぐだけ
+    // デフォルトの動作（ページスクロール）を防ぐ
     event.preventDefault();
+
+    if (!parentContainerRef.current || !appRef.current) return;
+
+    // スクロールバーを表示
+    setShowScrollbar(true);
+
+    // 既存のタイムアウトがあればクリア
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // 一定時間後にスクロールバーを非表示にする
+    scrollTimeoutRef.current = setTimeout(() => {
+      setShowScrollbar(false);
+    }, 1500); // 1.5秒後に非表示
+
+    // スクロール速度係数（小さいほど遅く、大きいほど速く）
+    const scrollSpeed = 5;
+
+    // 親コンテナの現在位置を取得
+    const currentX = parentContainerRef.current.position.x;
+    const currentY = parentContainerRef.current.position.y;
+
+    // 親コンテナの寸法を取得
+    const parentWidth = appRef.current.screen.width * parentContainerSize.width;
+    const parentHeight = appRef.current.screen.height * parentContainerSize.height;
+
+    // 表示領域のサイズを取得
+    const viewWidth = appRef.current.screen.width;
+    const viewHeight = appRef.current.screen.height;
+
+    // 境界を計算（親コンテナが表示領域から外れないようにする）
+    const minX = viewWidth / 2 - parentWidth / 2 + viewWidth / 2;
+    const maxX = viewWidth / 2 + parentWidth / 2 - viewWidth / 2;
+    const minY = viewHeight / 2 - parentHeight / 2 + viewHeight / 2;
+    const maxY = viewHeight / 2 + parentHeight / 2 - viewHeight / 2;
+
+    // ホイールの動きに応じて移動量を計算
+    let deltaX = event.deltaX;
+    let deltaY = event.deltaY;
+
+    // Shiftキーが押されている場合、deltaYを横スクロールに使用
+    if (event.shiftKey) {
+      deltaX = event.deltaY;
+      deltaY = 0;
+    }
+
+    // 新しい位置を計算
+    let newX = currentX - (deltaX / scrollSpeed);
+    let newY = currentY - (deltaY / scrollSpeed);
+
+    // 境界チェック - 親コンテナの境界までしかスクロールできないようにする
+    newX = Math.max(minX, Math.min(newX, maxX));
+    newY = Math.max(minY, Math.min(newY, maxY));
+
+    // 親コンテナの位置を更新
+    parentContainerRef.current.position.set(newX, newY);
   }
 
-  // コンテナの初期位置を設定する関数を簡略化
+  // コンテナの初期位置を設定する関数を改善
   const centerContainer = () => {
-    if (!appRef.current || !imageContainerRef.current || !spriteRef.current || !parentContainerRef.current) return;
+    if (!appRef.current || !imageContainerRef.current || !spriteRef.current || !parentContainerRef.current || !componentContainerRef.current) return;
+
+    // コンポーネントコンテナの位置をリセット（親コンテナの中心に配置）
+    componentContainerRef.current.position.set(0, 0);
 
     // 親コンテナをキャンバスの中央に配置
     parentContainerRef.current.position.set(
       appRef.current.screen.width / 2,
       appRef.current.screen.height / 2
     );
+
+    // stageの位置を0,0に設定して、親コンテナの中心が表示されるようにする
+    appRef.current.stage.position.set(0, 0);
   }
 
   // サイズ表示テキストを作成する関数
@@ -601,7 +756,39 @@ export default function ImageEditor2() {
         />
         <div className="flex h-[calc(100vh-3.5rem)]">
           <main className="flex-1 h-full overflow-hidden">
-            <div ref={pixiContainerRef} className="w-full h-full" />
+            <div
+              ref={pixiContainerRef}
+              className={`w-full h-full ${showScrollbar ? 'scrollable' : 'no-scrollbar'}`}
+              style={{
+                overflow: 'auto'
+              }}
+            />
+            <style jsx global>{`
+              .no-scrollbar::-webkit-scrollbar {
+                width: 0;
+                height: 0;
+                background: transparent;
+              }
+              .no-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+              }
+              .scrollable::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+              }
+              .scrollable::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.05);
+                border-radius: 4px;
+              }
+              .scrollable::-webkit-scrollbar-thumb {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 4px;
+              }
+              .scrollable::-webkit-scrollbar-thumb:hover {
+                background: rgba(0, 0, 0, 0.3);
+              }
+            `}</style>
           </main>
           <aside className="w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
             <div className="space-y-6">
