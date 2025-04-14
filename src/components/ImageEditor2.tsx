@@ -18,6 +18,7 @@ export default function ImageEditor2() {
   const [imageHeight, setImageHeight] = useState(0);
   const [parentContainerSize] = useState({ width: 10, height: 10 }); // 親コンテナの初期サイズは画面の10倍
   const [showScrollbars, setShowScrollbars] = useState(false); // スクロールバーの表示状態
+  const [brightness, setBrightness] = useState(0); // 明度の状態を追加（-100〜100の範囲）
   const isResettingRef = useRef(false); // リセット中かどうかのフラグ
   const pixiContainerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -910,6 +911,21 @@ export default function ImageEditor2() {
     updateSizeTextPosition();
   }, [imageWidth, imageHeight]);
 
+  // 明度を適用する関数
+  const applyBrightness = (value: number) => {
+    if (!spriteRef.current) return;
+
+    // 明度の値を0.0〜2.0の範囲に変換（0が通常、-100が暗く、100が明るい）
+    const brightnessValue = 1 + value / 100;
+
+    // フィルターを適用
+    const filter = new PIXI.ColorMatrixFilter();
+    filter.brightness(brightnessValue, false); // 2番目の引数にfalseを追加
+    spriteRef.current.filters = [filter];
+
+    setBrightness(value);
+  };
+
   // 画像の加工をリセットする関数を安全に作り直す
   const resetImageTransform = () => {
     if (!spriteRef.current || !imageContainerRef.current || !appRef.current)
@@ -935,6 +951,10 @@ export default function ImageEditor2() {
         initialImageStateRef.current.position.y
       );
       sprite.rotation = initialImageStateRef.current.rotation;
+
+      // フィルターをリセット
+      sprite.filters = []; // nullではなく空の配列を使用
+      setBrightness(0);
 
       // スプライトを再度コンテナに追加
       imageContainerRef.current.addChild(sprite);
@@ -1147,6 +1167,33 @@ export default function ImageEditor2() {
               </div>
             )}
 
+            {/* 明度調整 */}
+            {spriteRef.current && (
+              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
+                <h3 className="text-sm font-medium text-gray-900">明度調整</h3>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="brightness-slider" className="text-sm">
+                    明度
+                  </Label>
+                  <span className="text-sm font-medium text-gray-900">
+                    {brightness}
+                  </span>
+                </div>
+                <Slider
+                  id="brightness-slider"
+                  min={-100}
+                  max={100}
+                  step={1}
+                  value={[brightness]}
+                  onValueChange={(value) => applyBrightness(value[0])}
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>暗く</span>
+                  <span>明るく</span>
+                </div>
+              </div>
+            )}
+
             {/* 画像回転/反転設定 */}
             {spriteRef.current && (
               <div className="space-y-3 rounded-lg border border-gray-200 p-3">
@@ -1196,7 +1243,7 @@ export default function ImageEditor2() {
                 加工をリセット
               </button>
               <p className="text-xs text-gray-500 mt-1">
-                位置・サイズ・回転を初期状態に戻します
+                位置・サイズ・回転・明度を初期状態に戻します
               </p>
             </div>
           </div>
