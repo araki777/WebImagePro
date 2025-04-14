@@ -4,6 +4,7 @@ import { Header } from "@/components/ui/header";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { useImageFilters } from "@/hooks/useImageFilters";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSearchParams } from "next/navigation";
 import * as PIXI from "pixi.js";
@@ -18,10 +19,6 @@ export default function ImageEditor2() {
   const [imageHeight, setImageHeight] = useState(0);
   const [parentContainerSize] = useState({ width: 10, height: 10 }); // 親コンテナの初期サイズは画面の10倍
   const [showScrollbars, setShowScrollbars] = useState(false); // スクロールバーの表示状態
-  const [brightness, setBrightness] = useState(0); // 明度の状態を追加（-100〜100の範囲）
-  const [saturation, setSaturation] = useState(0); // 彩度の状態を追加（-100〜100の範囲）
-  const [contrast, setContrast] = useState(0); // コントラストの状態を追加（-100〜100の範囲）
-  const [hueRotation, setHueRotation] = useState(0); // 色相回転の状態（0〜360の範囲）
   const isResettingRef = useRef(false); // リセット中かどうかのフラグ
   const pixiContainerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -31,6 +28,21 @@ export default function ImageEditor2() {
   const sizeContainerRef = useRef<PIXI.Container | null>(null);
   const spriteRef = useRef<PIXI.Sprite | null>(null);
   const sizeTextRef = useRef<PIXI.Text | null>(null);
+
+  // 画像フィルターフックを使用
+  const {
+    brightness,
+    saturation,
+    contrast,
+    hueRotation,
+    sepiaIntensity,
+    applyBrightness,
+    applySaturation,
+    applyContrast,
+    applyHueRotation,
+    applySepia,
+    resetFilters,
+  } = useImageFilters(spriteRef);
 
   // 認証関連
   const searchParams = useSearchParams();
@@ -914,310 +926,6 @@ export default function ImageEditor2() {
     updateSizeTextPosition();
   }, [imageWidth, imageHeight]);
 
-  // 明度を適用する関数
-  const applyBrightness = (value: number) => {
-    if (!spriteRef.current) return;
-
-    // 明度の値を0.0〜2.0の範囲に変換（0が通常、-100が暗く、100が明るい）
-    const brightnessValue = 1 + value / 100;
-
-    try {
-      // 既存のフィルターを取得（存在しない場合は空の配列）
-      const existingFilters =
-        (spriteRef.current.filters as PIXI.Filter[]) || [];
-
-      // 明度フィルターを探す
-      let brightnessFilter = existingFilters.find(
-        (f: PIXI.Filter) =>
-          f instanceof PIXI.ColorMatrixFilter &&
-          (f as any)._filterType === "brightness"
-      ) as PIXI.ColorMatrixFilter | undefined;
-
-      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
-      const newFilters = [...existingFilters];
-
-      if (!brightnessFilter) {
-        // 新しいフィルターを作成
-        brightnessFilter = new PIXI.ColorMatrixFilter();
-        (brightnessFilter as any)._filterType = "brightness";
-        // 新しい配列に追加
-        newFilters.push(brightnessFilter);
-      } else {
-        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
-        const index = existingFilters.indexOf(brightnessFilter);
-        if (index !== -1) {
-          brightnessFilter = new PIXI.ColorMatrixFilter();
-          (brightnessFilter as any)._filterType = "brightness";
-          newFilters[index] = brightnessFilter;
-        } else {
-          newFilters.push(brightnessFilter);
-        }
-      }
-
-      // フィルターをリセットしてから明度を適用
-      brightnessFilter.reset();
-      brightnessFilter.brightness(brightnessValue, false);
-
-      // フィルターを更新（新しい配列を設定）
-      spriteRef.current.filters = newFilters;
-
-      setBrightness(value);
-    } catch (error) {
-      console.error("明度の適用でエラーが発生しました:", error);
-    }
-  };
-
-  // 彩度を適用する関数
-  const applySaturation = (value: number) => {
-    if (!spriteRef.current) return;
-
-    // 彩度の値を0.0〜2.0の範囲に変換（0が通常、-100が彩度なし、100が高彩度）
-    const saturationValue = 1 + value / 100;
-
-    try {
-      // 既存のフィルターを取得（存在しない場合は空の配列）
-      const existingFilters =
-        (spriteRef.current.filters as PIXI.Filter[]) || [];
-
-      // 彩度フィルターを探す
-      let saturationFilter = existingFilters.find(
-        (f: PIXI.Filter) =>
-          f instanceof PIXI.ColorMatrixFilter &&
-          (f as any)._filterType === "saturation"
-      ) as PIXI.ColorMatrixFilter | undefined;
-
-      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
-      const newFilters = [...existingFilters];
-
-      if (!saturationFilter) {
-        // 新しいフィルターを作成
-        saturationFilter = new PIXI.ColorMatrixFilter();
-        (saturationFilter as any)._filterType = "saturation";
-        // 新しい配列に追加
-        newFilters.push(saturationFilter);
-      } else {
-        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
-        const index = existingFilters.indexOf(saturationFilter);
-        if (index !== -1) {
-          saturationFilter = new PIXI.ColorMatrixFilter();
-          (saturationFilter as any)._filterType = "saturation";
-          newFilters[index] = saturationFilter;
-        } else {
-          newFilters.push(saturationFilter);
-        }
-      }
-
-      // バージョンに依存せず、直接彩度の行列を設定する
-      // 彩度の行列を計算
-      const r = 0.3086;
-      const g = 0.6094;
-      const b = 0.082;
-
-      const sr = (1 - saturationValue) * r;
-      const sg = (1 - saturationValue) * g;
-      const sb = (1 - saturationValue) * b;
-
-      saturationFilter.matrix = [
-        sr + saturationValue,
-        sg,
-        sb,
-        0,
-        0,
-        sr,
-        sg + saturationValue,
-        sb,
-        0,
-        0,
-        sr,
-        sg,
-        sb + saturationValue,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ] as PIXI.ColorMatrix;
-
-      // フィルターを更新（新しい配列を設定）
-      spriteRef.current.filters = newFilters;
-
-      setSaturation(value);
-    } catch (error) {
-      console.error("彩度の適用でエラーが発生しました:", error);
-    }
-  };
-
-  // コントラストを適用する関数
-  const applyContrast = (value: number) => {
-    if (!spriteRef.current) return;
-
-    // コントラストの値を0.0〜2.0の範囲に変換（0が通常、-100が低コントラスト、100が高コントラスト）
-    const contrastValue = 1 + value / 100;
-
-    try {
-      // 既存のフィルターを取得（存在しない場合は空の配列）
-      const existingFilters =
-        (spriteRef.current.filters as PIXI.Filter[]) || [];
-
-      // コントラストフィルターを探す
-      let contrastFilter = existingFilters.find(
-        (f: PIXI.Filter) =>
-          f instanceof PIXI.ColorMatrixFilter &&
-          (f as any)._filterType === "contrast"
-      ) as PIXI.ColorMatrixFilter | undefined;
-
-      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
-      const newFilters = [...existingFilters];
-
-      if (!contrastFilter) {
-        // 新しいフィルターを作成
-        contrastFilter = new PIXI.ColorMatrixFilter();
-        (contrastFilter as any)._filterType = "contrast";
-        // 新しい配列に追加
-        newFilters.push(contrastFilter);
-      } else {
-        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
-        const index = existingFilters.indexOf(contrastFilter);
-        if (index !== -1) {
-          contrastFilter = new PIXI.ColorMatrixFilter();
-          (contrastFilter as any)._filterType = "contrast";
-          newFilters[index] = contrastFilter;
-        } else {
-          newFilters.push(contrastFilter);
-        }
-      }
-
-      // フィルターをリセットしてからコントラストを適用
-      contrastFilter.reset();
-
-      // コントラスト行列を直接設定
-      const intercept = (1 - contrastValue) * 0.5 * 255;
-      contrastFilter.matrix = [
-        contrastValue,
-        0,
-        0,
-        0,
-        intercept / 255,
-        0,
-        contrastValue,
-        0,
-        0,
-        intercept / 255,
-        0,
-        0,
-        contrastValue,
-        0,
-        intercept / 255,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ] as PIXI.ColorMatrix;
-
-      // フィルターを更新（新しい配列を設定）
-      spriteRef.current.filters = newFilters;
-
-      setContrast(value);
-    } catch (error) {
-      console.error("コントラストの適用でエラーが発生しました:", error);
-    }
-  };
-
-  // 色相回転を適用する関数
-  const applyHueRotation = (value: number) => {
-    if (!spriteRef.current) return;
-
-    try {
-      // 既存のフィルターを取得（存在しない場合は空の配列）
-      const existingFilters =
-        (spriteRef.current.filters as PIXI.Filter[]) || [];
-
-      // 色相フィルターを探す
-      let hueFilter = existingFilters.find(
-        (f: PIXI.Filter) =>
-          f instanceof PIXI.ColorMatrixFilter &&
-          (f as any)._filterType === "hue"
-      ) as PIXI.ColorMatrixFilter | undefined;
-
-      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
-      const newFilters = [...existingFilters];
-
-      if (!hueFilter) {
-        // 新しいフィルターを作成
-        hueFilter = new PIXI.ColorMatrixFilter();
-        (hueFilter as any)._filterType = "hue";
-        // 新しい配列に追加
-        newFilters.push(hueFilter);
-      } else {
-        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
-        const index = existingFilters.indexOf(hueFilter);
-        if (index !== -1) {
-          hueFilter = new PIXI.ColorMatrixFilter();
-          (hueFilter as any)._filterType = "hue";
-          newFilters[index] = hueFilter;
-        } else {
-          newFilters.push(hueFilter);
-        }
-      }
-
-      // フィルターをリセット
-      hueFilter.reset();
-
-      // 色相回転値をラジアンに変換
-      const rad = (value * Math.PI) / 180;
-
-      // 色相回転のための行列を計算
-      // 色相回転の行列は複雑なので、計算式を使用
-      const cosVal = Math.cos(rad);
-      const sinVal = Math.sin(rad);
-
-      // RGB→YIQ変換に近い係数を使用
-      const lumR = 0.299;
-      const lumG = 0.587;
-      const lumB = 0.114;
-
-      // 色相回転行列を計算
-      const matrix = [
-        lumR + cosVal * (1 - lumR) + sinVal * -lumR,
-        lumG + cosVal * -lumG + sinVal * -lumG,
-        lumB + cosVal * -lumB + sinVal * (1 - lumB),
-        0,
-        0,
-
-        lumR + cosVal * -lumR + sinVal * 0.143,
-        lumG + cosVal * (1 - lumG) + sinVal * 0.14,
-        lumB + cosVal * -lumB + sinVal * -0.283,
-        0,
-        0,
-
-        lumR + cosVal * -lumR + sinVal * -(1 - lumR),
-        lumG + cosVal * -lumG + sinVal * lumG,
-        lumB + cosVal * (1 - lumB) + sinVal * lumB,
-        0,
-        0,
-
-        0,
-        0,
-        0,
-        1,
-        0,
-      ] as PIXI.ColorMatrix;
-
-      // 行列を適用
-      hueFilter.matrix = matrix;
-
-      // フィルターを更新
-      spriteRef.current.filters = newFilters;
-
-      setHueRotation(value);
-    } catch (error) {
-      console.error("色相回転の適用でエラーが発生しました:", error);
-    }
-  };
-
   // 画像の加工をリセットする関数を安全に作り直す
   const resetImageTransform = () => {
     if (!spriteRef.current || !imageContainerRef.current || !appRef.current)
@@ -1244,14 +952,8 @@ export default function ImageEditor2() {
       );
       sprite.rotation = initialImageStateRef.current.rotation;
 
-      // フィルターをリセット（必ず空の配列を設定する）
-      sprite.filters = [];
-
-      // 状態変数も元に戻す
-      setBrightness(0);
-      setSaturation(0);
-      setContrast(0);
-      setHueRotation(0);
+      // フィルターをリセット
+      resetFilters();
 
       // スプライトを再度コンテナに追加
       imageContainerRef.current.addChild(sprite);
@@ -1560,6 +1262,29 @@ export default function ImageEditor2() {
                       <span>360°</span>
                     </div>
                   </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="sepia-slider" className="text-sm">
+                        セピア効果
+                      </Label>
+                      <span className="text-sm font-medium text-gray-900">
+                        {sepiaIntensity}%
+                      </span>
+                    </div>
+                    <Slider
+                      id="sepia-slider"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={[sepiaIntensity]}
+                      onValueChange={(value) => applySepia(value[0])}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>なし</span>
+                      <span>最大</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1613,7 +1338,7 @@ export default function ImageEditor2() {
                 加工をリセット
               </button>
               <p className="text-xs text-gray-500 mt-1">
-                位置・サイズ・回転・明度・彩度・コントラスト・色相を初期状態に戻します
+                位置・サイズ・回転・明度・彩度・コントラスト・色相・セピアを初期状態に戻します
               </p>
             </div>
           </div>
