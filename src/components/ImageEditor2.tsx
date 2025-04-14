@@ -21,6 +21,7 @@ export default function ImageEditor2() {
   const [brightness, setBrightness] = useState(0); // 明度の状態を追加（-100〜100の範囲）
   const [saturation, setSaturation] = useState(0); // 彩度の状態を追加（-100〜100の範囲）
   const [contrast, setContrast] = useState(0); // コントラストの状態を追加（-100〜100の範囲）
+  const [hueRotation, setHueRotation] = useState(0); // 色相回転の状態（0〜360の範囲）
   const isResettingRef = useRef(false); // リセット中かどうかのフラグ
   const pixiContainerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -1125,6 +1126,98 @@ export default function ImageEditor2() {
     }
   };
 
+  // 色相回転を適用する関数
+  const applyHueRotation = (value: number) => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 色相フィルターを探す
+      let hueFilter = existingFilters.find(
+        (f: PIXI.Filter) =>
+          f instanceof PIXI.ColorMatrixFilter &&
+          (f as any)._filterType === "hue"
+      ) as PIXI.ColorMatrixFilter | undefined;
+
+      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
+      const newFilters = [...existingFilters];
+
+      if (!hueFilter) {
+        // 新しいフィルターを作成
+        hueFilter = new PIXI.ColorMatrixFilter();
+        (hueFilter as any)._filterType = "hue";
+        // 新しい配列に追加
+        newFilters.push(hueFilter);
+      } else {
+        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
+        const index = existingFilters.indexOf(hueFilter);
+        if (index !== -1) {
+          hueFilter = new PIXI.ColorMatrixFilter();
+          (hueFilter as any)._filterType = "hue";
+          newFilters[index] = hueFilter;
+        } else {
+          newFilters.push(hueFilter);
+        }
+      }
+
+      // フィルターをリセット
+      hueFilter.reset();
+
+      // 色相回転値をラジアンに変換
+      const rad = (value * Math.PI) / 180;
+
+      // 色相回転のための行列を計算
+      // 色相回転の行列は複雑なので、計算式を使用
+      const cosVal = Math.cos(rad);
+      const sinVal = Math.sin(rad);
+
+      // RGB→YIQ変換に近い係数を使用
+      const lumR = 0.299;
+      const lumG = 0.587;
+      const lumB = 0.114;
+
+      // 色相回転行列を計算
+      const matrix = [
+        lumR + cosVal * (1 - lumR) + sinVal * -lumR,
+        lumG + cosVal * -lumG + sinVal * -lumG,
+        lumB + cosVal * -lumB + sinVal * (1 - lumB),
+        0,
+        0,
+
+        lumR + cosVal * -lumR + sinVal * 0.143,
+        lumG + cosVal * (1 - lumG) + sinVal * 0.14,
+        lumB + cosVal * -lumB + sinVal * -0.283,
+        0,
+        0,
+
+        lumR + cosVal * -lumR + sinVal * -(1 - lumR),
+        lumG + cosVal * -lumG + sinVal * lumG,
+        lumB + cosVal * (1 - lumB) + sinVal * lumB,
+        0,
+        0,
+
+        0,
+        0,
+        0,
+        1,
+        0,
+      ] as PIXI.ColorMatrix;
+
+      // 行列を適用
+      hueFilter.matrix = matrix;
+
+      // フィルターを更新
+      spriteRef.current.filters = newFilters;
+
+      setHueRotation(value);
+    } catch (error) {
+      console.error("色相回転の適用でエラーが発生しました:", error);
+    }
+  };
+
   // 画像の加工をリセットする関数を安全に作り直す
   const resetImageTransform = () => {
     if (!spriteRef.current || !imageContainerRef.current || !appRef.current)
@@ -1158,6 +1251,7 @@ export default function ImageEditor2() {
       setBrightness(0);
       setSaturation(0);
       setContrast(0);
+      setHueRotation(0);
 
       // スプライトを再度コンテナに追加
       imageContainerRef.current.addChild(sprite);
@@ -1443,6 +1537,29 @@ export default function ImageEditor2() {
                       <span>強く</span>
                     </div>
                   </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="hue-slider" className="text-sm">
+                        色相回転
+                      </Label>
+                      <span className="text-sm font-medium text-gray-900">
+                        {hueRotation}°
+                      </span>
+                    </div>
+                    <Slider
+                      id="hue-slider"
+                      min={0}
+                      max={360}
+                      step={1}
+                      value={[hueRotation]}
+                      onValueChange={(value) => applyHueRotation(value[0])}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>0°</span>
+                      <span>360°</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1496,7 +1613,7 @@ export default function ImageEditor2() {
                 加工をリセット
               </button>
               <p className="text-xs text-gray-500 mt-1">
-                位置・サイズ・回転・明度・彩度・コントラストを初期状態に戻します
+                位置・サイズ・回転・明度・彩度・コントラスト・色相を初期状態に戻します
               </p>
             </div>
           </div>
