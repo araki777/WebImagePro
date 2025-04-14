@@ -19,6 +19,7 @@ export default function ImageEditor2() {
   const [parentContainerSize] = useState({ width: 10, height: 10 }); // 親コンテナの初期サイズは画面の10倍
   const [showScrollbars, setShowScrollbars] = useState(false); // スクロールバーの表示状態
   const [brightness, setBrightness] = useState(0); // 明度の状態を追加（-100〜100の範囲）
+  const [saturation, setSaturation] = useState(0); // 彩度の状態を追加（-100〜100の範囲）
   const isResettingRef = useRef(false); // リセット中かどうかのフラグ
   const pixiContainerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -918,12 +919,132 @@ export default function ImageEditor2() {
     // 明度の値を0.0〜2.0の範囲に変換（0が通常、-100が暗く、100が明るい）
     const brightnessValue = 1 + value / 100;
 
-    // フィルターを適用
-    const filter = new PIXI.ColorMatrixFilter();
-    filter.brightness(brightnessValue, false); // 2番目の引数にfalseを追加
-    spriteRef.current.filters = [filter];
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
 
-    setBrightness(value);
+      // 明度フィルターを探す
+      let brightnessFilter = existingFilters.find(
+        (f: PIXI.Filter) =>
+          f instanceof PIXI.ColorMatrixFilter &&
+          (f as any)._filterType === "brightness"
+      ) as PIXI.ColorMatrixFilter | undefined;
+
+      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
+      const newFilters = [...existingFilters];
+
+      if (!brightnessFilter) {
+        // 新しいフィルターを作成
+        brightnessFilter = new PIXI.ColorMatrixFilter();
+        (brightnessFilter as any)._filterType = "brightness";
+        // 新しい配列に追加
+        newFilters.push(brightnessFilter);
+      } else {
+        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
+        const index = existingFilters.indexOf(brightnessFilter);
+        if (index !== -1) {
+          brightnessFilter = new PIXI.ColorMatrixFilter();
+          (brightnessFilter as any)._filterType = "brightness";
+          newFilters[index] = brightnessFilter;
+        } else {
+          newFilters.push(brightnessFilter);
+        }
+      }
+
+      // フィルターをリセットしてから明度を適用
+      brightnessFilter.reset();
+      brightnessFilter.brightness(brightnessValue, false);
+
+      // フィルターを更新（新しい配列を設定）
+      spriteRef.current.filters = newFilters;
+
+      setBrightness(value);
+    } catch (error) {
+      console.error("明度の適用でエラーが発生しました:", error);
+    }
+  };
+
+  // 彩度を適用する関数
+  const applySaturation = (value: number) => {
+    if (!spriteRef.current) return;
+
+    // 彩度の値を0.0〜2.0の範囲に変換（0が通常、-100が彩度なし、100が高彩度）
+    const saturationValue = 1 + value / 100;
+
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 彩度フィルターを探す
+      let saturationFilter = existingFilters.find(
+        (f: PIXI.Filter) =>
+          f instanceof PIXI.ColorMatrixFilter &&
+          (f as any)._filterType === "saturation"
+      ) as PIXI.ColorMatrixFilter | undefined;
+
+      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
+      const newFilters = [...existingFilters];
+
+      if (!saturationFilter) {
+        // 新しいフィルターを作成
+        saturationFilter = new PIXI.ColorMatrixFilter();
+        (saturationFilter as any)._filterType = "saturation";
+        // 新しい配列に追加
+        newFilters.push(saturationFilter);
+      } else {
+        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
+        const index = existingFilters.indexOf(saturationFilter);
+        if (index !== -1) {
+          saturationFilter = new PIXI.ColorMatrixFilter();
+          (saturationFilter as any)._filterType = "saturation";
+          newFilters[index] = saturationFilter;
+        } else {
+          newFilters.push(saturationFilter);
+        }
+      }
+
+      // バージョンに依存せず、直接彩度の行列を設定する
+      // 彩度の行列を計算
+      const r = 0.3086;
+      const g = 0.6094;
+      const b = 0.082;
+
+      const sr = (1 - saturationValue) * r;
+      const sg = (1 - saturationValue) * g;
+      const sb = (1 - saturationValue) * b;
+
+      saturationFilter.matrix = [
+        sr + saturationValue,
+        sg,
+        sb,
+        0,
+        0,
+        sr,
+        sg + saturationValue,
+        sb,
+        0,
+        0,
+        sr,
+        sg,
+        sb + saturationValue,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ] as PIXI.ColorMatrix;
+
+      // フィルターを更新（新しい配列を設定）
+      spriteRef.current.filters = newFilters;
+
+      setSaturation(value);
+    } catch (error) {
+      console.error("彩度の適用でエラーが発生しました:", error);
+    }
   };
 
   // 画像の加工をリセットする関数を安全に作り直す
@@ -952,9 +1073,12 @@ export default function ImageEditor2() {
       );
       sprite.rotation = initialImageStateRef.current.rotation;
 
-      // フィルターをリセット
-      sprite.filters = []; // nullではなく空の配列を使用
+      // フィルターをリセット（必ず空の配列を設定する）
+      sprite.filters = [];
+
+      // 状態変数も元に戻す
       setBrightness(0);
+      setSaturation(0);
 
       // スプライトを再度コンテナに追加
       imageContainerRef.current.addChild(sprite);
@@ -1170,26 +1294,53 @@ export default function ImageEditor2() {
             {/* 明度調整 */}
             {spriteRef.current && (
               <div className="space-y-3 rounded-lg border border-gray-200 p-3">
-                <h3 className="text-sm font-medium text-gray-900">明度調整</h3>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="brightness-slider" className="text-sm">
-                    明度
-                  </Label>
-                  <span className="text-sm font-medium text-gray-900">
-                    {brightness}
-                  </span>
-                </div>
-                <Slider
-                  id="brightness-slider"
-                  min={-100}
-                  max={100}
-                  step={1}
-                  value={[brightness]}
-                  onValueChange={(value) => applyBrightness(value[0])}
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>暗く</span>
-                  <span>明るく</span>
+                <h3 className="text-sm font-medium text-gray-900">画像調整</h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="brightness-slider" className="text-sm">
+                        明度
+                      </Label>
+                      <span className="text-sm font-medium text-gray-900">
+                        {brightness}
+                      </span>
+                    </div>
+                    <Slider
+                      id="brightness-slider"
+                      min={-100}
+                      max={100}
+                      step={1}
+                      value={[brightness]}
+                      onValueChange={(value) => applyBrightness(value[0])}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>暗く</span>
+                      <span>明るく</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="saturation-slider" className="text-sm">
+                        彩度
+                      </Label>
+                      <span className="text-sm font-medium text-gray-900">
+                        {saturation}
+                      </span>
+                    </div>
+                    <Slider
+                      id="saturation-slider"
+                      min={-100}
+                      max={100}
+                      step={1}
+                      value={[saturation]}
+                      onValueChange={(value) => applySaturation(value[0])}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>モノクロ</span>
+                      <span>鮮やか</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1243,7 +1394,7 @@ export default function ImageEditor2() {
                 加工をリセット
               </button>
               <p className="text-xs text-gray-500 mt-1">
-                位置・サイズ・回転・明度を初期状態に戻します
+                位置・サイズ・回転・明度・彩度を初期状態に戻します
               </p>
             </div>
           </div>
