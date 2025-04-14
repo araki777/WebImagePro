@@ -20,6 +20,7 @@ export default function ImageEditor2() {
   const [showScrollbars, setShowScrollbars] = useState(false); // スクロールバーの表示状態
   const [brightness, setBrightness] = useState(0); // 明度の状態を追加（-100〜100の範囲）
   const [saturation, setSaturation] = useState(0); // 彩度の状態を追加（-100〜100の範囲）
+  const [contrast, setContrast] = useState(0); // コントラストの状態を追加（-100〜100の範囲）
   const isResettingRef = useRef(false); // リセット中かどうかのフラグ
   const pixiContainerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<PIXI.Application | null>(null);
@@ -1047,6 +1048,83 @@ export default function ImageEditor2() {
     }
   };
 
+  // コントラストを適用する関数
+  const applyContrast = (value: number) => {
+    if (!spriteRef.current) return;
+
+    // コントラストの値を0.0〜2.0の範囲に変換（0が通常、-100が低コントラスト、100が高コントラスト）
+    const contrastValue = 1 + value / 100;
+
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // コントラストフィルターを探す
+      let contrastFilter = existingFilters.find(
+        (f: PIXI.Filter) =>
+          f instanceof PIXI.ColorMatrixFilter &&
+          (f as any)._filterType === "contrast"
+      ) as PIXI.ColorMatrixFilter | undefined;
+
+      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
+      const newFilters = [...existingFilters];
+
+      if (!contrastFilter) {
+        // 新しいフィルターを作成
+        contrastFilter = new PIXI.ColorMatrixFilter();
+        (contrastFilter as any)._filterType = "contrast";
+        // 新しい配列に追加
+        newFilters.push(contrastFilter);
+      } else {
+        // 既存のフィルターのインデックスを取得し、新しい配列内の同じ位置に再設定
+        const index = existingFilters.indexOf(contrastFilter);
+        if (index !== -1) {
+          contrastFilter = new PIXI.ColorMatrixFilter();
+          (contrastFilter as any)._filterType = "contrast";
+          newFilters[index] = contrastFilter;
+        } else {
+          newFilters.push(contrastFilter);
+        }
+      }
+
+      // フィルターをリセットしてからコントラストを適用
+      contrastFilter.reset();
+
+      // コントラスト行列を直接設定
+      const intercept = (1 - contrastValue) * 0.5 * 255;
+      contrastFilter.matrix = [
+        contrastValue,
+        0,
+        0,
+        0,
+        intercept / 255,
+        0,
+        contrastValue,
+        0,
+        0,
+        intercept / 255,
+        0,
+        0,
+        contrastValue,
+        0,
+        intercept / 255,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ] as PIXI.ColorMatrix;
+
+      // フィルターを更新（新しい配列を設定）
+      spriteRef.current.filters = newFilters;
+
+      setContrast(value);
+    } catch (error) {
+      console.error("コントラストの適用でエラーが発生しました:", error);
+    }
+  };
+
   // 画像の加工をリセットする関数を安全に作り直す
   const resetImageTransform = () => {
     if (!spriteRef.current || !imageContainerRef.current || !appRef.current)
@@ -1079,6 +1157,7 @@ export default function ImageEditor2() {
       // 状態変数も元に戻す
       setBrightness(0);
       setSaturation(0);
+      setContrast(0);
 
       // スプライトを再度コンテナに追加
       imageContainerRef.current.addChild(sprite);
@@ -1341,6 +1420,29 @@ export default function ImageEditor2() {
                       <span>鮮やか</span>
                     </div>
                   </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="contrast-slider" className="text-sm">
+                        コントラスト
+                      </Label>
+                      <span className="text-sm font-medium text-gray-900">
+                        {contrast}
+                      </span>
+                    </div>
+                    <Slider
+                      id="contrast-slider"
+                      min={-100}
+                      max={100}
+                      step={1}
+                      value={[contrast]}
+                      onValueChange={(value) => applyContrast(value[0])}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>弱く</span>
+                      <span>強く</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1394,7 +1496,7 @@ export default function ImageEditor2() {
                 加工をリセット
               </button>
               <p className="text-xs text-gray-500 mt-1">
-                位置・サイズ・回転・明度・彩度を初期状態に戻します
+                位置・サイズ・回転・明度・彩度・コントラストを初期状態に戻します
               </p>
             </div>
           </div>
