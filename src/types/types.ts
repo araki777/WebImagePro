@@ -23,11 +23,11 @@ export interface IUserData {
 export interface UserSettings {
   id: string;
   user_id: string;
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   language: string;
   created_at: string;
   updated_at: string;
-  subscription_status: 'active' | 'canceled' | 'past_due' | 'unpaid' | null;
+  subscription_status: "active" | "canceled" | "past_due" | "unpaid" | null;
   subscription_id: string | null;
   subscription_end_date: string | null;
   stripe_customer_id: string | null;
@@ -58,7 +58,7 @@ export interface IContact extends IContactForm {
   id: string;
   user_id: string | null;
   created_at: string;
-  status: 'pending' | 'replied' | 'closed';
+  status: "pending" | "replied" | "closed";
 }
 
 // ============================================================================
@@ -112,7 +112,9 @@ export interface ICompressionSettings {
 
 export interface ICompressionSettingsProps {
   compressionSettings: ICompressionSettings;
-  setCompressionSettings: React.Dispatch<React.SetStateAction<ICompressionSettings>>;
+  setCompressionSettings: React.Dispatch<
+    React.SetStateAction<ICompressionSettings>
+  >;
 }
 
 export interface ISearchBarProps {
@@ -156,8 +158,14 @@ export type ResizeHandle = "se" | "e" | "s";
 
 export interface IImageCliperContolesProps {
   clipRegion: IClipRegion;
-  onMouseDown: (event: React.MouseEvent<HTMLDivElement>, handle?: ResizeHandle) => void;
-  onTouchStart: (event: React.TouchEvent<HTMLDivElement>, handle?: ResizeHandle) => void;
+  onMouseDown: (
+    event: React.MouseEvent<HTMLDivElement>,
+    handle?: ResizeHandle
+  ) => void;
+  onTouchStart: (
+    event: React.TouchEvent<HTMLDivElement>,
+    handle?: ResizeHandle
+  ) => void;
 }
 
 // ============================================================================
@@ -218,7 +226,11 @@ export interface IImageColorAjustmentProps {
   onContrastChange: (contrast: number) => void;
   onGammaChange: (gamma: number) => void;
   onThresholdChange: (threshold: number) => void;
-  onColorBalanceChange: (redFactor: number, greenFactor: number, blueFactor: number) => void;
+  onColorBalanceChange: (
+    redFactor: number,
+    greenFactor: number,
+    blueFactor: number
+  ) => void;
   onGrayscaleChange: (isGrayScale: boolean) => void;
   onSepiaChange: (isSepia: boolean) => void;
   onInvertChange: (isInvert: boolean) => void;
@@ -257,7 +269,12 @@ export interface IImageFilterProps {
 
 export interface IImageCompositionProps {
   onMakeTransparent: (threshold: number) => Promise<void>;
-  onAddWatermark: (watermark: File, x: number, y: number, opacity: number) => Promise<void>;
+  onAddWatermark: (
+    watermark: File,
+    x: number,
+    y: number,
+    opacity: number
+  ) => Promise<void>;
   onComposite: (overlay: File, x: number, y: number) => Promise<void>;
   onAddStamp: (stamp: File, x: number, y: number) => Promise<void>;
   isSave: boolean;
@@ -269,9 +286,9 @@ export interface IFormatOption {
 }
 
 export const IMAGE_FORMATS: IFormatOption[] = [
-  { value: 'png', label: 'PNG' },
-  { value: 'jpeg', label: 'JPEG' },
-  { value: 'gif', label: 'GIF' },
-  { value: 'bmp', label: 'BMP' },
-  { value: 'webp', label: 'WebP' },
+  { value: "png", label: "PNG" },
+  { value: "jpeg", label: "JPEG" },
+  { value: "gif", label: "GIF" },
+  { value: "bmp", label: "BMP" },
+  { value: "webp", label: "WebP" },
 ];

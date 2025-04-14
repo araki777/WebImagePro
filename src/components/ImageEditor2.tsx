@@ -1,9 +1,23 @@
 "use client";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Header } from "@/components/ui/header";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useImageFilters } from "@/hooks/useImageFilters";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSearchParams } from "next/navigation";
@@ -38,6 +52,16 @@ export default function ImageEditor2() {
     sepiaIntensity,
     isInverted,
     alpha,
+    blurStrength,
+    horizontalBlurStrength,
+    verticalBlurStrength,
+    activeColorTint,
+    activeLSD,
+    activeNight,
+    activePredator,
+    activeTechnicolor,
+    activeToBGR,
+    activeVintage,
     applyBrightness,
     applySaturation,
     applyContrast,
@@ -45,6 +69,17 @@ export default function ImageEditor2() {
     applySepia,
     applyInvert,
     applyAlpha,
+    applyBlur,
+    applyHorizontalBlur,
+    applyVerticalBlur,
+    applyTint,
+    applyLSD,
+    applyNight,
+    applyPredator,
+    applyTechnicolor,
+    applyToBGR,
+    applyVintage,
+    setBlendMode,
     resetFilters,
   } = useImageFilters(spriteRef);
 
@@ -1117,51 +1152,50 @@ export default function ImageEditor2() {
           </div>
         </main>
         <aside className="w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-900">
-                グリッド設定
-              </h3>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="grid-toggle" className="text-sm">
-                  グリッド表示
-                </Label>
+          <div className="space-y-4">
+            {/* グリッド設定 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-900">
+                  グリッド設定
+                </h3>
                 <Switch
                   id="grid-toggle"
                   checked={showGrid}
                   onCheckedChange={setShowGrid}
                 />
               </div>
-            </div>
-            {showGrid && (
-              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="grid-size" className="text-sm">
-                    グリッドサイズ
-                  </Label>
-                  <span className="text-sm font-medium text-gray-900">
-                    {gridSize}px
-                  </span>
-                </div>
-                <Slider
-                  id="grid-size"
-                  min={5}
-                  max={100}
-                  step={5}
-                  value={[gridSize]}
-                  onValueChange={(value) => setGridSize(value[0])}
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>5px</span>
-                  <span>100px</span>
-                </div>
-              </div>
-            )}
 
-            {/* 画像サイズ設定 */}
+              {showGrid && (
+                <div className="space-y-3 rounded-lg border border-gray-200 p-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="grid-size" className="text-sm">
+                      グリッドサイズ
+                    </Label>
+                    <span className="text-sm font-medium text-gray-900">
+                      {gridSize}px
+                    </span>
+                  </div>
+                  <Slider
+                    id="grid-size"
+                    min={5}
+                    max={100}
+                    step={5}
+                    value={[gridSize]}
+                    onValueChange={(value) => setGridSize(value[0])}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>5px</span>
+                    <span>100px</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 画像サイズ表示 */}
             {spriteRef.current && (
-              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
-                <h3 className="text-sm font-medium text-gray-900">
+              <div className="rounded-lg border border-gray-200 p-3">
+                <h3 className="text-sm font-medium text-gray-900 mb-1">
                   画像サイズ
                 </h3>
                 <div className="text-sm text-gray-500">
@@ -1170,222 +1204,614 @@ export default function ImageEditor2() {
               </div>
             )}
 
-            {/* 明度調整 */}
+            {/* 画像編集アコーディオン */}
             {spriteRef.current && (
-              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
-                <h3 className="text-sm font-medium text-gray-900">画像調整</h3>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="brightness-slider" className="text-sm">
-                        明度
-                      </Label>
-                      <span className="text-sm font-medium text-gray-900">
-                        {brightness}
-                      </span>
-                    </div>
-                    <Slider
-                      id="brightness-slider"
-                      min={-100}
-                      max={100}
-                      step={1}
-                      value={[brightness]}
-                      onValueChange={(value) => applyBrightness(value[0])}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>暗く</span>
-                      <span>明るく</span>
-                    </div>
-                  </div>
+              <Accordion type="single" collapsible className="w-full">
+                {/* 基本調整 */}
+                <AccordionItem value="basic">
+                  <AccordionTrigger className="py-2 text-sm">
+                    基本調整
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      {/* 明るさスライダー */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label
+                            htmlFor="brightness-slider"
+                            className="text-sm"
+                          >
+                            明るさ
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {brightness}
+                          </span>
+                        </div>
+                        <Slider
+                          id="brightness-slider"
+                          min={-100}
+                          max={100}
+                          step={1}
+                          value={[brightness]}
+                          onValueChange={(value) => applyBrightness(value[0])}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>暗く</span>
+                          <span>明るく</span>
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="saturation-slider" className="text-sm">
-                        彩度
-                      </Label>
-                      <span className="text-sm font-medium text-gray-900">
-                        {saturation}
-                      </span>
-                    </div>
-                    <Slider
-                      id="saturation-slider"
-                      min={-100}
-                      max={100}
-                      step={1}
-                      value={[saturation]}
-                      onValueChange={(value) => applySaturation(value[0])}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>モノクロ</span>
-                      <span>鮮やか</span>
-                    </div>
-                  </div>
+                      {/* 彩度スライダー */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label
+                            htmlFor="saturation-slider"
+                            className="text-sm"
+                          >
+                            彩度
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {saturation}
+                          </span>
+                        </div>
+                        <Slider
+                          id="saturation-slider"
+                          min={-100}
+                          max={100}
+                          step={1}
+                          value={[saturation]}
+                          onValueChange={(value) => applySaturation(value[0])}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>低く</span>
+                          <span>高く</span>
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="contrast-slider" className="text-sm">
-                        コントラスト
-                      </Label>
-                      <span className="text-sm font-medium text-gray-900">
-                        {contrast}
-                      </span>
-                    </div>
-                    <Slider
-                      id="contrast-slider"
-                      min={-100}
-                      max={100}
-                      step={1}
-                      value={[contrast]}
-                      onValueChange={(value) => applyContrast(value[0])}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>弱く</span>
-                      <span>強く</span>
-                    </div>
-                  </div>
+                      {/* コントラストスライダー */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label htmlFor="contrast-slider" className="text-sm">
+                            コントラスト
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {contrast}
+                          </span>
+                        </div>
+                        <Slider
+                          id="contrast-slider"
+                          min={-100}
+                          max={100}
+                          step={1}
+                          value={[contrast]}
+                          onValueChange={(value) => applyContrast(value[0])}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>低く</span>
+                          <span>高く</span>
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="hue-slider" className="text-sm">
-                        色相回転
-                      </Label>
-                      <span className="text-sm font-medium text-gray-900">
-                        {hueRotation}°
-                      </span>
-                    </div>
-                    <Slider
-                      id="hue-slider"
-                      min={0}
-                      max={360}
-                      step={1}
-                      value={[hueRotation]}
-                      onValueChange={(value) => applyHueRotation(value[0])}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>0°</span>
-                      <span>360°</span>
-                    </div>
-                  </div>
+                      {/* 色相回転スライダー */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label
+                            htmlFor="hue-rotation-slider"
+                            className="text-sm"
+                          >
+                            色相回転
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {hueRotation}°
+                          </span>
+                        </div>
+                        <Slider
+                          id="hue-rotation-slider"
+                          min={0}
+                          max={360}
+                          step={1}
+                          value={[hueRotation]}
+                          onValueChange={(value) => applyHueRotation(value[0])}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>0°</span>
+                          <span>360°</span>
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="sepia-slider" className="text-sm">
-                        セピア効果
-                      </Label>
-                      <span className="text-sm font-medium text-gray-900">
-                        {sepiaIntensity}%
-                      </span>
-                    </div>
-                    <Slider
-                      id="sepia-slider"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={[sepiaIntensity]}
-                      onValueChange={(value) => applySepia(value[0])}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>なし</span>
-                      <span>最大</span>
-                    </div>
-                  </div>
+                      {/* セピア効果スライダー */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label htmlFor="sepia-slider" className="text-sm">
+                            セピア
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {sepiaIntensity}
+                          </span>
+                        </div>
+                        <Slider
+                          id="sepia-slider"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={[sepiaIntensity]}
+                          onValueChange={(value) => applySepia(value[0])}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>なし</span>
+                          <span>最大</span>
+                        </div>
+                      </div>
 
-                  {/* ネガポジ反転設定 */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="invert-toggle" className="text-sm">
-                        ネガポジ反転
-                      </Label>
-                      <Switch
-                        id="invert-toggle"
-                        checked={isInverted}
-                        onCheckedChange={(value) => applyInvert(value)}
-                      />
+                      {/* ネガポジ反転 */}
+                      <div className="flex items-center space-x-2 mt-2">
+                        <Switch
+                          id="invert-switch"
+                          checked={isInverted}
+                          onCheckedChange={applyInvert}
+                        />
+                        <Label htmlFor="invert-switch" className="text-sm">
+                          ネガポジ反転
+                        </Label>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      写真のネガフィルムのような効果を適用します
-                    </p>
-                  </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-                  {/* アルファ値（透明度）設定 */}
-                  <div className="pt-2 border-t border-gray-200 mt-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="alpha-slider" className="text-sm">
-                        透明度
-                      </Label>
-                      <span className="text-sm font-medium text-gray-900">
-                        {alpha}%
-                      </span>
+                {/* 特殊エフェクト */}
+                <AccordionItem value="special-effects">
+                  <AccordionTrigger className="py-2 text-sm">
+                    特殊エフェクト
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      <p className="text-xs text-gray-500 mb-2">
+                        ワンクリックでエフェクトを適用できます
+                      </p>
+
+                      <Tabs defaultValue="tint" className="w-full">
+                        <TabsList className="w-full mb-2 bg-gray-100 p-1 rounded-md">
+                          <TabsTrigger
+                            value="tint"
+                            className="flex-1 px-2 py-1.5 text-xs rounded-sm font-medium"
+                          >
+                            ティント
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="effects"
+                            className="flex-1 px-2 py-1.5 text-xs rounded-sm font-medium"
+                          >
+                            特殊効果
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="blend"
+                            className="flex-1 px-2 py-1.5 text-xs rounded-sm font-medium"
+                          >
+                            ブレンド
+                          </TabsTrigger>
+                        </TabsList>
+
+                        {/* ティント タブ */}
+                        <TabsContent value="tint" className="mt-2">
+                          <div className="grid grid-cols-3 gap-2 place-items-center">
+                            <button
+                              className={`rounded-full h-10 w-10 bg-red-500 hover:bg-red-600 transition-all ${
+                                activeColorTint === 0xff0000
+                                  ? "scale-110 ring-2 ring-red-300"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0xff0000)}
+                              aria-label="赤色ティント"
+                            ></button>
+                            <button
+                              className={`rounded-full h-10 w-10 bg-green-500 hover:bg-green-600 transition-all ${
+                                activeColorTint === 0x00ff00
+                                  ? "scale-110 ring-2 ring-green-300"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0x00ff00)}
+                              aria-label="緑色ティント"
+                            ></button>
+                            <button
+                              className={`rounded-full h-10 w-10 bg-blue-500 hover:bg-blue-600 transition-all ${
+                                activeColorTint === 0x0000ff
+                                  ? "scale-110 ring-2 ring-blue-300"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0x0000ff)}
+                              aria-label="青色ティント"
+                            ></button>
+                            <button
+                              className={`rounded-full h-10 w-10 bg-yellow-400 hover:bg-yellow-500 transition-all ${
+                                activeColorTint === 0xffff00
+                                  ? "scale-110 ring-2 ring-yellow-200"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0xffff00)}
+                              aria-label="黄色ティント"
+                            ></button>
+                            <button
+                              className={`rounded-full h-10 w-10 bg-purple-500 hover:bg-purple-600 transition-all ${
+                                activeColorTint === 0x800080
+                                  ? "scale-110 ring-2 ring-purple-300"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0x800080)}
+                              aria-label="紫色ティント"
+                            ></button>
+                            <button
+                              className={`rounded-full h-10 w-10 bg-pink-500 hover:bg-pink-600 transition-all ${
+                                activeColorTint === 0xff00ff
+                                  ? "scale-110 ring-2 ring-pink-300"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0xff00ff)}
+                              aria-label="ピンク色ティント"
+                            ></button>
+                            <button
+                              className={`rounded-full h-10 w-10 bg-orange-500 hover:bg-orange-600 transition-all ${
+                                activeColorTint === 0xffa500
+                                  ? "scale-110 ring-2 ring-orange-300"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0xffa500)}
+                              aria-label="オレンジ色ティント"
+                            ></button>
+                            <button
+                              className={`rounded-full h-10 w-10 bg-teal-500 hover:bg-teal-600 transition-all ${
+                                activeColorTint === 0x008080
+                                  ? "scale-110 ring-2 ring-teal-300"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0x008080)}
+                              aria-label="ティール色ティント"
+                            ></button>
+                            <button
+                              className={`rounded-full h-10 w-10 bg-indigo-500 hover:bg-indigo-600 transition-all ${
+                                activeColorTint === 0x4b0082
+                                  ? "scale-110 ring-2 ring-indigo-300"
+                                  : ""
+                              }`}
+                              onClick={() => applyTint(0x4b0082)}
+                              aria-label="インディゴ色ティント"
+                            ></button>
+                          </div>
+                        </TabsContent>
+
+                        {/* 特殊効果 タブ */}
+                        <TabsContent value="effects" className="mt-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center 
+                                ${
+                                  activeLSD
+                                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                                    : "bg-gray-100 hover:bg-gray-200"
+                                }`}
+                              onClick={() => applyLSD()}
+                            >
+                              サイケデリック
+                            </button>
+                            <button
+                              className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center 
+                                ${
+                                  activeNight
+                                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                                    : "bg-gray-100 hover:bg-gray-200"
+                                }`}
+                              onClick={() => applyNight()}
+                            >
+                              夜間モード
+                            </button>
+                            <button
+                              className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center 
+                                ${
+                                  activePredator
+                                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                                    : "bg-gray-100 hover:bg-gray-200"
+                                }`}
+                              onClick={() => applyPredator()}
+                            >
+                              熱感知
+                            </button>
+                            <button
+                              className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center 
+                                ${
+                                  activeTechnicolor
+                                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                                    : "bg-gray-100 hover:bg-gray-200"
+                                }`}
+                              onClick={() => applyTechnicolor()}
+                            >
+                              テクニカラー
+                            </button>
+                            <button
+                              className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center 
+                                ${
+                                  activeToBGR
+                                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                                    : "bg-gray-100 hover:bg-gray-200"
+                                }`}
+                              onClick={() => applyToBGR()}
+                            >
+                              RGB反転
+                            </button>
+                            <button
+                              className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center 
+                                ${
+                                  activeVintage
+                                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                                    : "bg-gray-100 hover:bg-gray-200"
+                                }`}
+                              onClick={() => applyVintage()}
+                            >
+                              ビンテージ
+                            </button>
+                          </div>
+                        </TabsContent>
+
+                        {/* ブレンド タブ */}
+                        <TabsContent value="blend" className="mt-2">
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="blend-mode-select"
+                                className="text-sm"
+                              >
+                                ブレンドモード
+                              </Label>
+                            </div>
+                            <Select
+                              defaultValue="normal"
+                              onValueChange={(value) => {
+                                setBlendMode(value);
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="通常" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="normal">通常</SelectItem>
+                                <SelectItem value="color">カラー</SelectItem>
+                                <SelectItem value="multiply">乗算</SelectItem>
+                                <SelectItem value="screen">
+                                  スクリーン
+                                </SelectItem>
+                                <SelectItem value="overlay">
+                                  オーバーレイ
+                                </SelectItem>
+                                <SelectItem value="darken">
+                                  比較（暗）
+                                </SelectItem>
+                                <SelectItem value="lighten">
+                                  比較（明）
+                                </SelectItem>
+                                <SelectItem value="color-dodge">
+                                  覆い焼き
+                                </SelectItem>
+                                <SelectItem value="color-burn">
+                                  焼き込み
+                                </SelectItem>
+                                <SelectItem value="hard-light">
+                                  ハードライト
+                                </SelectItem>
+                                <SelectItem value="soft-light">
+                                  ソフトライト
+                                </SelectItem>
+                                <SelectItem value="difference">
+                                  差の絶対値
+                                </SelectItem>
+                                <SelectItem value="exclusion">除外</SelectItem>
+                                <SelectItem value="hue">色相</SelectItem>
+                                <SelectItem value="saturation">彩度</SelectItem>
+                                <SelectItem value="luminosity">輝度</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-xs text-gray-500 mt-1">
+                              画像全体のブレンドモードを変更します
+                            </p>
+                          </div>
+                        </TabsContent>
+                      </Tabs>
                     </div>
-                    <Slider
-                      id="alpha-slider"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={[alpha]}
-                      onValueChange={(value) => applyAlpha(value[0])}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>透明</span>
-                      <span>不透明</span>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* ぼかし効果 */}
+                <AccordionItem value="blur">
+                  <AccordionTrigger className="py-2 text-sm">
+                    ぼかし効果
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      {/* 通常ぼかし */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label htmlFor="blur-slider" className="text-sm">
+                            全体ぼかし
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {blurStrength}
+                          </span>
+                        </div>
+                        <Slider
+                          id="blur-slider"
+                          min={0}
+                          max={20}
+                          step={1}
+                          value={[blurStrength]}
+                          onValueChange={(value) => applyBlur(value[0])}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>なし</span>
+                          <span>強く</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          画像全体をぼかします
+                        </p>
+                      </div>
+
+                      {/* 水平ぼかし */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label
+                            htmlFor="horizontal-blur-slider"
+                            className="text-sm"
+                          >
+                            水平ぼかし
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {horizontalBlurStrength}
+                          </span>
+                        </div>
+                        <Slider
+                          id="horizontal-blur-slider"
+                          min={0}
+                          max={20}
+                          step={1}
+                          value={[horizontalBlurStrength]}
+                          onValueChange={(value) =>
+                            applyHorizontalBlur(value[0])
+                          }
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>なし</span>
+                          <span>強く</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          水平方向のぼかします
+                        </p>
+                      </div>
+
+                      {/* 垂直ぼかし */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label
+                            htmlFor="vertical-blur-slider"
+                            className="text-sm"
+                          >
+                            垂直ぼかし
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {verticalBlurStrength}
+                          </span>
+                        </div>
+                        <Slider
+                          id="vertical-blur-slider"
+                          min={0}
+                          max={20}
+                          step={1}
+                          value={[verticalBlurStrength]}
+                          onValueChange={(value) => applyVerticalBlur(value[0])}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>なし</span>
+                          <span>強く</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          垂直方向のぼかします
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* 高度な調整 */}
+                <AccordionItem value="advanced">
+                  <AccordionTrigger className="py-2 text-sm">
+                    高度な調整
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      {/* 透明度 */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <Label htmlFor="alpha-slider" className="text-sm">
+                            透明度
+                          </Label>
+                          <span className="text-sm font-medium text-gray-900">
+                            {alpha}%
+                          </span>
+                        </div>
+                        <Slider
+                          id="alpha-slider"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={[alpha]}
+                          onValueChange={(value) => applyAlpha(value[0])}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>透明</span>
+                          <span>不透明</span>
+                        </div>
+                      </div>
+
+                      {/* ブレンドモードをタブに移動したので削除 */}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* 変形 */}
+                <AccordionItem value="transform">
+                  <AccordionTrigger className="py-2 text-sm">
+                    画像変形
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-medium text-gray-900">
+                        回転/反転
+                      </h3>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
+                          onClick={() => rotateImage(-90)}
+                        >
+                          左に90°
+                        </button>
+                        <button
+                          className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
+                          onClick={() => rotateImage(90)}
+                        >
+                          右に90°
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
+                          onClick={() => flipImage("horizontal")}
+                        >
+                          水平反転
+                        </button>
+                        <button
+                          className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
+                          onClick={() => flipImage("vertical")}
+                        >
+                          垂直反転
+                        </button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             )}
 
-            {/* 画像回転/反転設定 */}
+            {/* リセットボタン */}
             {spriteRef.current && (
-              <div className="space-y-3 rounded-lg border border-gray-200 p-3">
-                <h3 className="text-sm font-medium text-gray-900">
-                  画像回転/反転
-                </h3>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
-                    onClick={() => rotateImage(-90)}
-                  >
-                    左に90°
-                  </button>
-                  <button
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
-                    onClick={() => rotateImage(90)}
-                  >
-                    右に90°
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
-                    onClick={() => flipImage("horizontal")}
-                  >
-                    水平反転
-                  </button>
-                  <button
-                    className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
-                    onClick={() => flipImage("vertical")}
-                  >
-                    垂直反転
-                  </button>
-                </div>
+              <div className="pt-2">
+                <button
+                  className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors"
+                  onClick={resetImageTransform}
+                >
+                  すべてリセット
+                </button>
+                <p className="text-xs text-gray-500 mt-1">
+                  位置・サイズ・回転・画像加工をすべて初期状態に戻します
+                </p>
               </div>
             )}
-
-            {/* 画像加工リセットボタン */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-900">画像編集</h3>
-              <button
-                className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors"
-                onClick={resetImageTransform}
-              >
-                加工をリセット
-              </button>
-              <p className="text-xs text-gray-500 mt-1">
-                位置・サイズ・回転・明度・彩度・コントラスト・色相・セピア・ネガポジ反転・透明度を初期状態に戻します
-              </p>
-            </div>
           </div>
         </aside>
       </div>

@@ -9,6 +9,16 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
   const [sepiaIntensity, setSepiaIntensity] = useState(0); // セピア効果の強度 (0〜100の範囲)
   const [isInverted, setIsInverted] = useState(false); // ネガポジ反転の状態 (true/false)
   const [alpha, setAlpha] = useState(100); // アルファ値の状態 (0〜100の範囲)
+  const [blurStrength, setBlurStrength] = useState(0); // ぼかしの強さ (0〜20の範囲)
+  const [horizontalBlurStrength, setHorizontalBlurStrength] = useState(0); // 水平ぼかしの強さ (0〜20の範囲)
+  const [verticalBlurStrength, setVerticalBlurStrength] = useState(0); // 垂直ぼかしの強さ (0〜20の範囲)
+  const [activeColorTint, setActiveColorTint] = useState<number | null>(null); // アクティブなティントの色
+  const [activeLSD, setActiveLSD] = useState(false); // LSDエフェクトがアクティブか
+  const [activeNight, setActiveNight] = useState(false); // 夜間モードがアクティブか
+  const [activePredator, setActivePredator] = useState(false); // 捕食者視点がアクティブか
+  const [activeTechnicolor, setActiveTechnicolor] = useState(false); // テクニカラーがアクティブか
+  const [activeToBGR, setActiveToBGR] = useState(false); // RGB反転がアクティブか
+  const [activeVintage, setActiveVintage] = useState(false); // ビンテージがアクティブか
 
   // 明度を適用する関数
   const applyBrightness = (value: number) => {
@@ -526,6 +536,533 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     }
   };
 
+  // ぼかしフィルターを適用する関数
+  const applyBlur = (value: number) => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // ぼかしフィルターを探す
+      let blurFilter = existingFilters.find(
+        (f: PIXI.Filter) => (f as any)._filterType === "blur"
+      ) as PIXI.BlurFilter | undefined;
+
+      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
+      const newFilters = [...existingFilters];
+
+      // ぼかし強度が0の場合（効果なし）は、既存のフィルターがあれば削除
+      if (value <= 0) {
+        if (blurFilter) {
+          const index = existingFilters.indexOf(blurFilter);
+          if (index !== -1) {
+            newFilters.splice(index, 1);
+          }
+        }
+        spriteRef.current.filters = newFilters;
+        setBlurStrength(0);
+        return;
+      }
+
+      if (!blurFilter) {
+        // 新しいぼかしフィルターを作成
+        // BlurFilter({strength, quality, kernelSize})
+        blurFilter = new PIXI.BlurFilter({
+          strength: value, // ぼかしの強さ
+          quality: 3, // 品質（パス回数、高いほど品質が良いが処理が重くなる）
+          kernelSize: 5, // カーネルサイズ (5, 7, 9, 11, 13, 15のいずれか)
+        });
+        (blurFilter as any)._filterType = "blur";
+
+        // パディング値を設定（ぼかしフィルターの場合、パディングを適切に設定しないと端が切れる）
+        blurFilter.padding = Math.ceil(value * 2);
+
+        newFilters.push(blurFilter);
+      } else {
+        // 既存のフィルターの強度を更新
+        blurFilter.strength = value;
+
+        // パディング値も更新
+        blurFilter.padding = Math.ceil(value * 2);
+      }
+
+      // フィルターを更新
+      spriteRef.current.filters = newFilters;
+
+      setBlurStrength(value);
+    } catch (error) {
+      console.error("ぼかし効果の適用でエラーが発生しました:", error);
+    }
+  };
+
+  // 方向性のあるぼかしフィルターを適用する関数（水平方向）
+  const applyHorizontalBlur = (value: number) => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 水平ぼかしフィルターを探す
+      let horizontalBlurFilter = existingFilters.find(
+        (f: PIXI.Filter) => (f as any)._filterType === "horizontalBlur"
+      ) as PIXI.BlurFilterPass | undefined;
+
+      // 新しいフィルター配列を作成
+      const newFilters = [...existingFilters];
+
+      // ぼかし強度が0の場合は、既存のフィルターがあれば削除
+      if (value <= 0) {
+        if (horizontalBlurFilter) {
+          const index = existingFilters.indexOf(horizontalBlurFilter);
+          if (index !== -1) {
+            newFilters.splice(index, 1);
+          }
+        }
+        spriteRef.current.filters = newFilters;
+        setHorizontalBlurStrength(0);
+        return;
+      }
+
+      if (!horizontalBlurFilter) {
+        // 新しい水平ぼかしフィルターを作成
+        horizontalBlurFilter = new PIXI.BlurFilterPass({
+          horizontal: true, // 水平方向のぼかし
+          strength: value, // ぼかしの強さ
+          quality: 3, // 品質
+          kernelSize: 5, // カーネルサイズ
+        });
+        (horizontalBlurFilter as any)._filterType = "horizontalBlur";
+
+        // パディング値を設定
+        horizontalBlurFilter.padding = Math.ceil(value * 2);
+
+        newFilters.push(horizontalBlurFilter);
+      } else {
+        // 既存のフィルターの強度を更新
+        horizontalBlurFilter.strength = value;
+
+        // パディング値も更新
+        horizontalBlurFilter.padding = Math.ceil(value * 2);
+      }
+
+      // フィルターを更新
+      spriteRef.current.filters = newFilters;
+
+      setHorizontalBlurStrength(value);
+    } catch (error) {
+      console.error("水平ぼかし効果の適用でエラーが発生しました:", error);
+    }
+  };
+
+  // 方向性のあるぼかしフィルターを適用する関数（垂直方向）
+  const applyVerticalBlur = (value: number) => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 垂直ぼかしフィルターを探す
+      let verticalBlurFilter = existingFilters.find(
+        (f: PIXI.Filter) => (f as any)._filterType === "verticalBlur"
+      ) as PIXI.BlurFilterPass | undefined;
+
+      // 新しいフィルター配列を作成
+      const newFilters = [...existingFilters];
+
+      // ぼかし強度が0の場合は、既存のフィルターがあれば削除
+      if (value <= 0) {
+        if (verticalBlurFilter) {
+          const index = existingFilters.indexOf(verticalBlurFilter);
+          if (index !== -1) {
+            newFilters.splice(index, 1);
+          }
+        }
+        spriteRef.current.filters = newFilters;
+        setVerticalBlurStrength(0);
+        return;
+      }
+
+      if (!verticalBlurFilter) {
+        // 新しい垂直ぼかしフィルターを作成
+        verticalBlurFilter = new PIXI.BlurFilterPass({
+          horizontal: false, // 垂直方向のぼかし
+          strength: value, // ぼかしの強さ
+          quality: 3, // 品質
+          kernelSize: 5, // カーネルサイズ
+        });
+        (verticalBlurFilter as any)._filterType = "verticalBlur";
+
+        // パディング値を設定
+        verticalBlurFilter.padding = Math.ceil(value * 2);
+
+        newFilters.push(verticalBlurFilter);
+      } else {
+        // 既存のフィルターの強度を更新
+        verticalBlurFilter.strength = value;
+
+        // パディング値も更新
+        verticalBlurFilter.padding = Math.ceil(value * 2);
+      }
+
+      // フィルターを更新
+      spriteRef.current.filters = newFilters;
+
+      setVerticalBlurStrength(value);
+    } catch (error) {
+      console.error("垂直ぼかし効果の適用でエラーが発生しました:", error);
+    }
+  };
+
+  // カラーブレンドモードを設定する関数
+  const setBlendMode = (blendMode: string) => {
+    if (!spriteRef.current) return;
+
+    try {
+      // PIXI.js v8でのブレンドモード設定
+      // 型エラー回避のために型アサーションを使用
+      (spriteRef.current as any).blendMode = blendMode;
+
+      console.log(`ブレンドモードを設定: ${blendMode}`);
+    } catch (error) {
+      console.error("ブレンドモードの設定でエラーが発生しました:", error);
+    }
+  };
+
+  // 他のエフェクトフィルターを削除する共通関数
+  const removeAllEffectFilters = () => {
+    if (!spriteRef.current) return;
+
+    const existingFilters = (spriteRef.current.filters as PIXI.Filter[]) || [];
+    const newFilters = existingFilters.filter((filter) => {
+      // 特殊エフェクトフィルターのタイプリスト
+      const effectFilterTypes = [
+        "tint",
+        "lsd",
+        "night",
+        "predator",
+        "technicolor",
+        "toBGR",
+        "vintage",
+      ];
+
+      // ColorMatrixFilterかつ特殊エフェクトタイプを持つフィルターを削除
+      if (filter instanceof PIXI.ColorMatrixFilter) {
+        const filterType = (filter as any)._filterType;
+        return !effectFilterTypes.includes(filterType);
+      }
+      return true;
+    });
+
+    // 更新したフィルター配列を設定
+    spriteRef.current.filters = newFilters;
+
+    // すべてのエフェクト状態をリセット
+    setActiveColorTint(null);
+    setActiveLSD(false);
+    setActiveNight(false);
+    setActivePredator(false);
+    setActiveTechnicolor(false);
+    setActiveToBGR(false);
+    setActiveVintage(false);
+  };
+
+  // ティントを適用する関数
+  const applyTint = (color: number) => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 同じ色が選択された場合はトグル動作（オフにする）
+      if (activeColorTint === color) {
+        removeAllEffectFilters();
+        return;
+      }
+
+      // すべての特殊エフェクトフィルターを一旦削除
+      removeAllEffectFilters();
+
+      // 既存のフィルターを取得
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 新しいティントフィルターを作成
+      const tintFilter = new PIXI.ColorMatrixFilter();
+      (tintFilter as any)._filterType = "tint";
+
+      // ティント効果用のカラーマトリックス
+      // 色を抽出
+      const r = ((color >> 16) & 0xff) / 255;
+      const g = ((color >> 8) & 0xff) / 255;
+      const b = (color & 0xff) / 255;
+
+      // ティントマトリックス
+      const matrix = [
+        0.3 * r * 2,
+        0.3 * r * 2,
+        0.3 * r * 2,
+        0,
+        0,
+        0.59 * g * 2,
+        0.59 * g * 2,
+        0.59 * g * 2,
+        0,
+        0,
+        0.11 * b * 2,
+        0.11 * b * 2,
+        0.11 * b * 2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ] as PIXI.ColorMatrix;
+
+      tintFilter.matrix = matrix;
+
+      // フィルターを更新
+      spriteRef.current.filters = [...existingFilters, tintFilter];
+
+      // 状態を更新
+      setActiveColorTint(color);
+    } catch (error) {
+      console.error("ティントの適用でエラーが発生しました:", error);
+    }
+  };
+
+  // LSD効果を適用する関数
+  const applyLSD = () => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既に有効な場合はトグル動作（オフにする）
+      if (activeLSD) {
+        removeAllEffectFilters();
+        return;
+      }
+
+      // すべての特殊エフェクトフィルターを一旦削除
+      removeAllEffectFilters();
+
+      // 既存のフィルターを取得
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 新しいLSDフィルターを作成
+      const lsdFilter = new PIXI.ColorMatrixFilter();
+      (lsdFilter as any)._filterType = "lsd";
+
+      // LSD効果用のカラーマトリックス
+      lsdFilter.matrix = [
+        2, -0.4, 0.5, 0, 0, -0.5, 2, -0.4, 0, 0, -0.4, -0.5, 3, 0, 0, 0, 0, 0,
+        1, 0,
+      ] as PIXI.ColorMatrix;
+
+      // フィルターを更新
+      spriteRef.current.filters = [...existingFilters, lsdFilter];
+
+      // 状態を更新
+      setActiveLSD(true);
+    } catch (error) {
+      console.error("LSD効果の適用でエラーが発生しました:", error);
+    }
+  };
+
+  // 夜間モードを適用する関数
+  const applyNight = () => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既に有効な場合はトグル動作（オフにする）
+      if (activeNight) {
+        removeAllEffectFilters();
+        return;
+      }
+
+      // すべての特殊エフェクトフィルターを一旦削除
+      removeAllEffectFilters();
+
+      // 既存のフィルターを取得
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 新しい夜間モードフィルターを作成
+      const nightFilter = new PIXI.ColorMatrixFilter();
+      (nightFilter as any)._filterType = "night";
+
+      // 夜間モード用のカラーマトリックス
+      nightFilter.matrix = [
+        0.1, 0.25, 0.5, 0, 0, 0.1, 0.25, 0.5, 0, 0, 0.5, 0.5, 1.0, 0, 0, 0, 0,
+        0, 1, 0,
+      ] as PIXI.ColorMatrix;
+
+      // フィルターを更新
+      spriteRef.current.filters = [...existingFilters, nightFilter];
+
+      // 状態を更新
+      setActiveNight(true);
+    } catch (error) {
+      console.error("夜間モードの適用でエラーが発生しました:", error);
+    }
+  };
+
+  // 捕食者視点を適用する関数
+  const applyPredator = () => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既に有効な場合はトグル動作（オフにする）
+      if (activePredator) {
+        removeAllEffectFilters();
+        return;
+      }
+
+      // すべての特殊エフェクトフィルターを一旦削除
+      removeAllEffectFilters();
+
+      // 既存のフィルターを取得
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 新しい捕食者視点フィルターを作成
+      const predatorFilter = new PIXI.ColorMatrixFilter();
+      (predatorFilter as any)._filterType = "predator";
+
+      // 捕食者視点用のカラーマトリックス
+      predatorFilter.matrix = [
+        1.5, -0.5, -0.5, 0, 0, -0.5, 1, -0.5, 0, 0, -0.5, -0.5, 1.5, 0, 0, 0, 0,
+        0, 1, 0,
+      ] as PIXI.ColorMatrix;
+
+      // フィルターを更新
+      spriteRef.current.filters = [...existingFilters, predatorFilter];
+
+      // 状態を更新
+      setActivePredator(true);
+    } catch (error) {
+      console.error("捕食者視点の適用でエラーが発生しました:", error);
+    }
+  };
+
+  // テクニカラーを適用する関数
+  const applyTechnicolor = () => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既に有効な場合はトグル動作（オフにする）
+      if (activeTechnicolor) {
+        removeAllEffectFilters();
+        return;
+      }
+
+      // すべての特殊エフェクトフィルターを一旦削除
+      removeAllEffectFilters();
+
+      // 既存のフィルターを取得
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 新しいテクニカラーフィルターを作成
+      const technicolorFilter = new PIXI.ColorMatrixFilter();
+      (technicolorFilter as any)._filterType = "technicolor";
+
+      // テクニカラー効果用のカラーマトリックス
+      technicolorFilter.matrix = [
+        1.3, -0.3, -0.1, 0, 0, -0.2, 1.2, -0.1, 0, 0, -0.1, -0.3, 1.5, 0, 0, 0,
+        0, 0, 1, 0,
+      ] as PIXI.ColorMatrix;
+
+      // フィルターを更新
+      spriteRef.current.filters = [...existingFilters, technicolorFilter];
+
+      // 状態を更新
+      setActiveTechnicolor(true);
+    } catch (error) {
+      console.error("テクニカラーの適用でエラーが発生しました:", error);
+    }
+  };
+
+  // 赤と青を入れ替える関数
+  const applyToBGR = () => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既に有効な場合はトグル動作（オフにする）
+      if (activeToBGR) {
+        removeAllEffectFilters();
+        return;
+      }
+
+      // すべての特殊エフェクトフィルターを一旦削除
+      removeAllEffectFilters();
+
+      // 既存のフィルターを取得
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 新しいRGB反転フィルターを作成
+      const toBGRFilter = new PIXI.ColorMatrixFilter();
+      (toBGRFilter as any)._filterType = "toBGR";
+
+      // RGB反転用のカラーマトリックス
+      toBGRFilter.matrix = [
+        0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+      ] as PIXI.ColorMatrix;
+
+      // フィルターを更新
+      spriteRef.current.filters = [...existingFilters, toBGRFilter];
+
+      // 状態を更新
+      setActiveToBGR(true);
+    } catch (error) {
+      console.error("赤と青の入れ替えでエラーが発生しました:", error);
+    }
+  };
+
+  // ビンテージ効果を適用する関数
+  const applyVintage = () => {
+    if (!spriteRef.current) return;
+
+    try {
+      // 既に有効な場合はトグル動作（オフにする）
+      if (activeVintage) {
+        removeAllEffectFilters();
+        return;
+      }
+
+      // すべての特殊エフェクトフィルターを一旦削除
+      removeAllEffectFilters();
+
+      // 既存のフィルターを取得
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // 新しいビンテージフィルターを作成
+      const vintageFilter = new PIXI.ColorMatrixFilter();
+      (vintageFilter as any)._filterType = "vintage";
+
+      // ビンテージ効果用のカラーマトリックス
+      vintageFilter.matrix = [
+        0.6, 0.3, 0.1, 0, 0, 0.2, 0.7, 0.1, 0, 0, 0.15, 0.1, 0.4, 0, 0, 0, 0, 0,
+        1, 0,
+      ] as PIXI.ColorMatrix;
+
+      // フィルターを更新
+      spriteRef.current.filters = [...existingFilters, vintageFilter];
+
+      // 状態を更新
+      setActiveVintage(true);
+    } catch (error) {
+      console.error("ビンテージ効果の適用でエラーが発生しました:", error);
+    }
+  };
+
   // フィルターをすべてリセットする関数
   const resetFilters = () => {
     if (!spriteRef.current) return;
@@ -541,6 +1078,21 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     setSepiaIntensity(0);
     setIsInverted(false);
     setAlpha(100);
+    setBlurStrength(0);
+    setHorizontalBlurStrength(0);
+    setVerticalBlurStrength(0);
+    setActiveColorTint(null);
+    setActiveLSD(false);
+    setActiveNight(false);
+    setActivePredator(false);
+    setActiveTechnicolor(false);
+    setActiveToBGR(false);
+    setActiveVintage(false);
+
+    // ブレンドモードをリセット
+    if (spriteRef.current) {
+      (spriteRef.current as any).blendMode = "normal";
+    }
   };
 
   return {
@@ -552,6 +1104,16 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     sepiaIntensity,
     isInverted,
     alpha,
+    blurStrength,
+    horizontalBlurStrength,
+    verticalBlurStrength,
+    activeColorTint,
+    activeLSD,
+    activeNight,
+    activePredator,
+    activeTechnicolor,
+    activeToBGR,
+    activeVintage,
 
     // フィルター関数
     applyBrightness,
@@ -561,6 +1123,17 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     applySepia,
     applyInvert,
     applyAlpha,
+    applyBlur,
+    applyHorizontalBlur,
+    applyVerticalBlur,
+    applyTint,
+    applyLSD,
+    applyNight,
+    applyPredator,
+    applyTechnicolor,
+    applyToBGR,
+    applyVintage,
+    setBlendMode,
     resetFilters,
   };
 };
