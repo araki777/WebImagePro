@@ -109,7 +109,8 @@ export function ImageGallery() {
   // 編集中の画像を設定する関数
   const handleEditImage = (image: IApiImage) => {
     // エディターページに遷移
-    router.push(`/editor?url=${encodeURIComponent(image.url)}`);
+    // router.push(`/editor?url=${encodeURIComponent(image.url)}`);
+    setEditingImage(image); // 編集中の画像を設定
   };
 
   // 編集中の画像を保存する関数
