@@ -8,6 +8,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
   const [hueRotation, setHueRotation] = useState(0); // 色相回転の状態 (0〜360の範囲)
   const [sepiaIntensity, setSepiaIntensity] = useState(0); // セピア効果の強度 (0〜100の範囲)
   const [isInverted, setIsInverted] = useState(false); // ネガポジ反転の状態 (true/false)
+  const [alpha, setAlpha] = useState(100); // アルファ値の状態 (0〜100の範囲)
 
   // 明度を適用する関数
   const applyBrightness = (value: number) => {
@@ -473,6 +474,58 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     }
   };
 
+  // アルファフィルターを適用する関数
+  const applyAlpha = (value: number) => {
+    if (!spriteRef.current) return;
+
+    // アルファ値を0.0〜1.0の範囲に変換
+    const alphaValue = value / 100;
+
+    try {
+      // 既存のフィルターを取得（存在しない場合は空の配列）
+      const existingFilters =
+        (spriteRef.current.filters as PIXI.Filter[]) || [];
+
+      // アルファフィルターを探す
+      let alphaFilter = existingFilters.find(
+        (f: PIXI.Filter) => (f as any)._filterType === "alpha"
+      ) as PIXI.AlphaFilter | undefined;
+
+      // 新しいフィルター配列を作成（スプレッド演算子を使用して既存のフィルターをコピー）
+      const newFilters = [...existingFilters];
+
+      // アルファ値が100の場合（効果なし）は、既存のフィルターがあれば削除
+      if (value >= 100) {
+        if (alphaFilter) {
+          const index = existingFilters.indexOf(alphaFilter);
+          if (index !== -1) {
+            newFilters.splice(index, 1);
+          }
+        }
+        spriteRef.current.filters = newFilters;
+        setAlpha(100);
+        return;
+      }
+
+      if (!alphaFilter) {
+        // 新しいフィルターを作成
+        alphaFilter = new PIXI.AlphaFilter({ alpha: alphaValue });
+        (alphaFilter as any)._filterType = "alpha";
+        newFilters.push(alphaFilter);
+      } else {
+        // 既存のフィルターのアルファ値を更新
+        alphaFilter.alpha = alphaValue;
+      }
+
+      // フィルターを更新
+      spriteRef.current.filters = newFilters;
+
+      setAlpha(value);
+    } catch (error) {
+      console.error("アルファ値の適用でエラーが発生しました:", error);
+    }
+  };
+
   // フィルターをすべてリセットする関数
   const resetFilters = () => {
     if (!spriteRef.current) return;
@@ -487,6 +540,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     setHueRotation(0);
     setSepiaIntensity(0);
     setIsInverted(false);
+    setAlpha(100);
   };
 
   return {
@@ -497,6 +551,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     hueRotation,
     sepiaIntensity,
     isInverted,
+    alpha,
 
     // フィルター関数
     applyBrightness,
@@ -505,6 +560,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     applyHueRotation,
     applySepia,
     applyInvert,
+    applyAlpha,
     resetFilters,
   };
 };
