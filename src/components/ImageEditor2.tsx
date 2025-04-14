@@ -37,12 +37,14 @@ export default function ImageEditor2() {
     hueRotation,
     sepiaIntensity,
     isInverted,
+    alpha,
     applyBrightness,
     applySaturation,
     applyContrast,
     applyHueRotation,
     applySepia,
     applyInvert,
+    applyAlpha,
     resetFilters,
   } = useImageFilters(spriteRef);
 
@@ -1288,7 +1290,8 @@ export default function ImageEditor2() {
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-gray-200 mt-2">
+                  {/* ネガポジ反転設定 */}
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="invert-toggle" className="text-sm">
                         ネガポジ反転
@@ -1302,6 +1305,30 @@ export default function ImageEditor2() {
                     <p className="text-xs text-gray-500 mt-1">
                       写真のネガフィルムのような効果を適用します
                     </p>
+                  </div>
+
+                  {/* アルファ値（透明度）設定 */}
+                  <div className="pt-2 border-t border-gray-200 mt-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="alpha-slider" className="text-sm">
+                        透明度
+                      </Label>
+                      <span className="text-sm font-medium text-gray-900">
+                        {alpha}%
+                      </span>
+                    </div>
+                    <Slider
+                      id="alpha-slider"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={[alpha]}
+                      onValueChange={(value) => applyAlpha(value[0])}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>透明</span>
+                      <span>不透明</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1356,7 +1383,7 @@ export default function ImageEditor2() {
                 加工をリセット
               </button>
               <p className="text-xs text-gray-500 mt-1">
-                位置・サイズ・回転・明度・彩度・コントラスト・色相・セピア・ネガポジ反転を初期状態に戻します
+                位置・サイズ・回転・明度・彩度・コントラスト・色相・セピア・ネガポジ反転・透明度を初期状態に戻します
               </p>
             </div>
           </div>
