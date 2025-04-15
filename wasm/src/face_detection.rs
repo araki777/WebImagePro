@@ -45,6 +45,26 @@ pub fn detect_faces(input: &[u8]) -> Result<Box<[f32]>, JsValue> {
     Ok(flat_result.into_boxed_slice())
 }
 
+/// 画像から顔を検出する
+#[wasm_bindgen]
+pub fn face_detection(input: &[u8]) -> Vec<u8> {
+    match face_detection_impl(input) {
+        Ok(faces) => {
+            // 結果を1次元配列に変換
+            let mut flat_result = Vec::new();
+            for bbox in faces {
+                // 各座標をバイト列に変換
+                flat_result.extend_from_slice(&bbox.iter().flat_map(|&x| x.to_le_bytes()).collect::<Vec<u8>>());
+            }
+            flat_result
+        },
+        Err(_) => {
+            // エラーの場合は空のベクターを返す
+            Vec::new()
+        }
+    }
+}
+
 fn prepare_image(img: &DynamicImage, height: u32, width: u32) -> TractResult<Tensor> {
     // 画像をRGBに変換し、正規化
     let mut flat_data = Vec::with_capacity((width * height * 3) as usize);
