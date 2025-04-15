@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 // 非公開の実装関数
 fn face_detection_impl(input: &[u8]) -> Result<Vec<[f32; 4]>, Box<dyn std::error::Error>> {
     // 埋め込まれたモデルファイルを読み込む
-    let model_bytes = include_bytes!("../ai_models/centerface.onnx");
+    let model_bytes = include_bytes!("../../ai_models/centerface.onnx");
     
     // 入力画像を読み込む
     let img = image::load_from_memory(input)?;
