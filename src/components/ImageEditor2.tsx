@@ -832,21 +832,27 @@ export default function ImageEditor2() {
       const imageData = new Uint8Array(arrayBuffer);
 
       // Wasmの顔検出関数を呼び出し
-      if (typeof (wasmExports as any).detect_faces !== "function") {
+      if (typeof (wasmExports as any).face_detection !== "function") {
         throw new Error("顔検出関数が見つかりません");
       }
 
       // 顔検出を実行
-      const facesData = (wasmExports as any).detect_faces(imageData);
+      const facesData = (wasmExports as any).face_detection(imageData);
 
       // 結果を処理
+      // 注: face_detection関数の結果は各座標がバイト列として格納されているため、Float32Arrayに変換する
+      const facesFloat32 = new Float32Array(
+        facesData.buffer,
+        facesData.byteOffset,
+        facesData.length / 4
+      );
       const faces: { x1: number; y1: number; x2: number; y2: number }[] = [];
-      for (let i = 0; i < facesData.length; i += 4) {
+      for (let i = 0; i < facesFloat32.length; i += 4) {
         faces.push({
-          x1: facesData[i],
-          y1: facesData[i + 1],
-          x2: facesData[i + 2],
-          y2: facesData[i + 3],
+          x1: facesFloat32[i],
+          y1: facesFloat32[i + 1],
+          x2: facesFloat32[i + 2],
+          y2: facesFloat32[i + 3],
         });
       }
 
