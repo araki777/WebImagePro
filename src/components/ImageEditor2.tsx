@@ -6,6 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { Header } from "@/components/ui/header";
 import { Label } from "@/components/ui/label";
 import {
@@ -22,6 +23,7 @@ import { useImageFilters } from "@/hooks/useImageFilters";
 import { usePixiRefs } from "@/hooks/usePixiRefs";
 import { usePixiSetup } from "@/hooks/usePixiSetup";
 import { useAuthStore } from "@/store/useAuthStore";
+import init, * as wasmExports from "@araki777/wasm-image-pro";
 import { useSearchParams } from "next/navigation";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -36,6 +38,10 @@ export default function ImageEditor2() {
   const [parentContainerSize] = useState({ width: 10, height: 10 }); // 親コンテナの初期サイズは画面の10倍
   const [showScrollbars, setShowScrollbars] = useState(false); // スクロールバーの表示状態
   const isResettingRef = useRef(false); // リセット中かどうかのフラグ
+  const [faceBoxes, setFaceBoxes] = useState<
+    { x1: number; y1: number; x2: number; y2: number }[]
+  >([]);
+  const faceGraphicsRef = useRef<PIXI.Graphics | null>(null);
 
   // 認証関連
   const searchParams = useSearchParams();
@@ -385,6 +391,12 @@ export default function ImageEditor2() {
   useEffect(() => {
     document.addEventListener("wheel", handleWheel, { passive: false });
 
+    const initializeWasm = async () => {
+      await init();
+    };
+
+    initializeWasm();
+
     return () => {
       document.removeEventListener("wheel", handleWheel);
     };
@@ -685,6 +697,13 @@ export default function ImageEditor2() {
       // スクロールバーを非表示にする（先に設定）
       setShowScrollbars(false);
 
+      // 顔検出結果をクリア
+      setFaceBoxes([]);
+      if (faceGraphicsRef.current && faceGraphicsRef.current.parent) {
+        faceGraphicsRef.current.parent.removeChild(faceGraphicsRef.current);
+        faceGraphicsRef.current = null;
+      }
+
       // コンテナから全ての子要素（画像も含む）を削除
       pixiRefs.imageContainerRef.current.removeChildren();
 
@@ -780,6 +799,122 @@ export default function ImageEditor2() {
     updateSizeDisplayText();
     updateSizeTextPosition();
   };
+
+  // 顔検出を行う関数
+  const detectFaces = async () => {
+    if (!pixiRefs.spriteRef.current || !pixiRefs.imageContainerRef.current)
+      return;
+
+    try {
+      // スプライトのテクスチャから画像データを取得
+      const texture = pixiRefs.spriteRef.current.texture;
+      const app = pixiRefs.appRef.current;
+      if (!app || !app.renderer || !app.renderer.extract) return;
+
+      // 現在のレンダラーを使って画像をエクスポート
+      const extractedCanvas = (await app.renderer.extract.canvas(
+        pixiRefs.spriteRef.current
+      )) as HTMLCanvasElement;
+
+      // キャンバスから画像データを取得
+      if (!extractedCanvas) {
+        throw new Error("キャンバスの抽出に失敗しました");
+      }
+
+      const blob = await new Promise<Blob>((resolve) => {
+        extractedCanvas.toBlob((b: Blob | null) => {
+          if (b) resolve(b);
+        }, "image/png");
+      });
+
+      // BlobからUint8Arrayに変換
+      const arrayBuffer = await blob.arrayBuffer();
+      const imageData = new Uint8Array(arrayBuffer);
+
+      // Wasmの顔検出関数を呼び出し
+      if (typeof (wasmExports as any).detect_faces !== "function") {
+        throw new Error("顔検出関数が見つかりません");
+      }
+
+      // 顔検出を実行
+      const facesData = (wasmExports as any).detect_faces(imageData);
+
+      // 結果を処理
+      const faces: { x1: number; y1: number; x2: number; y2: number }[] = [];
+      for (let i = 0; i < facesData.length; i += 4) {
+        faces.push({
+          x1: facesData[i],
+          y1: facesData[i + 1],
+          x2: facesData[i + 2],
+          y2: facesData[i + 3],
+        });
+      }
+
+      // 状態を更新
+      setFaceBoxes(faces);
+
+      // 検出された顔を描画
+      drawFaceBoxes(faces);
+    } catch (error) {
+      console.error("顔検出中にエラーが発生しました:", error);
+    }
+  };
+
+  // 顔の矩形を描画する関数
+  const drawFaceBoxes = (
+    faces: { x1: number; y1: number; x2: number; y2: number }[]
+  ) => {
+    if (!pixiRefs.spriteRef.current || !pixiRefs.imageContainerRef.current)
+      return;
+
+    // 既存のグラフィックスがあれば削除
+    if (faceGraphicsRef.current && faceGraphicsRef.current.parent) {
+      faceGraphicsRef.current.parent.removeChild(faceGraphicsRef.current);
+    }
+
+    // 新しいグラフィックスを作成
+    const graphics = new PIXI.Graphics();
+    graphics.lineStyle(3, 0xff0000, 1);
+
+    // スプライトの位置とスケールを考慮して描画位置を計算
+    const sprite = pixiRefs.spriteRef.current;
+    const scaleX = sprite.scale.x;
+    const scaleY = sprite.scale.y;
+
+    // スプライトのアンカーポイント(0.5, 0.5)を考慮して、中心からのオフセットを計算
+    const offsetX = -sprite.width / 2;
+    const offsetY = -sprite.height / 2;
+
+    // 各顔の矩形を描画
+    faces.forEach((face) => {
+      // 顔の位置をスプライトのスケールと位置に合わせて調整
+      const x1 = face.x1 * Math.abs(scaleX) + offsetX;
+      const y1 = face.y1 * Math.abs(scaleY) + offsetY;
+      const x2 = face.x2 * Math.abs(scaleX) + offsetX;
+      const y2 = face.y2 * Math.abs(scaleY) + offsetY;
+
+      // 矩形を描画
+      graphics.drawRect(x1, y1, x2 - x1, y2 - y1);
+    });
+
+    // グラフィックスを画像コンテナに追加
+    pixiRefs.imageContainerRef.current.addChild(graphics);
+
+    // 参照を保存
+    faceGraphicsRef.current = graphics;
+  };
+
+  // スプライトの変更時に顔検出結果をクリア
+  useEffect(() => {
+    if (pixiRefs.spriteRef.current) {
+      // 既存の矩形を削除
+      if (faceGraphicsRef.current && faceGraphicsRef.current.parent) {
+        faceGraphicsRef.current.parent.removeChild(faceGraphicsRef.current);
+        faceGraphicsRef.current = null;
+      }
+      setFaceBoxes([]);
+    }
+  }, [pixiRefs.spriteRef.current]);
 
   if (isLoading || !user) {
     return (
@@ -900,6 +1035,26 @@ export default function ImageEditor2() {
                 </div>
               )}
             </div>
+
+            {/* 顔検出ボタン */}
+            {pixiRefs.spriteRef.current && (
+              <div className="rounded-lg border border-gray-200 p-3">
+                <h3 className="text-sm font-medium text-gray-900 mb-3">
+                  顔検出
+                </h3>
+                <Button
+                  className="w-full bg-indigo-500 hover:bg-indigo-600"
+                  onClick={detectFaces}
+                >
+                  画像から顔を検出
+                </Button>
+                {faceBoxes.length > 0 && (
+                  <p className="text-sm text-gray-700 mt-2">
+                    {faceBoxes.length}人の顔を検出しました
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* 画像サイズ表示 */}
             {pixiRefs.spriteRef.current && (
