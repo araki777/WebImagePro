@@ -1,6 +1,6 @@
 {
   "name": "next",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -16,7 +16,7 @@
     "preinstall": "node scripts/preinstall.js"
   },
   "dependencies": {
-    "@araki777/wasm-image-pro": "^0.1.2",
+    "@araki777/wasm-image-pro": "latest",
     "@azure/storage-blob": "^12.17.0",
     "@netlify/plugin-nextjs": "^5.10.3",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -84,9 +84,5 @@
     "extends": [
       "plugin:storybook/recommended"
     ]
-  },
-  "resolutions": {
-    "@araki777/wasm-image-pro": "latest"
-  },
-  "packageManager": "npm@10.2.4"
+  }
 }

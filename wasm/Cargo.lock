@@ -1402,6 +1402,7 @@ dependencies = [
  "ndarray",
  "rand",
  "rusttype",
+ "serde",
  "tract-onnx",
  "wasm-bindgen",
 ]
