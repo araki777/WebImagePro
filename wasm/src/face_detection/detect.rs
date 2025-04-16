@@ -1,9 +1,13 @@
+// CenterFace顔検出アルゴリズムのWebAssembly（wasm）バインディング
+// JavaScriptからRustで実装された顔検出機能を利用するためのインターフェース
 use crate::face_detection::center_face;
 use image::imageops;
 use wasm_bindgen::prelude::*;
 
 use center_face::CenterFace;
 
+// 顔検出の結果を保持する構造体
+// 検出された顔の配列と、元の画像サイズを格納
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct FaceDetectionResult {
@@ -12,6 +16,8 @@ pub struct FaceDetectionResult {
     height: u32,
 }
 
+// 検出された個々の顔の情報を保持する構造体
+// バウンディングボックスの座標、検出スコア、ランドマーク（特徴点）を含む
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct Face {
@@ -23,6 +29,7 @@ pub struct Face {
     landmarks: Vec<Landmark>,
 }
 
+// 顔のランドマーク（特徴点）の座標を保持する構造体
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct Landmark {
@@ -30,67 +37,85 @@ pub struct Landmark {
     y: u32,
 }
 
+// FaceDetectionResultのJavaScript向けインターフェース
 #[wasm_bindgen]
 impl FaceDetectionResult {
+    // 検出された顔の数を取得
     pub fn get_faces_count(&self) -> usize {
         self.faces.len()
     }
 
+    // 指定されたインデックスの顔を取得
     pub fn get_face(&self, index: usize) -> Option<Face> {
         self.faces.get(index).cloned()
     }
 
+    // 画像の幅を取得
     pub fn get_width(&self) -> u32 {
         self.width
     }
 
+    // 画像の高さを取得
     pub fn get_height(&self) -> u32 {
         self.height
     }
 }
 
+// FaceのJavaScript向けインターフェース
 #[wasm_bindgen]
 impl Face {
+    // バウンディングボックスの左上X座標
     pub fn get_x1(&self) -> u32 {
         self.x1
     }
 
+    // バウンディングボックスの左上Y座標
     pub fn get_y1(&self) -> u32 {
         self.y1
     }
 
+    // バウンディングボックスの右下X座標
     pub fn get_x2(&self) -> u32 {
         self.x2
     }
 
+    // バウンディングボックスの右下Y座標
     pub fn get_y2(&self) -> u32 {
         self.y2
     }
 
+    // 検出スコア（信頼度）を取得
     pub fn get_score(&self) -> f32 {
         self.score
     }
 
+    // ランドマークの数を取得
     pub fn get_landmarks_count(&self) -> usize {
         self.landmarks.len()
     }
 
+    // 指定されたインデックスのランドマークを取得
     pub fn get_landmark(&self, index: usize) -> Option<Landmark> {
         self.landmarks.get(index).cloned()
     }
 }
 
+// LandmarkのJavaScript向けインターフェース
 #[wasm_bindgen]
 impl Landmark {
+    // X座標を取得
     pub fn get_x(&self) -> u32 {
         self.x
     }
 
+    // Y座標を取得
     pub fn get_y(&self) -> u32 {
         self.y
     }
 }
 
+// JavaScript（WebAssembly）から呼び出し可能な顔検出関数
+// 画像データを受け取り、検出された顔の情報を返す
 #[wasm_bindgen]
 pub fn detect_faces(image_data: &[u8]) -> Result<FaceDetectionResult, JsValue> {
     // 画像データをデコード
@@ -102,6 +127,7 @@ pub fn detect_faces(image_data: &[u8]) -> Result<FaceDetectionResult, JsValue> {
     let (width, height) = (image.width(), image.height());
 
     // モデルの入力サイズを計算（32の倍数に調整）
+    // CenterFaceモデルは32の倍数のサイズで最適に動作するため
     let model_width = ((width as f32 / 32.0).ceil() * 32.0) as u32;
     let model_height = ((height as f32 / 32.0).ceil() * 32.0) as u32;
 
@@ -122,16 +148,19 @@ pub fn detect_faces(image_data: &[u8]) -> Result<FaceDetectionResult, JsValue> {
         .map_err(|e| JsValue::from_str(&format!("Failed to detect faces: {}", e)))?;
 
     // 検出結果を元の画像サイズにスケーリング
+    // モデル入力用にリサイズした画像から元のサイズに戻すための係数を計算
     let scale_x = width as f32 / model_width as f32;
     let scale_y = height as f32 / model_height as f32;
 
     // WASM用の結果に変換
+    // CenterFaceの内部表現からJavaScript向けの構造体に変換
     let wasm_faces: Vec<Face> = faces.into_iter().map(|f| {
         let x1 = (f.x1 as f32 * scale_x) as u32;
         let y1 = (f.y1 as f32 * scale_y) as u32;
         let x2 = (f.x2 as f32 * scale_x) as u32;
         let y2 = (f.y2 as f32 * scale_y) as u32;
 
+        // ランドマークも同様にスケーリング
         let landmarks: Vec<Landmark> = f.landmarks.into_iter().map(|lm| {
             Landmark {
                 x: (lm.0 as f32 * scale_x) as u32,
@@ -149,6 +178,7 @@ pub fn detect_faces(image_data: &[u8]) -> Result<FaceDetectionResult, JsValue> {
         }
     }).collect();
 
+    // 検出結果を返す
     Ok(FaceDetectionResult {
         faces: wasm_faces,
         width,
