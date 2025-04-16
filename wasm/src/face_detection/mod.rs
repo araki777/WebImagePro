@@ -1,5 +1,5 @@
-mod face_detection;
+pub mod center_face;
+pub mod detect;
 
-// face_detection.rsからの関数をエクスポート
-pub use face_detection::detect_faces;
-pub use face_detection::face_detection;
+pub use center_face::CenterFace;
+pub use detect::{detect_faces, draw_faces, FaceDetectionResult, Face, Landmark};

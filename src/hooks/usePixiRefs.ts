@@ -10,6 +10,7 @@ export interface PixiRefs {
   sizeContainerRef: React.MutableRefObject<PIXI.Container | null>;
   spriteRef: React.MutableRefObject<PIXI.Sprite | null>;
   sizeTextRef: React.MutableRefObject<PIXI.Text | null>;
+  faceGraphicsRef: React.MutableRefObject<PIXI.Graphics | null>;
 }
 
 export const usePixiRefs = (): PixiRefs => {
@@ -31,6 +32,8 @@ export const usePixiRefs = (): PixiRefs => {
   // スプライトとテキストの参照
   const spriteRef = useRef<PIXI.Sprite | null>(null);
   const sizeTextRef = useRef<PIXI.Text | null>(null);
+  // 顔検出グラフィックスの参照
+  const faceGraphicsRef = useRef<PIXI.Graphics | null>(null);
 
   return {
     pixiContainerRef,
@@ -41,5 +44,6 @@ export const usePixiRefs = (): PixiRefs => {
     sizeContainerRef,
     spriteRef,
     sizeTextRef,
+    faceGraphicsRef,
   };
 };
