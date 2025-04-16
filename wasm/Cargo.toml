@@ -21,7 +21,3 @@ serde = { version = "1.0", features = ["derive"] }
 [features]
 default = ["image"]
 image = []
-
-[[bin]]
-name = "detect"
-path = "src/face_detection/detect.rs"
