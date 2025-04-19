@@ -1,7 +1,7 @@
 // import * as wasmExports from "@araki777/wasm-image-pro";
+import * as wasmExports from "@araki777/wasm-image-pro";
 import * as PIXI from "pixi.js";
 import { useCallback, useRef, useState } from "react";
-import * as wasmExports from "../../wasm/pkg/wasm_image_pro";
 
 export type ObjectDetectionMode = "outline";
 
