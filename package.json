@@ -16,7 +16,7 @@
     "preinstall": "node scripts/preinstall.js"
   },
   "dependencies": {
-    "@araki777/wasm-image-pro": "^0.1.6",
+    "@araki777/wasm-image-pro": "^0.1.8",
     "@azure/storage-blob": "^12.17.0",
     "@netlify/plugin-nextjs": "^5.10.3",
     "@radix-ui/react-accordion": "^1.1.2",
