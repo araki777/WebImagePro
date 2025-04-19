@@ -1,5 +1,5 @@
+mod yolo;
 pub mod detect;
-pub mod yolo;
 
-pub use detect::*;
-pub use yolo::*;
+pub use yolo::{Detection, YoloModel};
+pub use detect::{ObjectDetectionResult, DetectedObject, init_yolo_model, detect_objects}; 

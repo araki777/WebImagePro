@@ -1,151 +1,236 @@
-use std::path::Path;
-use image::DynamicImage;
-use crate::object_detection::yolo::{YoloModel, YoloDetection};
+use crate::object_detection::yolo::{self, Detection, YoloModel};
+use image::imageops;
+use wasm_bindgen::prelude::*;
+use std::cell::RefCell;
 
-pub struct Detection {
-    pub class_id: usize,
-    pub class_name: String,
-    pub confidence: f32,
-    pub bbox: [f32; 4], // [x1, y1, x2, y2]
+// YOLOモデルをバイナリとして埋め込む
+const YOLO_MODEL_BYTES: &[u8] = include_bytes!("../../ai_models/yolo11n.onnx");
+
+// WebAssemblyグローバル変数用モジュール
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
 }
 
-pub struct ObjectDetector {
-    model: YoloModel,
+// グローバルなYOLOモデル（初期化済みのモデルをキャッシュする）
+thread_local! {
+    static YOLO_MODEL: RefCell<Option<YoloModel>> = RefCell::new(None);
 }
 
-impl ObjectDetector {
-    pub fn new(
-        model_path: &Path,
-        input_height: usize,
-        input_width: usize,
-        confidence_threshold: f32,
-        iou_threshold: f32,
-    ) -> Result<Self, anyhow::Error> {
-        let model = YoloModel::new(
-            model_path,
-            input_height,
-            input_width,
-            confidence_threshold,
-            iou_threshold,
-        )?;
+// 検出結果をWasm側で扱いやすくするための構造体
+// 検出されたオブジェクトの配列と、元の画像サイズを格納
+#[wasm_bindgen]
+#[derive(Clone)]
+pub struct ObjectDetectionResult {
+    detections: Vec<DetectedObject>,
+    width: u32,
+    height: u32,
+}
 
-        Ok(ObjectDetector { model })
+// 検出されたオブジェクトの情報を格納する構造体
+// バウンディングボックスの座標、クラスID、クラス名、信頼度を含む
+#[wasm_bindgen]
+#[derive(Clone)]
+pub struct DetectedObject {
+    class_id: u32,
+    class_name: String,
+    confidence: f32,
+    x1: u32,
+    y1: u32,
+    x2: u32,
+    y2: u32,
+}
+
+// ObjectDetectionResultのJavaScript向けインターフェース
+#[wasm_bindgen]
+impl ObjectDetectionResult {
+    // 検出されたオブジェクトの数を取得
+    pub fn get_detections_count(&self) -> usize {
+        self.detections.len()
     }
 
-    pub fn detect(&self, image: &DynamicImage) -> Result<Vec<Detection>, anyhow::Error> {
-        let yolo_detections = self.model.detect(image)?;
+    // 指定されたインデックスのオブジェクトを取得
+    pub fn get_detection(&self, index: usize) -> Option<DetectedObject> {
+        self.detections.get(index).cloned()
+    }
 
-        let detections = yolo_detections.into_iter()
-            .map(|d| {
-                Detection {
-                    class_id: d.class_id,
-                    class_name: self.model.get_class_name(d.class_id)
-                        .unwrap_or("unknown")
-                        .to_string(),
-                    confidence: d.confidence,
-                    bbox: d.bbox,
+    // 画像の幅を取得
+    pub fn get_width(&self) -> u32 {
+        self.width
+    }
+
+    // 画像の高さを取得
+    pub fn get_height(&self) -> u32 {
+        self.height
+    }
+
+    // 検出結果をJSON形式の文字列として取得
+    pub fn to_json(&self) -> String {
+        let mut json = String::from("{\"detections\":[");
+        
+        for (i, detection) in self.detections.iter().enumerate() {
+            if i > 0 {
+                json.push_str(",");
+            }
+            
+            json.push_str(&format!(
+                "{{\"class_id\":{},\"class_name\":\"{}\",\"confidence\":{:.4},\"x1\":{},\"y1\":{},\"x2\":{},\"y2\":{}}}",
+                detection.class_id,
+                detection.class_name,
+                detection.confidence,
+                detection.x1,
+                detection.y1,
+                detection.x2,
+                detection.y2
+            ));
+        }
+        
+        json.push_str("],");
+        json.push_str(&format!("\"width\":{},\"height\":{}}}", self.width, self.height));
+        
+        json
+    }
+
+    // 座標情報のみを含むJSONを取得
+    pub fn get_coordinates_json(&self) -> String {
+        self.to_json()
+    }
+}
+
+// DetectedObjectのJavaScript向けインターフェース
+#[wasm_bindgen]
+impl DetectedObject {
+    // クラスIDを取得
+    pub fn get_class_id(&self) -> u32 {
+        self.class_id
+    }
+
+    // クラス名を取得
+    pub fn get_class_name(&self) -> String {
+        self.class_name.clone()
+    }
+
+    // 検出の信頼度を取得
+    pub fn get_confidence(&self) -> f32 {
+        self.confidence
+    }
+
+    // バウンディングボックスの左上X座標
+    pub fn get_x1(&self) -> u32 {
+        self.x1
+    }
+
+    // バウンディングボックスの左上Y座標
+    pub fn get_y1(&self) -> u32 {
+        self.y1
+    }
+
+    // バウンディングボックスの右下X座標
+    pub fn get_x2(&self) -> u32 {
+        self.x2
+    }
+
+    // バウンディングボックスの右下Y座標
+    pub fn get_y2(&self) -> u32 {
+        self.y2
+    }
+}
+
+// YOLOモデルを初期化する関数
+// キャッシュ用にグローバル変数にモデルを保存する
+#[wasm_bindgen]
+pub fn init_yolo_model() -> bool {
+    match YoloModel::new(YOLO_MODEL_BYTES) {
+        Ok(model) => {
+            YOLO_MODEL.with(|yolo| {
+                *yolo.borrow_mut() = Some(model);
+            });
+            log("YOLOモデルを正常に初期化しました");
+            true
+        },
+        Err(e) => {
+            log(&format!("モデル初期化エラー: {:?}", e));
+            false
+        }
+    }
+}
+
+// JavaScript（WebAssembly）から呼び出し可能なオブジェクト検出関数
+// 画像データを受け取り、検出されたオブジェクトの情報を返す
+#[wasm_bindgen]
+pub fn detect_objects(image_data: &[u8]) -> Result<ObjectDetectionResult, JsValue> {
+    // ログ出力(デバッグ用)
+    log("オブジェクト検出開始...");
+    log(&format!("画像データサイズ: {} バイト", image_data.len()));
+    
+    // 画像データをデコード
+    let image = image::load_from_memory(image_data)
+        .map_err(|e| JsValue::from_str(&format!("画像のロードに失敗: {}", e)))?;
+    let image = image.to_rgb8();
+
+    // 画像のサイズを取得
+    let (width, height) = (image.width(), image.height());
+    
+    // オブジェクト検出を実行 - 初期化済みのモデルがあればそれを使用し、なければ新規作成
+    let detections = YOLO_MODEL.with(|yolo| -> Result<Vec<Detection>, JsValue> {
+        if let Some(model) = &*yolo.borrow() {
+            // キャッシュされたモデルを使用
+            log("キャッシュされたYOLOモデルを使用します");
+            Ok(model.detect_with_resize(&image))
+        } else {
+            // 新しくモデルを初期化
+            log("モデルが初期化されていないため、その場で初期化します");
+            match YoloModel::new(YOLO_MODEL_BYTES) {
+                Ok(model) => {
+                    // モデルをキャッシュに保存
+                    *yolo.borrow_mut() = Some(model.clone());
+                    
+                    // 検出実行
+                    Ok(model.detect_with_resize(&image))
+                },
+                Err(e) => {
+                    log(&format!("モデル初期化エラー: {:?}", e));
+                    Err(JsValue::from_str("YOLOモデルの初期化に失敗しました"))
                 }
-            })
-            .collect();
-
-        Ok(detections)
-    }
-
-    pub fn draw_detections(&self, image: &mut DynamicImage, detections: &[Detection]) {
-        let mut img = image.to_rgba8();
-
-        for detection in detections {
-            let [x1, y1, x2, y2] = detection.bbox;
-            let x1 = x1.max(0.0) as u32;
-            let y1 = y1.max(0.0) as u32;
-            let x2 = x2.min(img.width() as f32) as u32;
-            let y2 = y2.min(img.height() as f32) as u32;
-
-            // バウンディングボックスを描画
-            draw_rectangle(&mut img, x1, y1, x2, y2);
-
-            // ラベルを描画
-            let text = format!("{}: {:.2}%", detection.class_name, detection.confidence * 100.0);
-            draw_text(&mut img, x1, y1.saturating_sub(10), &text);
-        }
-
-        *image = DynamicImage::ImageRgba8(img);
-    }
-}
-
-fn draw_rectangle(img: &mut image::RgbaImage, x1: u32, y1: u32, x2: u32, y2: u32) {
-    let color = image::Rgba([255, 0, 0, 255]); // 赤色
-    let thickness = 2;
-
-    // 上辺
-    for i in x1..=x2 {
-        for t in 0..thickness {
-            if y1 + t < img.height() {
-                img.put_pixel(i, y1 + t, color);
             }
         }
+    })?;
+    
+    // 検出結果のデバッグ情報を出力
+    log(&format!("モデル推論完了 - 検出数: {}", detections.len()));
+    for (i, det) in detections.iter().enumerate() {
+        log(&format!(
+            "Detection #{}: クラス={}, 信頼度={:.4}, 座標=({}, {}, {}, {})",
+            i, det.class_name, det.confidence, det.x1, det.y1, det.x2, det.y2
+        ));
     }
 
-    // 下辺
-    for i in x1..=x2 {
-        for t in 0..thickness {
-            if y2 >= t && y2 - t < img.height() {
-                img.put_pixel(i, y2 - t, color);
+    // 検出結果をWasm用の構造体に変換
+    let wasm_detections = detections.into_iter()
+        .map(|d| {
+            DetectedObject {
+                class_id: d.class_id,
+                class_name: d.class_name,
+                confidence: d.confidence,
+                x1: d.x1,
+                y1: d.y1,
+                x2: d.x2,
+                y2: d.y2,
             }
-        }
-    }
-
-    // 左辺
-    for i in y1..=y2 {
-        for t in 0..thickness {
-            if x1 + t < img.width() {
-                img.put_pixel(x1 + t, i, color);
-            }
-        }
-    }
-
-    // 右辺
-    for i in y1..=y2 {
-        for t in 0..thickness {
-            if x2 >= t && x2 - t < img.width() {
-                img.put_pixel(x2 - t, i, color);
-            }
-        }
-    }
-}
-
-fn draw_text(img: &mut image::RgbaImage, x: u32, y: u32, text: &str) {
-    let color = image::Rgba([255, 255, 255, 255]); // 白色
-    let font_size = 15.0;
-    let background = image::Rgba([0, 0, 0, 180]); // 半透明の黒色
-
-    // テキストサイズを計算（簡易的な実装）
-    let text_width = text.len() as u32 * 8;
-    let text_height = 20;
-
-    // 背景を描画
-    for j in 0..text_height {
-        for i in 0..text_width {
-            if x + i < img.width() && y + j < img.height() {
-                img.put_pixel(x + i, y + j, background);
-            }
-        }
-    }
-
-    // 実際のテキスト描画はシンプルに実装（フォントレンダリングが複雑なため）
-    // 本格的には rusttype クレートなどを使用して実装する
-    let mut x_offset = 0;
-    for c in text.chars() {
-        if x + x_offset + 8 < img.width() && y + 15 < img.height() {
-            // 各文字を固定幅で描画（簡易的な実装）
-            for i in 0..8 {
-                for j in 0..15 {
-                    if (i > 1 && i < 6) && (j > 1 && j < 13) {
-                        img.put_pixel(x + x_offset + i, y + j, color);
-                    }
-                }
-            }
-        }
-        x_offset += 8;
-    }
+        })
+        .collect();
+    
+    // 結果のオブジェクトを作成
+    let result = ObjectDetectionResult {
+        detections: wasm_detections,
+        width,
+        height,
+    };
+    
+    // 検証のため結果のサマリーをログ出力
+    log(&format!("検出結果の要約: {} オブジェクト, 画像サイズ {}x{}", 
+                result.get_detections_count(), width, height));
+    
+    Ok(result)
 }
