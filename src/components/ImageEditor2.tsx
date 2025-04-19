@@ -24,10 +24,19 @@ import { useImageFilters } from "@/hooks/useImageFilters";
 import { usePixiRefs } from "@/hooks/usePixiRefs";
 import { usePixiSetup } from "@/hooks/usePixiSetup";
 import { useAuthStore } from "@/store/useAuthStore";
-import init from "@araki777/wasm-image-pro";
 import { useSearchParams } from "next/navigation";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+// WebAssemblyモジュールを直接インポート
+import {
+  ObjectDetectionMode,
+  useObjectDetection,
+} from "@/hooks/useObjectDetection";
+import init from "../../wasm/pkg/wasm_image_pro";
+
+// wasmModuleをany型として宣言
+let wasmModule: any;
 
 export default function ImageEditor2() {
   // 状態管理
@@ -41,19 +50,29 @@ export default function ImageEditor2() {
   const isResettingRef = useRef(false); // リセット中かどうかのフラグ
   const [faceDetectionMode, setFaceDetectionMode] =
     useState<FaceDetectionMode | null>(null);
+  const [objectDetectionMode, setObjectDetectionMode] =
+    useState<ObjectDetectionMode | null>(null);
 
   // 認証関連
   const searchParams = useSearchParams();
-  const { user, isLoading, checkUser, signOut } = useAuthStore();
+  const { user, isLoading: isAuthLoading, checkUser, signOut } = useAuthStore();
 
   // PIXI.jsの参照
   const pixiRefs = usePixiRefs();
 
+  // 顔検出のフックを使用
   const { detectFaces, clearFaceDetection } = useFaceDetection(
     pixiRefs.spriteRef,
     pixiRefs.imageContainerRef,
     imageUrl
   );
+
+  const { detectObjects, clearObjectDetection, detectedObjects, isDetecting } =
+    useObjectDetection(
+      pixiRefs.spriteRef,
+      pixiRefs.imageContainerRef,
+      imageUrl
+    );
 
   const loadImage = useCallback(async () => {
     if (
@@ -65,8 +84,64 @@ export default function ImageEditor2() {
       return;
 
     try {
-      const texture = await PIXI.Assets.load(imageUrl);
-      const sprite = new PIXI.Sprite(texture);
+      await loadImageFromUrl(imageUrl);
+    } catch (error) {
+      console.error("画像の読み込みに失敗しました:", error);
+    }
+  }, [
+    imageUrl,
+    pixiRefs.appRef.current,
+    pixiRefs.imageContainerRef.current,
+    pixiRefs.componentContainerRef.current,
+  ]);
+
+  const loadImageFromUrl = async (url: string) => {
+    if (
+      !pixiRefs.appRef.current ||
+      !pixiRefs.imageContainerRef.current ||
+      !pixiRefs.componentContainerRef.current
+    )
+      return;
+
+    try {
+      // BlobURLかどうかを確認
+      const isBlobUrl = url.startsWith("blob:");
+
+      let textureToUse;
+      if (isBlobUrl) {
+        console.log("BlobURLからテクスチャを作成します:", url);
+
+        // 画像要素を作成
+        const img = new Image();
+
+        // 画像が読み込まれたらテクスチャを作成するPromise
+        const imageLoaded = new Promise<PIXI.Texture>((resolve, reject) => {
+          img.onload = () => {
+            try {
+              // 画像からテクスチャを作成
+              const newTexture = PIXI.Texture.from(img);
+              resolve(newTexture);
+            } catch (e) {
+              reject(e);
+            }
+          };
+          img.onerror = (e) =>
+            reject(new Error(`画像の読み込みに失敗しました: ${e}`));
+        });
+
+        // BlobURLを直接img要素にセット
+        img.src = url;
+
+        // テクスチャが準備できるまで待機
+        textureToUse = await imageLoaded;
+
+        console.log("Blob URLからテクスチャを作成しました");
+      } else {
+        // 通常のURLの場合は標準的な方法でロード
+        textureToUse = await PIXI.Assets.load(url);
+      }
+
+      const sprite = new PIXI.Sprite(textureToUse);
 
       // スプライトのアンカーポイントを中心に設定
       sprite.anchor.set(0.5);
@@ -150,12 +225,7 @@ export default function ImageEditor2() {
     } catch (error) {
       console.error("画像の読み込みに失敗しました:", error);
     }
-  }, [
-    imageUrl,
-    pixiRefs.appRef.current,
-    pixiRefs.imageContainerRef.current,
-    pixiRefs.componentContainerRef.current,
-  ]);
+  };
 
   const drawGrid = () => {
     if (!pixiRefs.appRef.current || !pixiRefs.parentContainerRef.current)
@@ -397,7 +467,19 @@ export default function ImageEditor2() {
     document.addEventListener("wheel", handleWheel, { passive: false });
 
     const initializeWasm = async () => {
-      await init();
+      try {
+        console.log("WebAssemblyモジュール初期化中...");
+        // WebAssemblyモジュールを初期化し、エクスポートされた関数を取得
+        wasmModule = await init();
+        console.log("WebAssemblyモジュール初期化成功", wasmModule);
+      } catch (error: any) {
+        console.error("Wasmの初期化に失敗しました:", error);
+        alert(
+          `WebAssemblyモジュールの初期化に失敗しました: ${
+            error?.message || "不明なエラー"
+          }`
+        );
+      }
     };
 
     initializeWasm();
@@ -810,7 +892,19 @@ export default function ImageEditor2() {
     clearFaceDetection();
   };
 
-  if (isLoading || !user) {
+  // 物体検出ボタンのクリックハンドラ
+  const handleObjectDetection = async () => {
+    setObjectDetectionMode("outline");
+    await detectObjects();
+  };
+
+  // オブジェクト検出をクリアする関数
+  const handleClearObjectDetection = () => {
+    setObjectDetectionMode(null);
+    clearObjectDetection();
+  };
+
+  if (isAuthLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -963,6 +1057,45 @@ export default function ImageEditor2() {
                       onClick={handleClearFaceDetection}
                     >
                       顔検出をクリア
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* 物体検出セクション */}
+            {pixiRefs.spriteRef.current && (
+              <div className="rounded-lg border border-gray-200 p-3 mt-3">
+                <h3 className="text-sm font-medium text-gray-900 mb-3">
+                  物体検出 (YOLOv11)
+                </h3>
+                <div className="space-y-2">
+                  <Button
+                    className="w-full bg-indigo-500 hover:bg-indigo-600"
+                    onClick={handleObjectDetection}
+                    disabled={!imageUrl}
+                  >
+                    {isDetecting
+                      ? "物体検出中..."
+                      : !imageUrl
+                      ? "画像を読み込んでください"
+                      : "物体検出を実行"}
+                  </Button>
+                  {detectedObjects.map((object) => (
+                    <div key={object.class_id}>
+                      <p>物体名: {object.class_name}</p>
+                      <p>信頼度: {object.confidence}</p>
+                      <p>
+                        座標: {object.x1}, {object.y1}, {object.x2}, {object.y2}
+                      </p>
+                    </div>
+                  ))}
+                  {objectDetectionMode && (
+                    <Button
+                      className="w-full bg-gray-500 hover:bg-gray-600"
+                      onClick={handleClearObjectDetection}
+                    >
+                      物体検出をクリア
                     </Button>
                   )}
                 </div>
@@ -1567,6 +1700,78 @@ export default function ImageEditor2() {
                           垂直反転
                         </button>
                       </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* 物体検出 */}
+                <AccordionItem value="object-detection">
+                  <AccordionTrigger className="py-2 text-sm">
+                    物体検出
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label
+                          htmlFor="object-detection"
+                          className="text-xs flex-1"
+                        >
+                          物体を検出
+                        </Label>
+                        <Button
+                          onClick={() => detectObjects()}
+                          disabled={isDetecting}
+                          variant="outline"
+                          size="sm"
+                        >
+                          {isDetecting ? "検出中..." : "検出開始"}
+                        </Button>
+                      </div>
+
+                      {detectedObjects.length > 0 && (
+                        <div className="space-y-2 mt-3">
+                          <div className="text-xs text-gray-500">
+                            検出オブジェクト: {detectedObjects.length}件
+                          </div>
+                          <div className="max-h-60 overflow-y-auto">
+                            {detectedObjects.map((obj, index) => (
+                              <div
+                                key={index}
+                                className="p-2 bg-gray-100 rounded mb-2 text-xs"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">
+                                    {obj.class_name}
+                                  </span>
+                                  <span>
+                                    {(obj.confidence * 100).toFixed(0)}%
+                                  </span>
+                                </div>
+                                <div className="text-gray-600 mt-1">
+                                  座標: ({obj.x1},{obj.y1}) - ({obj.x2},{obj.y2}
+                                  )
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <Button
+                            onClick={clearObjectDetection}
+                            variant="ghost"
+                            size="sm"
+                            className="mt-2 w-full"
+                          >
+                            検出結果をクリア
+                          </Button>
+                        </div>
+                      )}
+
+                      {!isDetecting && detectedObjects.length === 0 && (
+                        <div className="text-center py-2">
+                          <div className="text-xs text-gray-500">
+                            画像内のオブジェクトを検出します
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </AccordionContent>
                 </AccordionItem>

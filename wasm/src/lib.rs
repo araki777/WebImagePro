@@ -8,12 +8,6 @@ pub mod filter_effects;
 pub mod face_detection;
 pub mod object_detection;
 
-// 他のモジュールからのエクスポート
-pub use brightness_adjustment::*;
-pub use color_adjustment::*;
-pub use color_conversion::*;
-pub use image_operations::*;
-pub use image_composition::*;
-pub use filter_effects::*;
-pub use face_detection::*;
-pub use object_detection::*;
+// 必要な要素を明示的にエクスポート
+pub use object_detection::detect::{init_yolo_model, detect_objects, ObjectDetectionResult, DetectedObject};
+pub use face_detection::detect::{detect_faces, Face, FaceDetectionResult, Landmark};
