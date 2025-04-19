@@ -1,5 +1,4 @@
-use crate::object_detection::yolo::{self, Detection, YoloModel};
-use image::imageops;
+use crate::object_detection::yolo::{Detection, YoloModel};
 use wasm_bindgen::prelude::*;
 use std::cell::RefCell;
 
