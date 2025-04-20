@@ -1,51 +1,52 @@
-'use client';
+"use client";
 
-import { Header } from "@/components/ui/header";
-import { Footer } from "@/components/ui/footer";
 import { ImageGallery } from "@/components/ImageGallery";
+import { Header } from "@/components/ui/header";
 import { useAuthStore } from "@/store/useAuthStore";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Step } from 'react-joyride';
-import TourGuid from "@/components/common/TourGuid";
 
-const steps: Step[] = [
-  {
-    target: '.search-bar',
-    content: '画像を検索できます。ファイル名で検索しましょう',
-    placement: 'bottom',
-    disableBeacon: true,
-  },
-  {
-    target: '.image-list',
-    content: 'アップロードした画像が一覧表示されます。各画像に対して編集、ダウンロード、削除が可能です',
-    placement: 'top',
-    disableBeacon: true,
-  }
-];
+// フッターを動的にインポート
+const Footer = dynamic(() =>
+  import("@/components/ui/footer").then((mod) => mod.Footer)
+);
 
 export default function GalleryPage() {
+  const router = useRouter();
   const { user, isLoading, signOut, checkUser } = useAuthStore();
 
   useEffect(() => {
     checkUser();
   }, [checkUser]);
 
+  useEffect(() => {
+    // ユーザーの読み込みが終わり、未ログインの場合はログインページへリダイレクト
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
+
   if (isLoading || !user) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
         userImage={user.user_metadata.avatar_url}
         userName={user.user_metadata.full_name || user.email}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
+        <h1 className="text-3xl font-bold mb-8">ギャラリー</h1>
         <ImageGallery />
       </main>
       <Footer />
     </div>
   );
-} 
+}

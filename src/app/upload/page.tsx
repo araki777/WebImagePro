@@ -1,35 +1,42 @@
-'use client';
+"use client";
 
-import { Header } from "@/components/ui/header";
-import { Footer } from "@/components/ui/footer";
-import { ImageUpload } from "@/components/ImageUpload";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useEffect } from "react";
 import TourGuid from "@/components/common/TourGuid";
+import { ImageUpload } from "@/components/ImageUpload";
+import { Header } from "@/components/ui/header";
+import { useAuthStore } from "@/store/useAuthStore";
+import dynamic from "next/dynamic";
+import { useEffect } from "react";
 import { Step } from "react-joyride";
+
+// フッターを動的にインポート
+const Footer = dynamic(() =>
+  import("@/components/ui/footer").then((mod) => mod.Footer)
+);
 
 export default function UploadPage() {
   const { user, isLoading, signOut, checkUser } = useAuthStore();
 
   const steps: Step[] = [
     {
-      target: '.upload-header',
-      content: 'ここでファイルを選択する',
-      placement: 'bottom',
+      target: ".upload-header",
+      content: "ここでファイルを選択する",
+      placement: "bottom",
       disableBeacon: true,
     },
     {
-      target: '.compression-settings',
-      content: '画像の圧縮設定を調整できます。画質とファイルサイズのバランスを調整しましょう',
-      placement: 'bottom',
+      target: ".compression-settings",
+      content:
+        "画像の圧縮設定を調整できます。画質とファイルサイズのバランスを調整しましょう",
+      placement: "bottom",
       disableBeacon: true,
     },
     {
-      target: '.upload-button',
-      content: '選択した画像をアップロードするボタンです。複数の画像を一括でアップロードできます',
-      placement: 'bottom',
+      target: ".upload-button",
+      content:
+        "選択した画像をアップロードするボタンです。複数の画像を一括でアップロードできます",
+      placement: "bottom",
       disableBeacon: true,
-    }
+    },
   ];
 
   useEffect(() => {
@@ -58,4 +65,4 @@ export default function UploadPage() {
       <Footer />
     </div>
   );
-} 
+}
