@@ -37,6 +37,8 @@ import init from "@araki777/wasm-image-pro";
 
 // wasmModuleをany型として宣言
 let wasmModule: any;
+let wasmInitError: Error | null = null;
+let wasmInitialized = false;
 
 export default function ImageEditor2() {
   // 状態管理
@@ -47,6 +49,8 @@ export default function ImageEditor2() {
   const [imageHeight, setImageHeight] = useState(0);
   const [parentContainerSize] = useState({ width: 10, height: 10 }); // 親コンテナの初期サイズは画面の10倍
   const [showScrollbars, setShowScrollbars] = useState(false); // スクロールバーの表示状態
+  const [isWasmLoading, setIsWasmLoading] = useState(true); // Wasm読み込み状態
+  const [wasmError, setWasmError] = useState<string | null>(null); // Wasmエラー状態
   const isResettingRef = useRef(false); // リセット中かどうかのフラグ
   const [faceDetectionMode, setFaceDetectionMode] =
     useState<FaceDetectionMode | null>(null);
@@ -467,18 +471,42 @@ export default function ImageEditor2() {
     document.addEventListener("wheel", handleWheel, { passive: false });
 
     const initializeWasm = async () => {
+      // すでに初期化されている場合はスキップ
+      if (wasmInitialized) {
+        setIsWasmLoading(false);
+        return;
+      }
+
+      // すでにエラーが発生している場合はエラーを表示
+      if (wasmInitError) {
+        setWasmError(wasmInitError.message || "不明なエラー");
+        setIsWasmLoading(false);
+        return;
+      }
+
       try {
         console.log("WebAssemblyモジュール初期化中...");
+        setIsWasmLoading(true);
+
+        // 初期化が失敗した場合のフォールバックタイマー
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(
+            () =>
+              reject(new Error("WebAssemblyの読み込みがタイムアウトしました")),
+            10000
+          );
+        });
+
         // WebAssemblyモジュールを初期化し、エクスポートされた関数を取得
-        wasmModule = await init();
+        wasmModule = await Promise.race([init(), timeoutPromise]);
+        wasmInitialized = true;
         console.log("WebAssemblyモジュール初期化成功", wasmModule);
       } catch (error: any) {
         console.error("Wasmの初期化に失敗しました:", error);
-        alert(
-          `WebAssemblyモジュールの初期化に失敗しました: ${
-            error?.message || "不明なエラー"
-          }`
-        );
+        wasmInitError = error;
+        setWasmError(error?.message || "不明なエラー");
+      } finally {
+        setIsWasmLoading(false);
       }
     };
 
@@ -908,6 +936,41 @@ export default function ImageEditor2() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (isWasmLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+        <p className="text-sm text-gray-600">
+          WebAssemblyモジュールを読み込み中...
+        </p>
+      </div>
+    );
+  }
+
+  if (wasmError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="bg-red-50 p-4 rounded-lg max-w-md">
+          <h2 className="text-red-700 text-lg font-medium mb-2">
+            エラーが発生しました
+          </h2>
+          <p className="text-red-600 mb-4">
+            WebAssemblyモジュールの読み込みに失敗しました。
+          </p>
+          <p className="text-sm text-gray-700 mb-4">{wasmError}</p>
+          <div className="flex justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              ページを再読み込み
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
