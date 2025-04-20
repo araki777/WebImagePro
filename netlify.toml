@@ -1,6 +1,6 @@
 [build]
 command = "next build"
-publish = ".next"
+publish = "out"
 
 [build.environment]
 NEXT_USE_NETLIFY_EDGE = "true"
