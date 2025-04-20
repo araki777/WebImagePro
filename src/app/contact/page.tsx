@@ -1,17 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from "react";
-import { Container } from "@/components/ui/container";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IContactForm } from "@/types/types";
-import { api } from "@/lib/api";
-import { Footer } from "@/components/ui/footer";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+// フッターをクライアントコンポーネントとして動的にインポート
+const Footer = dynamic(() =>
+  import("@/components/ui/footer").then((mod) => mod.Footer)
+);
 
 export default function ContactPage() {
   const { user, isLoading, checkUser } = useAuthStore();
@@ -19,7 +24,7 @@ export default function ContactPage() {
     name: "",
     email: "",
     subject: "",
-    message: ""
+    message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -32,24 +37,26 @@ export default function ContactPage() {
   useEffect(() => {
     // ユーザー情報のロードが完了し、ユーザーが存在する場合
     if (!isLoading && user) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        name: user.user_metadata?.full_name || user.email?.split('@')[0] || "",
-        email: user.email || ""
+        name: user.user_metadata?.full_name || user.email?.split("@")[0] || "",
+        email: user.email || "",
       }));
     }
   }, [user, isLoading]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     // ログインユーザーの場合、nameとemailフィールドは変更不可
-    if (user && (name === 'name' || name === 'email')) {
+    if (user && (name === "name" || name === "email")) {
       return;
     }
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -59,32 +66,41 @@ export default function ContactPage() {
 
     try {
       // APIを使用してお問い合わせデータを保存
-      await api.create('contacts', {
+      await api.create("contacts", {
         user_id: user?.id || null, // ユーザーがログインしている場合はuser_idを紐づける（API側でも設定されます）
         name: formData.name,
         email: formData.email,
         subject: formData.subject,
         message: formData.message,
-        status: 'pending'
+        status: "pending",
       });
 
       // トースト通知を表示
-      toast.success("お問い合わせを受け付けました。担当者より連絡いたします。", {
-        duration: 5000,
-      });
-      
+      toast.success(
+        "お問い合わせを受け付けました。担当者より連絡いたします。",
+        {
+          duration: 5000,
+        }
+      );
+
       // フォームをリセット（ログインユーザーの場合は名前とメールはそのまま）
       setFormData({
-        name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "",
+        name:
+          user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
         email: user?.email || "",
         subject: "",
-        message: ""
+        message: "",
       });
     } catch (error) {
-      console.error('お問い合わせ送信エラー:', error);
-      toast.error(error instanceof Error ? error.message : "お問い合わせの送信に失敗しました。時間をおいて再度お試しください。", {
-        duration: 5000,
-      });
+      console.error("お問い合わせ送信エラー:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "お問い合わせの送信に失敗しました。時間をおいて再度お試しください。",
+        {
+          duration: 5000,
+        }
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -101,7 +117,7 @@ export default function ContactPage() {
             </p>
           </div>
           <Separator />
-          
+
           {isLoading ? (
             <div className="flex justify-center py-10">
               <div className="animate-pulse text-center">
@@ -116,37 +132,43 @@ export default function ContactPage() {
                     <div className="bg-gray-50 p-4 rounded-lg mb-6">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div className="mb-2 sm:mb-0">
-                          <p className="text-sm font-medium text-gray-700">お名前</p>
+                          <p className="text-sm font-medium text-gray-700">
+                            お名前
+                          </p>
                           <p className="text-sm">{formData.name}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-700">メールアドレス</p>
+                          <p className="text-sm font-medium text-gray-700">
+                            メールアドレス
+                          </p>
                           <p className="text-sm">{formData.email}</p>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">ログイン情報から自動入力されています</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        ログイン情報から自動入力されています
+                      </p>
                     </div>
                   ) : (
                     <>
                       <div className="space-y-2">
                         <Label htmlFor="name">お名前</Label>
-                        <Input 
+                        <Input
                           id="name"
                           name="name"
-                          placeholder="山田 太郎" 
+                          placeholder="山田 太郎"
                           value={formData.name}
                           onChange={handleChange}
                           required
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="email">メールアドレス</Label>
-                        <Input 
+                        <Input
                           id="email"
                           name="email"
                           type="email"
-                          placeholder="example@example.com" 
+                          placeholder="example@example.com"
                           value={formData.email}
                           onChange={handleChange}
                           required
@@ -154,26 +176,26 @@ export default function ContactPage() {
                       </div>
                     </>
                   )}
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="subject">件名</Label>
-                    <Input 
+                    <Input
                       id="subject"
                       name="subject"
-                      placeholder="お問い合わせの件名" 
+                      placeholder="お問い合わせの件名"
                       value={formData.subject}
                       onChange={handleChange}
                       required
                       className="text-lg"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="message">メッセージ</Label>
-                    <Textarea 
+                    <Textarea
                       id="message"
                       name="message"
-                      placeholder="お問い合わせ内容を入力してください" 
+                      placeholder="お問い合わせ内容を入力してください"
                       value={formData.message}
                       onChange={handleChange}
                       required
@@ -181,8 +203,12 @@ export default function ContactPage() {
                       className="min-h-[200px] text-base"
                     />
                   </div>
-                  
-                  <Button type="submit" className="w-full" isLoading={isSubmitting}>
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    isLoading={isSubmitting}
+                  >
                     送信する
                   </Button>
                 </form>
@@ -194,4 +220,4 @@ export default function ContactPage() {
       <Footer />
     </div>
   );
-} 
+}

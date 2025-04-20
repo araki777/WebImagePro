@@ -1,8 +1,11 @@
-'use client';
-
 import { Container } from "@/components/ui/container";
 import { Separator } from "@/components/ui/separator";
-import { Footer } from "@/components/ui/footer";
+import dynamic from "next/dynamic";
+
+// フッターをクライアントコンポーネントとして動的にインポート
+const ClientFooter = dynamic(() =>
+  import("@/components/ui/footer").then((mod) => mod.Footer)
+);
 
 export default function TermsPage() {
   return (
@@ -11,7 +14,7 @@ export default function TermsPage() {
         <div className="space-y-6 py-10 max-w-3xl mx-auto flex-grow">
           <h1 className="text-3xl font-bold tracking-tight">利用規約</h1>
           <Separator />
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">1. はじめに</h2>
             <p>
@@ -19,7 +22,7 @@ export default function TermsPage() {
               ユーザーは、本規約に同意の上、当サービスを利用するものとします。
             </p>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">2. サービス内容</h2>
             <p>
@@ -27,7 +30,7 @@ export default function TermsPage() {
               当サービスの機能は予告なく変更、追加、削除される場合があります。
             </p>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">3. アカウント</h2>
             <p>
@@ -41,7 +44,7 @@ export default function TermsPage() {
               <li>不正行為が発覚した場合、直ちに当社に通知すること</li>
             </ul>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">4. 利用制限</h2>
             <p>ユーザーは、以下の行為を行わないことに同意するものとします：</p>
@@ -54,7 +57,7 @@ export default function TermsPage() {
               <li>当サービスのリバースエンジニアリングを行う行為</li>
             </ul>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">5. 知的財産権</h2>
             <p>
@@ -64,7 +67,7 @@ export default function TermsPage() {
               これらのコンテンツを使用する権利を有します。
             </p>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">6. 免責事項</h2>
             <p>
@@ -74,7 +77,7 @@ export default function TermsPage() {
               責任を負いません。
             </p>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">7. 責任制限</h2>
             <p>
@@ -84,7 +87,7 @@ export default function TermsPage() {
               金額を上限とします。
             </p>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">8. 変更と終了</h2>
             <p>
@@ -93,7 +96,7 @@ export default function TermsPage() {
               一部を終了または変更する権利を有します。
             </p>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">9. 準拠法と管轄裁判所</h2>
             <p>
@@ -101,20 +104,20 @@ export default function TermsPage() {
               東京地方裁判所を第一審の専属的合意管轄裁判所とします。
             </p>
           </section>
-          
+
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold">10. お問い合わせ</h2>
             <p>
               本規約に関するご質問やご意見については、お問い合わせフォームよりご連絡ください。
             </p>
           </section>
-          
+
           <div className="text-sm text-muted-foreground pt-4">
             最終更新日: 2023年12月1日
           </div>
         </div>
       </Container>
-      <Footer />
+      <ClientFooter />
     </div>
   );
-} 
+}
