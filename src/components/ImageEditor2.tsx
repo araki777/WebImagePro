@@ -99,7 +99,7 @@ export default function ImageEditor2() {
     pixiRefs.componentContainerRef.current,
   ]);
 
-  const loadImageFromUrl = async (url: string) => {
+  const loadImageFromUrl = async (url: string, forceResize = false) => {
     if (
       !pixiRefs.appRef.current ||
       !pixiRefs.imageContainerRef.current ||
@@ -154,11 +154,39 @@ export default function ImageEditor2() {
       sprite.x = 0;
       sprite.y = 0;
 
-      // スプライトのスケールを調整して画面内に収める
+      // ウィンドウサイズを取得（より確実にするため）
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      // キャンバスサイズを確認または再計算
+      let canvasWidth = pixiRefs.appRef.current?.screen.width || 0;
+      let canvasHeight = pixiRefs.appRef.current?.screen.height || 0;
+
+      // キャンバスサイズが不正な場合はウィンドウサイズから計算
+      if (canvasWidth <= 10 || canvasHeight <= 10) {
+        const sidebar = 64; // サイドバーの幅（実際の幅に合わせて調整）
+        canvasWidth = window.innerWidth - sidebar;
+        canvasHeight = window.innerHeight - 56; // ヘッダーの高さを引く
+      }
+
+      // 余白を考慮する係数
+      const marginFactor = 0.8;
+
+      // スケールを計算（キャンバスサイズとウィンドウサイズを考慮）
       const scale = Math.min(
-        (pixiRefs.appRef.current.screen.width * 0.8) / sprite.width,
-        (pixiRefs.appRef.current.screen.height * 0.8) / sprite.height
+        (canvasWidth * marginFactor) / sprite.width,
+        (canvasHeight * marginFactor) / sprite.height
       );
+
+      // スケール計算のデバッグログを追加
+      console.log("画像読み込み時のサイズ情報:", {
+        canvasWidth,
+        canvasHeight,
+        spriteWidth: sprite.width,
+        spriteHeight: sprite.height,
+        calculatedScale: scale,
+      });
+
       sprite.scale.set(scale);
 
       // 初期状態を保存
@@ -931,6 +959,93 @@ export default function ImageEditor2() {
     setObjectDetectionMode(null);
     clearObjectDetection();
   };
+
+  useEffect(() => {
+    // パフォーマンスAPIを使用してリロードを検出
+    const isReload =
+      window.performance &&
+      window.performance.navigation.type ===
+        window.performance.navigation.TYPE_RELOAD;
+
+    // リロード時は少し遅延させてキャンバスサイズを確実に取得してから画像をロード
+    if (isReload && imageUrl) {
+      const timer = setTimeout(() => {
+        loadImage();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [imageUrl]);
+
+  useEffect(() => {
+    const handleResizeEnd = () => {
+      if (pixiRefs.spriteRef.current && pixiRefs.appRef.current) {
+        // 画面サイズ変更後にスケールを再計算
+        const canvasWidth = pixiRefs.appRef.current.screen.width;
+        const canvasHeight = pixiRefs.appRef.current.screen.height;
+        const marginFactor = 0.8;
+
+        const sprite = pixiRefs.spriteRef.current;
+        const newScale = Math.min(
+          (canvasWidth * marginFactor) / sprite.texture.width,
+          (canvasHeight * marginFactor) / sprite.texture.height
+        );
+
+        // 初期状態を更新
+        initialImageStateRef.current.scale = newScale;
+
+        // リセット処理を呼び出して適用
+        resetImageTransform();
+      }
+    };
+
+    let resizeTimer: number;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(handleResizeEnd, 300);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!imageUrl) return;
+
+    // リロード状態の確認
+    const isReload =
+      window.performance &&
+      window.performance.navigation.type ===
+        window.performance.navigation.TYPE_RELOAD;
+
+    if (isReload) {
+      console.log("リロード検出 - リサイズ処理を予約");
+
+      // DOM完全初期化を待つため長めの遅延を設定
+      const timer = setTimeout(() => {
+        if (pixiRefs.appRef.current && pixiRefs.pixiContainerRef.current) {
+          const parent = pixiRefs.pixiContainerRef.current.parentElement;
+          if (parent) {
+            console.log(
+              "リロード後のリサイズ実行:",
+              parent.clientWidth,
+              parent.clientHeight
+            );
+
+            // 親要素のサイズに合わせてキャンバスを明示的にリサイズ
+            pixiRefs.appRef.current.renderer.resize(
+              parent.clientWidth,
+              parent.clientHeight
+            );
+
+            // 画像を強制的に再ロード
+            loadImage();
+          }
+        }
+      }, 500); // 長めの遅延を設定
+
+      return () => clearTimeout(timer);
+    }
+  }, [imageUrl]);
 
   if (isAuthLoading || !user) {
     return (
