@@ -2,11 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: [
-      "images.unsplash.com",
-      "webimageprostg.blob.core.windows.net",
-    ],
-    unoptimized: true
+    domains: ["images.unsplash.com", "webimageprostg.blob.core.windows.net"],
+    unoptimized: false,
   },
   webpack: (config) => {
     config.experiments = {
@@ -14,7 +11,7 @@ const nextConfig: NextConfig = {
       layers: true,
     };
     return config;
-  }
+  },
 };
 
 export default nextConfig;
