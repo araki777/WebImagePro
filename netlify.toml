@@ -9,4 +9,10 @@ NEXT_USE_NETLIFY_EDGE = "true"
 package = "@netlify/plugin-nextjs"
 
 [build.processing.html]
-pretty_urls = false 
+pretty_urls = false
+
+# カスタム404ページの設定
+[[redirects]]
+  from = "/*"
+  to = "/404"
+  status = 404 
