@@ -1,5 +1,5 @@
+import * as wasmExports from "../../wasm/pkg/wasm_image_pro";
 // import * as wasmExports from "@araki777/wasm-image-pro";
-import * as wasmExports from "@araki777/wasm-image-pro";
 import * as PIXI from "pixi.js";
 import { useCallback, useRef, useState } from "react";
 
@@ -36,10 +36,10 @@ export const useObjectDetection = (
       const arrayBuffer = await blob.arrayBuffer();
       const imageData = new Uint8Array(arrayBuffer);
 
-      // YOLOモデルを初期化
-      wasmExports.init_yolo_model();
+      // モデルが事前初期化されているか確認し、されていなければ実行時に自動初期化される
+      // detectメソッドが自動的に画像サイズに基づいて適切なモデルを選択
 
-      // オブジェクト検出を実行
+      // オブジェクト検出を実行（最適なサイズは内部で自動的に決定される）
       const result = wasmExports.detect_objects(imageData);
 
       if (result) {

@@ -67,12 +67,12 @@ impl ObjectDetectionResult {
     // 検出結果をJSON形式の文字列として取得
     pub fn to_json(&self) -> String {
         let mut json = String::from("{\"detections\":[");
-        
+
         for (i, detection) in self.detections.iter().enumerate() {
             if i > 0 {
                 json.push_str(",");
             }
-            
+
             json.push_str(&format!(
                 "{{\"class_id\":{},\"class_name\":\"{}\",\"confidence\":{:.4},\"x1\":{},\"y1\":{},\"x2\":{},\"y2\":{}}}",
                 detection.class_id,
@@ -84,10 +84,10 @@ impl ObjectDetectionResult {
                 detection.y2
             ));
         }
-        
+
         json.push_str("],");
         json.push_str(&format!("\"width\":{},\"height\":{}}}", self.width, self.height));
-        
+
         json
     }
 
@@ -136,25 +136,6 @@ impl DetectedObject {
     }
 }
 
-// YOLOモデルを初期化する関数
-// キャッシュ用にグローバル変数にモデルを保存する
-#[wasm_bindgen]
-pub fn init_yolo_model() -> bool {
-    match YoloModel::new(YOLO_MODEL_BYTES) {
-        Ok(model) => {
-            YOLO_MODEL.with(|yolo| {
-                *yolo.borrow_mut() = Some(model);
-            });
-            log("YOLOモデルを正常に初期化しました");
-            true
-        },
-        Err(e) => {
-            log(&format!("モデル初期化エラー: {:?}", e));
-            false
-        }
-    }
-}
-
 // JavaScript（WebAssembly）から呼び出し可能なオブジェクト検出関数
 // 画像データを受け取り、検出されたオブジェクトの情報を返す
 #[wasm_bindgen]
@@ -162,74 +143,100 @@ pub fn detect_objects(image_data: &[u8]) -> Result<ObjectDetectionResult, JsValu
     // ログ出力(デバッグ用)
     log("オブジェクト検出開始...");
     log(&format!("画像データサイズ: {} バイト", image_data.len()));
-    
+
     // 画像データをデコード
-    let image = image::load_from_memory(image_data)
-        .map_err(|e| JsValue::from_str(&format!("画像のロードに失敗: {}", e)))?;
-    let image = image.to_rgb8();
+    let image = match image::load_from_memory(image_data) {
+        Ok(img) => img.to_rgb8(),
+        Err(e) => {
+            log(&format!("画像のロードに失敗: {}", e));
+            return Err(JsValue::from_str(&format!("画像のロードに失敗: {}", e)));
+        }
+    };
 
     // 画像のサイズを取得
     let (width, height) = (image.width(), image.height());
-    
-    // オブジェクト検出を実行 - 初期化済みのモデルがあればそれを使用し、なければ新規作成
+    log(&format!("画像サイズ: {}x{}", width, height));
+
+    // モデルを新規初期化する固定サイズ方式で試行
+    // これまでの実装より信頼性が高い方法で初期化を試みる
+    log("固定サイズ(640x640)でモデルを初期化して検出します");
+    match YoloModel::new(YOLO_MODEL_BYTES) {
+        Ok(model) => {
+            log("固定サイズモデルを正常に初期化しました");
+
+            // 検出実行
+            let detections = model.detect_with_resize(&image);
+            log(&format!("検出完了: {} オブジェクト", detections.len()));
+
+            // 結果を変換
+            let wasm_detections = detections.into_iter()
+                .map(|d| {
+                    DetectedObject {
+                        class_id: d.class_id,
+                        class_name: d.class_name,
+                        confidence: d.confidence,
+                        x1: d.x1,
+                        y1: d.y1,
+                        x2: d.x2,
+                        y2: d.y2,
+                    }
+                })
+                .collect();
+
+            // 結果のオブジェクトを作成
+            let result = ObjectDetectionResult {
+                detections: wasm_detections,
+                width,
+                height,
+            };
+
+            Ok(result)
+        },
+        Err(e) => {
+            log(&format!("固定サイズでのモデル初期化に失敗: {:?}", e));
+            Err(JsValue::from_str(&format!("YOLOモデルの初期化に失敗: {:?}", e)))
+        }
+    }
+
+    // 以下の動的サイズ初期化コードは、信頼性の問題があるため現在は使用しない
+    /*
+    // オブジェクト検出を実行 - 初期化済みのモデルがあればそれを使用し、なければ画像に適したサイズで新規作成
     let detections = YOLO_MODEL.with(|yolo| -> Result<Vec<Detection>, JsValue> {
         if let Some(model) = &*yolo.borrow() {
             // キャッシュされたモデルを使用
-            log("キャッシュされたYOLOモデルを使用します");
+            log(&format!("キャッシュされたYOLOモデル({}x{})を使用します", model.width, model.height));
             Ok(model.detect_with_resize(&image))
         } else {
-            // 新しくモデルを初期化
-            log("モデルが初期化されていないため、その場で初期化します");
-            match YoloModel::new(YOLO_MODEL_BYTES) {
+            // 画像に最適なサイズでモデルを初期化
+            log("モデルが初期化されていないため、画像に適したサイズで初期化します");
+            match YoloModel::new_for_image(YOLO_MODEL_BYTES, &image, 640) {
                 Ok(model) => {
+                    log(&format!("モデルを動的サイズ({}x{})で初期化しました", model.width, model.height));
+
                     // モデルをキャッシュに保存
                     *yolo.borrow_mut() = Some(model.clone());
-                    
+
                     // 検出実行
                     Ok(model.detect_with_resize(&image))
                 },
                 Err(e) => {
-                    log(&format!("モデル初期化エラー: {:?}", e));
-                    Err(JsValue::from_str("YOLOモデルの初期化に失敗しました"))
+                    log(&format!("動的サイズでのモデル初期化エラー: {:?}", e));
+
+                    // 動的初期化が失敗した場合は固定サイズ(640x640)で再試行
+                    log("固定サイズ(640x640)でモデル初期化を試みます");
+                    match YoloModel::new(YOLO_MODEL_BYTES) {
+                        Ok(model) => {
+                            *yolo.borrow_mut() = Some(model.clone());
+                            Ok(model.detect_with_resize(&image))
+                        },
+                        Err(e) => {
+                            log(&format!("固定サイズでのモデル初期化も失敗: {:?}", e));
+                            Err(JsValue::from_str(&format!("YOLOモデルの初期化に失敗: {:?}", e)))
+                        }
+                    }
                 }
             }
         }
     })?;
-    
-    // 検出結果のデバッグ情報を出力
-    log(&format!("モデル推論完了 - 検出数: {}", detections.len()));
-    for (i, det) in detections.iter().enumerate() {
-        log(&format!(
-            "Detection #{}: クラス={}, 信頼度={:.4}, 座標=({}, {}, {}, {})",
-            i, det.class_name, det.confidence, det.x1, det.y1, det.x2, det.y2
-        ));
-    }
-
-    // 検出結果をWasm用の構造体に変換
-    let wasm_detections = detections.into_iter()
-        .map(|d| {
-            DetectedObject {
-                class_id: d.class_id,
-                class_name: d.class_name,
-                confidence: d.confidence,
-                x1: d.x1,
-                y1: d.y1,
-                x2: d.x2,
-                y2: d.y2,
-            }
-        })
-        .collect();
-    
-    // 結果のオブジェクトを作成
-    let result = ObjectDetectionResult {
-        detections: wasm_detections,
-        width,
-        height,
-    };
-    
-    // 検証のため結果のサマリーをログ出力
-    log(&format!("検出結果の要約: {} オブジェクト, 画像サイズ {}x{}", 
-                result.get_detections_count(), width, height));
-    
-    Ok(result)
+    */
 }

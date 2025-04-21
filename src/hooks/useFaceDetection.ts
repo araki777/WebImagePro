@@ -1,5 +1,5 @@
+import * as wasmExports from "../../wasm/pkg/wasm_image_pro";
 // import * as wasmExports from "@araki777/wasm-image-pro";
-import * as wasmExports from "@araki777/wasm-image-pro";
 import * as PIXI from "pixi.js";
 import { useCallback, useRef } from "react";
 
