@@ -33,7 +33,8 @@ import {
   ObjectDetectionMode,
   useObjectDetection,
 } from "@/hooks/useObjectDetection";
-import init from "@araki777/wasm-image-pro";
+// import init from "@araki777/wasm-image-pro";
+import init from "../../wasm/pkg/wasm_image_pro";
 
 // wasmModuleをany型として宣言
 let wasmModule: any;
