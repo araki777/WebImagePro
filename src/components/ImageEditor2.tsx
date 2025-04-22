@@ -370,10 +370,12 @@ export default function ImageEditor2() {
     rotation: 0,
   });
 
-  const url = searchParams?.get("url");
-  if (url) {
-    setImageUrl(url);
-  }
+  useEffect(() => {
+    const url = searchParams?.get("url");
+    if (url) {
+      setImageUrl(url);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!pixiRefs.pixiContainerRef.current) return;
