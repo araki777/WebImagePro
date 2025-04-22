@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 use std::cell::RefCell;
 
 // YOLOモデルをバイナリとして埋め込む
-const YOLO_MODEL_BYTES: &[u8] = include_bytes!("../../ai_models/yolov8n.onnx");
+const YOLO_MODEL_BYTES: &[u8] = include_bytes!("../../ai_models/yolo11n.onnx");
 
 // WebAssemblyグローバル変数用モジュール
 #[wasm_bindgen]

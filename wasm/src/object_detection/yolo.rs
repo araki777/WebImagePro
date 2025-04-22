@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use std::io::Cursor;
 use tract_ndarray::{ArrayView, Dim, IxDynImpl};
+use ndarray::s;
 
 #[wasm_bindgen]
 extern "C" {
@@ -286,7 +287,7 @@ impl YoloModel {
             return Ok(Vec::new());
         }
 
-        // YOLOv8の出力形式を確認
+        // YOLOv11の出力形式を確認
         let output = result[0].to_array_view::<f32>()?;
         log(&format!("🔍 出力テンソル shape: {:?}", output.shape()));
 
@@ -296,12 +297,12 @@ impl YoloModel {
             return Ok(Vec::new());
         }
 
-        // YOLOv8出力形式の特徴量とボックス情報を特定
+        // YOLOv11出力形式の特徴量とボックス情報を特定
         let (num_classes, transposed) = self.determine_output_format(&output);
 
         log(&format!("📊 推定クラス数: {}, 転置形式: {}", num_classes, transposed));
 
-        let mut detections = self.process_yolov8_output(&output, (self.height, self.width), num_classes);
+        let mut detections = self.process_yolov11_output(&output, (self.height, self.width), num_classes, transposed);
         log(&format!("📦 NMS前の検出数: {}", detections.len()));
         Ok(self.non_max_suppression_improved(&mut detections, self.iou_threshold))
     }
@@ -330,46 +331,62 @@ impl YoloModel {
         (num_classes, transposed)
     }
 
-    // YOLOv8標準出力形式 [batch, features, predictions] を処理する
-    pub fn process_yolov8_output(&self, model_output: &ArrayView<f32, Dim<IxDynImpl>>, img_shape: (u32, u32), num_classes: usize) -> Vec<Detection> {
+    // YOLOv11標準出力形式 [batch, features, predictions] を処理する
+    pub fn process_yolov11_output(&self, model_output: &ArrayView<f32, Dim<IxDynImpl>>, img_shape: (u32, u32), num_classes: usize, transposed: bool) -> Vec<Detection> {
         let (img_height, img_width) = img_shape;
         let batch = 0; // バッチは常に0（単一画像）
         let mut detections = Vec::new();
 
         let num_predictions = model_output.shape()[2];
 
-        // シグモイド関数
-        fn sigmoid(x: f32) -> f32 {
-            1.0 / (1.0 + (-x).exp())
-        }
-
-        // 各予測を処理 - これはYOLOv8の全ての検出候補（通常数千個）を処理します
+        // 各予測を処理 - これはYOLOv11の全ての検出候補（通常数千個）を処理します
         let mut candidate_detections = Vec::with_capacity(num_predictions);
 
         // 各予測ごとに処理
         for p in 0..num_predictions {
             // バウンディングボックス情報
-            let x = sigmoid(model_output[[batch, 0, p]]);
-            let y = sigmoid(model_output[[batch, 1, p]]);
-            let w = sigmoid(model_output[[batch, 2, p]]);
-            let h = sigmoid(model_output[[batch, 3, p]]);
+            let (x, y, w, h) = if !transposed {
+                (
+                    model_output[[batch, 0, p]],
+                    model_output[[batch, 1, p]],
+                    model_output[[batch, 2, p]],
+                    model_output[[batch, 3, p]],
+                )
+            } else {
+                (
+                    model_output[[batch, p, 0]],
+                    model_output[[batch, p, 1]],
+                    model_output[[batch, p, 2]],
+                    model_output[[batch, p, 3]],
+                )
+            };
 
             // クラス信頼度
             let mut max_class_conf = 0.0;
             let mut max_class_idx = 0;
-            for c in 0..num_classes {
-                let class_score = sigmoid(model_output[[batch, 4 + c, p]]);
-                if class_score > max_class_conf {
-                    max_class_conf = class_score;
-                    max_class_idx = c;
+            if !transposed {
+                for c in 0..num_classes {
+                    let class_score = model_output[[batch, 4 + c, p]];
+                    if class_score > max_class_conf {
+                        max_class_conf = class_score;
+                        max_class_idx = c;
+                    }
+                }
+            } else {
+                for c in 0..num_classes {
+                    let class_score = model_output[[batch, p, 4 + c]];
+                    if class_score > max_class_conf {
+                        max_class_conf = class_score;
+                        max_class_idx = c;
+                    }
                 }
             }
 
             if max_class_conf >= self.confidence_threshold {
-                let left = (x - w / 2.0) * img_width as f32;
-                let top = (y - h / 2.0) * img_height as f32;
-                let right = (x + w / 2.0) * img_width as f32;
-                let bottom = (y + h / 2.0) * img_height as f32;
+                let left = (x - w / 2.0).max(0.0).min(img_width as f32);
+                let top = (y - h / 2.0).max(0.0).min(img_height as f32);
+                let right = (x + w / 2.0).max(0.0).min(img_width as f32);
+                let bottom = (y + h / 2.0).max(0.0).min(img_height as f32);
 
                 // 画像内に収める
                 let left = left.max(0.0).min(img_width as f32);
@@ -387,12 +404,6 @@ impl YoloModel {
                                max_class_idx < self.classes.len();
 
                 if valid_box {
-                    // 最初の数個の検出をログに出力
-                    if candidate_detections.len() < 5 {
-                        log(&format!("検出: クラス={}, 信頼度={:.3}, 座標=[{:.1}, {:.1}, {:.1}, {:.1}]",
-                            self.classes[max_class_idx], max_class_conf, left, top, right, bottom));
-                    }
-
                     // 候補リストに追加
                     candidate_detections.push((
                         max_class_idx,
