@@ -1260,8 +1260,8 @@ export default function ImageEditor2() {
                       ? "画像を読み込んでください"
                       : "物体検出を実行"}
                   </Button>
-                  {detectedObjects.map((object) => (
-                    <div key={object.class_id}>
+                  {detectedObjects.map((object, index) => (
+                    <div key={`object-${index}-${object.class_id}`}>
                       <p>物体名: {object.class_name}</p>
                       <p>信頼度: {object.confidence}</p>
                       <p>
