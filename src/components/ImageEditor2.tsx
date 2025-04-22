@@ -33,8 +33,8 @@ import {
   ObjectDetectionMode,
   useObjectDetection,
 } from "@/hooks/useObjectDetection";
-// import init from "@araki777/wasm-image-pro";
-import init from "../../wasm/pkg/wasm_image_pro";
+import init from "@araki777/wasm-image-pro";
+// import init from "../../wasm/pkg/wasm_image_pro";
 
 // wasmModuleをany型として宣言
 let wasmModule: any;
@@ -370,12 +370,10 @@ export default function ImageEditor2() {
     rotation: 0,
   });
 
-  useEffect(() => {
-    const url = searchParams.get("url");
-    if (url) {
-      setImageUrl(url);
-    }
-  }, [searchParams]);
+  const url = searchParams?.get("url");
+  if (url) {
+    setImageUrl(url);
+  }
 
   useEffect(() => {
     if (!pixiRefs.pixiContainerRef.current) return;

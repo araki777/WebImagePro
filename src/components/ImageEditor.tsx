@@ -26,6 +26,7 @@ import {
   IMAGE_FORMATS,
   IPosition,
 } from "@/types/types";
+import init, * as wasmExports from "@araki777/wasm-image-pro";
 import {
   ImageIcon,
   Maximize2,
@@ -40,8 +41,7 @@ import {
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Step } from "react-joyride";
-// import init, * as wasmExports from '@araki777/wasm-image-pro';
-import init, * as wasmExports from "../../wasm/pkg/wasm_image_pro";
+// import init, * as wasmExports from "../../wasm/pkg/wasm_image_pro";
 
 type WasmFunction = (imageData: Uint8Array, ...args: number[]) => Uint8Array;
 
