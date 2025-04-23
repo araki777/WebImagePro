@@ -3,7 +3,7 @@ name: Publish WASM Package
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - "wasm/**"
   workflow_dispatch:
