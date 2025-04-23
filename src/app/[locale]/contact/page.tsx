@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IContactForm } from "@/types/types";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ const Footer = dynamic(() =>
 );
 
 export default function ContactPage() {
+  const t = useTranslations("Contact");
   const { user, isLoading, checkUser } = useAuthStore();
   const [formData, setFormData] = useState<IContactForm>({
     name: "",
@@ -76,12 +78,9 @@ export default function ContactPage() {
       });
 
       // トースト通知を表示
-      toast.success(
-        "お問い合わせを受け付けました。担当者より連絡いたします。",
-        {
-          duration: 5000,
-        }
-      );
+      toast.success(t("success"), {
+        duration: 5000,
+      });
 
       // フォームをリセット（ログインユーザーの場合は名前とメールはそのまま）
       setFormData({
@@ -93,14 +92,9 @@ export default function ContactPage() {
       });
     } catch (error) {
       console.error("お問い合わせ送信エラー:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "お問い合わせの送信に失敗しました。時間をおいて再度お試しください。",
-        {
-          duration: 5000,
-        }
-      );
+      toast.error(error instanceof Error ? error.message : t("error"), {
+        duration: 5000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -111,17 +105,15 @@ export default function ContactPage() {
       <Container>
         <div className="space-y-10 pb-6 pt-6 flex-grow">
           <div className="space-y-4">
-            <h1 className="text-3xl font-bold tracking-tight">お問い合わせ</h1>
-            <p className="text-gray-500">
-              WebImageProに関するご質問やご意見をお聞かせください。
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+            <p className="text-gray-500">{t("description")}</p>
           </div>
           <Separator />
 
           {isLoading ? (
             <div className="flex justify-center py-10">
               <div className="animate-pulse text-center">
-                <p className="text-gray-500">ユーザー情報を読み込み中...</p>
+                <p className="text-gray-500">{t("loadingUser")}</p>
               </div>
             </div>
           ) : (
@@ -133,29 +125,29 @@ export default function ContactPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div className="mb-2 sm:mb-0">
                           <p className="text-sm font-medium text-gray-700">
-                            お名前
+                            {t("name")}
                           </p>
                           <p className="text-sm">{formData.name}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-700">
-                            メールアドレス
+                            {t("email")}
                           </p>
                           <p className="text-sm">{formData.email}</p>
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        ログイン情報から自動入力されています
+                        {t("autoFilled")}
                       </p>
                     </div>
                   ) : (
                     <>
                       <div className="space-y-2">
-                        <Label htmlFor="name">お名前</Label>
+                        <Label htmlFor="name">{t("name")}</Label>
                         <Input
                           id="name"
                           name="name"
-                          placeholder="山田 太郎"
+                          placeholder={t("namePlaceholder")}
                           value={formData.name}
                           onChange={handleChange}
                           required
@@ -163,12 +155,12 @@ export default function ContactPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email">メールアドレス</Label>
+                        <Label htmlFor="email">{t("email")}</Label>
                         <Input
                           id="email"
                           name="email"
                           type="email"
-                          placeholder="example@example.com"
+                          placeholder={t("emailPlaceholder")}
                           value={formData.email}
                           onChange={handleChange}
                           required
@@ -178,11 +170,11 @@ export default function ContactPage() {
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="subject">件名</Label>
+                    <Label htmlFor="subject">{t("subject")}</Label>
                     <Input
                       id="subject"
                       name="subject"
-                      placeholder="お問い合わせの件名"
+                      placeholder={t("subjectPlaceholder")}
                       value={formData.subject}
                       onChange={handleChange}
                       required
@@ -191,11 +183,11 @@ export default function ContactPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="message">メッセージ</Label>
+                    <Label htmlFor="message">{t("message")}</Label>
                     <Textarea
                       id="message"
                       name="message"
-                      placeholder="お問い合わせ内容を入力してください"
+                      placeholder={t("messagePlaceholder")}
                       value={formData.message}
                       onChange={handleChange}
                       required
@@ -209,7 +201,7 @@ export default function ContactPage() {
                     className="w-full"
                     isLoading={isSubmitting}
                   >
-                    送信する
+                    {t("submit")}
                   </Button>
                 </form>
               </div>

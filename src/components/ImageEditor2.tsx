@@ -24,6 +24,7 @@ import { useImageFilters } from "@/hooks/useImageFilters";
 import { usePixiRefs } from "@/hooks/usePixiRefs";
 import { usePixiSetup } from "@/hooks/usePixiSetup";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -43,6 +44,7 @@ let wasmInitError: Error | null = null;
 let wasmInitialized = false;
 
 export default function ImageEditor2() {
+  const t = useTranslations("ImageEditor2");
   // 状態管理
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(false);
@@ -1058,9 +1060,7 @@ export default function ImageEditor2() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
-        <p className="text-sm text-gray-600">
-          WebAssemblyモジュールを読み込み中...
-        </p>
+        <p className="text-sm text-gray-600">{t("wasmLoading")}</p>
       </div>
     );
   }
@@ -1070,18 +1070,16 @@ export default function ImageEditor2() {
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="bg-red-50 p-4 rounded-lg max-w-md">
           <h2 className="text-red-700 text-lg font-medium mb-2">
-            エラーが発生しました
+            {t("error.title")}
           </h2>
-          <p className="text-red-600 mb-4">
-            WebAssemblyモジュールの読み込みに失敗しました。
-          </p>
+          <p className="text-red-600 mb-4">{t("error.wasmLoad")}</p>
           <p className="text-sm text-gray-700 mb-4">{wasmError}</p>
           <div className="flex justify-center">
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              ページを再読み込み
+              {t("error.reload")}
             </button>
           </div>
         </div>
@@ -1166,7 +1164,7 @@ export default function ImageEditor2() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-medium text-gray-900">
-                  グリッド設定
+                  {t("grid.title")}
                 </h3>
                 <Switch
                   id="grid-toggle"
@@ -1174,12 +1172,11 @@ export default function ImageEditor2() {
                   onCheckedChange={setShowGrid}
                 />
               </div>
-
               {showGrid && (
                 <div className="space-y-3 rounded-lg border border-gray-200 p-3">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="grid-size" className="text-sm">
-                      グリッドサイズ
+                      {t("grid.size")}
                     </Label>
                     <span className="text-sm font-medium text-gray-900">
                       {gridSize}px
@@ -1205,7 +1202,7 @@ export default function ImageEditor2() {
             {pixiRefs.spriteRef.current && (
               <div className="rounded-lg border border-gray-200 p-3">
                 <h3 className="text-sm font-medium text-gray-900 mb-3">
-                  顔検出
+                  {t("faceDetection.title")}
                 </h3>
                 <div className="space-y-2">
                   <Button
@@ -1216,7 +1213,7 @@ export default function ImageEditor2() {
                     }`}
                     onClick={() => handleFaceDetection("outline")}
                   >
-                    顔の枠を表示
+                    {t("faceDetection.showOutline")}
                   </Button>
                   <Button
                     className={`w-full ${
@@ -1226,14 +1223,14 @@ export default function ImageEditor2() {
                     }`}
                     onClick={() => handleFaceDetection("blur")}
                   >
-                    顔をぼかす
+                    {t("faceDetection.blur")}
                   </Button>
                   {faceDetectionMode && (
                     <Button
                       className="w-full bg-gray-500 hover:bg-gray-600"
                       onClick={handleClearFaceDetection}
                     >
-                      顔検出をクリア
+                      {t("faceDetection.clear")}
                     </Button>
                   )}
                 </div>
@@ -1244,7 +1241,7 @@ export default function ImageEditor2() {
             {pixiRefs.spriteRef.current && (
               <div className="rounded-lg border border-gray-200 p-3 mt-3">
                 <h3 className="text-sm font-medium text-gray-900 mb-3">
-                  物体検出 (YOLOv11)
+                  {t("objectDetection.title")}
                 </h3>
                 <div className="space-y-2">
                   <Button
@@ -1253,17 +1250,22 @@ export default function ImageEditor2() {
                     disabled={!imageUrl}
                   >
                     {isDetecting
-                      ? "物体検出中..."
+                      ? t("objectDetection.detecting")
                       : !imageUrl
-                      ? "画像を読み込んでください"
-                      : "物体検出を実行"}
+                      ? t("objectDetection.noImage")
+                      : t("objectDetection.run")}
                   </Button>
                   {detectedObjects.map((object, index) => (
                     <div key={`object-${index}-${object.class_id}`}>
-                      <p>物体名: {object.class_name}</p>
-                      <p>信頼度: {object.confidence}</p>
                       <p>
-                        座標: {object.x1}, {object.y1}, {object.x2}, {object.y2}
+                        {t("objectDetection.name")}: {object.class_name}
+                      </p>
+                      <p>
+                        {t("objectDetection.confidence")}: {object.confidence}
+                      </p>
+                      <p>
+                        {t("objectDetection.coords")}: {object.x1}, {object.y1},{" "}
+                        {object.x2}, {object.y2}
                       </p>
                     </div>
                   ))}
@@ -1272,7 +1274,7 @@ export default function ImageEditor2() {
                       className="w-full bg-gray-500 hover:bg-gray-600"
                       onClick={handleClearObjectDetection}
                     >
-                      物体検出をクリア
+                      {t("objectDetection.clear")}
                     </Button>
                   )}
                 </div>
@@ -1283,7 +1285,7 @@ export default function ImageEditor2() {
             {pixiRefs.spriteRef.current && (
               <div className="rounded-lg border border-gray-200 p-3">
                 <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  画像サイズ
+                  {t("imageSize.title")}
                 </h3>
                 <div className="text-sm text-gray-500">
                   {imageWidth} × {imageHeight} px
@@ -1297,7 +1299,7 @@ export default function ImageEditor2() {
                 {/* 基本調整 */}
                 <AccordionItem value="basic">
                   <AccordionTrigger className="py-2 text-sm">
-                    基本調整
+                    {t("accordion.basic")}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4">
@@ -1308,7 +1310,7 @@ export default function ImageEditor2() {
                             htmlFor="brightness-slider"
                             className="text-sm"
                           >
-                            明るさ
+                            {t("brightness")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {brightness}
@@ -1323,11 +1325,10 @@ export default function ImageEditor2() {
                           onValueChange={(value) => applyBrightness(value[0])}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>暗く</span>
-                          <span>明るく</span>
+                          <span>{t("brightnessLow")}</span>
+                          <span>{t("brightnessHigh")}</span>
                         </div>
                       </div>
-
                       {/* 彩度スライダー */}
                       <div>
                         <div className="flex items-center justify-between mb-3">
@@ -1335,7 +1336,7 @@ export default function ImageEditor2() {
                             htmlFor="saturation-slider"
                             className="text-sm"
                           >
-                            彩度
+                            {t("saturation")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {saturation}
@@ -1350,16 +1351,15 @@ export default function ImageEditor2() {
                           onValueChange={(value) => applySaturation(value[0])}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>低く</span>
-                          <span>高く</span>
+                          <span>{t("saturationLow")}</span>
+                          <span>{t("saturationHigh")}</span>
                         </div>
                       </div>
-
                       {/* コントラストスライダー */}
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <Label htmlFor="contrast-slider" className="text-sm">
-                            コントラスト
+                            {t("contrast")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {contrast}
@@ -1374,11 +1374,10 @@ export default function ImageEditor2() {
                           onValueChange={(value) => applyContrast(value[0])}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>低く</span>
-                          <span>高く</span>
+                          <span>{t("contrastLow")}</span>
+                          <span>{t("contrastHigh")}</span>
                         </div>
                       </div>
-
                       {/* 色相回転スライダー */}
                       <div>
                         <div className="flex items-center justify-between mb-3">
@@ -1386,7 +1385,7 @@ export default function ImageEditor2() {
                             htmlFor="hue-rotation-slider"
                             className="text-sm"
                           >
-                            色相回転
+                            {t("hueRotation")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {hueRotation}°
@@ -1405,12 +1404,11 @@ export default function ImageEditor2() {
                           <span>360°</span>
                         </div>
                       </div>
-
                       {/* セピア効果スライダー */}
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <Label htmlFor="sepia-slider" className="text-sm">
-                            セピア
+                            {t("sepia")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {sepiaIntensity}
@@ -1425,8 +1423,8 @@ export default function ImageEditor2() {
                           onValueChange={(value) => applySepia(value[0])}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>なし</span>
-                          <span>最大</span>
+                          <span>{t("sepiaNone")}</span>
+                          <span>{t("sepiaMax")}</span>
                         </div>
                       </div>
 
@@ -1438,7 +1436,7 @@ export default function ImageEditor2() {
                           onCheckedChange={applyInvert}
                         />
                         <Label htmlFor="invert-switch" className="text-sm">
-                          ネガポジ反転
+                          {t("invert")}
                         </Label>
                       </div>
                     </div>
@@ -1448,36 +1446,34 @@ export default function ImageEditor2() {
                 {/* 特殊エフェクト */}
                 <AccordionItem value="special-effects">
                   <AccordionTrigger className="py-2 text-sm">
-                    特殊エフェクト
+                    {t("accordion.specialEffects")}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4">
                       <p className="text-xs text-gray-500 mb-2">
-                        ワンクリックでエフェクトを適用できます
+                        {t("specialEffects.desc")}
                       </p>
-
                       <Tabs defaultValue="tint" className="w-full">
                         <TabsList className="w-full mb-2 bg-gray-100 p-1 rounded-md">
                           <TabsTrigger
                             value="tint"
                             className="flex-1 px-2 py-1.5 text-xs rounded-sm font-medium"
                           >
-                            ティント
+                            {t("specialEffects.tint")}
                           </TabsTrigger>
                           <TabsTrigger
                             value="effects"
                             className="flex-1 px-2 py-1.5 text-xs rounded-sm font-medium"
                           >
-                            特殊効果
+                            {t("specialEffects.effects")}
                           </TabsTrigger>
                           <TabsTrigger
                             value="blend"
                             className="flex-1 px-2 py-1.5 text-xs rounded-sm font-medium"
                           >
-                            ブレンド
+                            {t("specialEffects.blend")}
                           </TabsTrigger>
                         </TabsList>
-
                         {/* ティント タブ */}
                         <TabsContent value="tint" className="mt-2">
                           <div className="grid grid-cols-3 gap-2 place-items-center">
@@ -1488,7 +1484,7 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0xff0000)}
-                              aria-label="赤色ティント"
+                              aria-label={t("tint.red")}
                             ></button>
                             <button
                               className={`rounded-full h-10 w-10 bg-green-500 hover:bg-green-600 transition-all ${
@@ -1497,7 +1493,7 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0x00ff00)}
-                              aria-label="緑色ティント"
+                              aria-label={t("tint.green")}
                             ></button>
                             <button
                               className={`rounded-full h-10 w-10 bg-blue-500 hover:bg-blue-600 transition-all ${
@@ -1506,7 +1502,7 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0x0000ff)}
-                              aria-label="青色ティント"
+                              aria-label={t("tint.blue")}
                             ></button>
                             <button
                               className={`rounded-full h-10 w-10 bg-yellow-400 hover:bg-yellow-500 transition-all ${
@@ -1515,7 +1511,7 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0xffff00)}
-                              aria-label="黄色ティント"
+                              aria-label={t("tint.yellow")}
                             ></button>
                             <button
                               className={`rounded-full h-10 w-10 bg-purple-500 hover:bg-purple-600 transition-all ${
@@ -1524,7 +1520,7 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0x800080)}
-                              aria-label="紫色ティント"
+                              aria-label={t("tint.purple")}
                             ></button>
                             <button
                               className={`rounded-full h-10 w-10 bg-pink-500 hover:bg-pink-600 transition-all ${
@@ -1533,7 +1529,7 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0xff00ff)}
-                              aria-label="ピンク色ティント"
+                              aria-label={t("tint.pink")}
                             ></button>
                             <button
                               className={`rounded-full h-10 w-10 bg-orange-500 hover:bg-orange-600 transition-all ${
@@ -1542,7 +1538,7 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0xffa500)}
-                              aria-label="オレンジ色ティント"
+                              aria-label={t("tint.orange")}
                             ></button>
                             <button
                               className={`rounded-full h-10 w-10 bg-teal-500 hover:bg-teal-600 transition-all ${
@@ -1551,7 +1547,7 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0x008080)}
-                              aria-label="ティール色ティント"
+                              aria-label={t("tint.teal")}
                             ></button>
                             <button
                               className={`rounded-full h-10 w-10 bg-indigo-500 hover:bg-indigo-600 transition-all ${
@@ -1560,11 +1556,10 @@ export default function ImageEditor2() {
                                   : ""
                               }`}
                               onClick={() => applyTint(0x4b0082)}
-                              aria-label="インディゴ色ティント"
+                              aria-label={t("tint.indigo")}
                             ></button>
                           </div>
                         </TabsContent>
-
                         {/* 特殊効果 タブ */}
                         <TabsContent value="effects" className="mt-2">
                           <div className="grid grid-cols-2 gap-2">
@@ -1577,7 +1572,7 @@ export default function ImageEditor2() {
                                 }`}
                               onClick={() => applyLSD()}
                             >
-                              サイケデリック
+                              {t("effects.lsd")}
                             </button>
                             <button
                               className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center
@@ -1588,7 +1583,7 @@ export default function ImageEditor2() {
                                 }`}
                               onClick={() => applyNight()}
                             >
-                              夜間モード
+                              {t("effects.night")}
                             </button>
                             <button
                               className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center
@@ -1599,7 +1594,7 @@ export default function ImageEditor2() {
                                 }`}
                               onClick={() => applyPredator()}
                             >
-                              熱感知
+                              {t("effects.thermal")}
                             </button>
                             <button
                               className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center
@@ -1610,7 +1605,7 @@ export default function ImageEditor2() {
                                 }`}
                               onClick={() => applyTechnicolor()}
                             >
-                              テクニカラー
+                              {t("effects.technicolor")}
                             </button>
                             <button
                               className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center
@@ -1621,7 +1616,7 @@ export default function ImageEditor2() {
                                 }`}
                               onClick={() => applyToBGR()}
                             >
-                              RGB反転
+                              {t("effects.tobgr")}
                             </button>
                             <button
                               className={`p-2 text-sm font-medium rounded transition-colors flex items-center justify-center
@@ -1632,11 +1627,10 @@ export default function ImageEditor2() {
                                 }`}
                               onClick={() => applyVintage()}
                             >
-                              ビンテージ
+                              {t("effects.vintage")}
                             </button>
                           </div>
                         </TabsContent>
-
                         {/* ブレンド タブ */}
                         <TabsContent value="blend" className="mt-2">
                           <div>
@@ -1645,7 +1639,7 @@ export default function ImageEditor2() {
                                 htmlFor="blend-mode-select"
                                 className="text-sm"
                               >
-                                ブレンドモード
+                                {t("blendMode")}
                               </Label>
                             </div>
                             <Select
@@ -1655,48 +1649,62 @@ export default function ImageEditor2() {
                               }}
                             >
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder="通常" />
+                                <SelectValue placeholder={t("blend.normal")} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="normal">通常</SelectItem>
-                                <SelectItem value="color">カラー</SelectItem>
-                                <SelectItem value="multiply">乗算</SelectItem>
+                                <SelectItem value="normal">
+                                  {t("blend.normal")}
+                                </SelectItem>
+                                <SelectItem value="color">
+                                  {t("blend.color")}
+                                </SelectItem>
+                                <SelectItem value="multiply">
+                                  {t("blend.multiply")}
+                                </SelectItem>
                                 <SelectItem value="screen">
-                                  スクリーン
+                                  {t("blend.screen")}
                                 </SelectItem>
                                 <SelectItem value="overlay">
-                                  オーバーレイ
+                                  {t("blend.overlay")}
                                 </SelectItem>
                                 <SelectItem value="darken">
-                                  比較（暗）
+                                  {t("blend.darken")}
                                 </SelectItem>
                                 <SelectItem value="lighten">
-                                  比較（明）
+                                  {t("blend.lighten")}
                                 </SelectItem>
                                 <SelectItem value="color-dodge">
-                                  覆い焼き
+                                  {t("blend.colorDodge")}
                                 </SelectItem>
                                 <SelectItem value="color-burn">
-                                  焼き込み
+                                  {t("blend.colorBurn")}
                                 </SelectItem>
                                 <SelectItem value="hard-light">
-                                  ハードライト
+                                  {t("blend.hardLight")}
                                 </SelectItem>
                                 <SelectItem value="soft-light">
-                                  ソフトライト
+                                  {t("blend.softLight")}
                                 </SelectItem>
                                 <SelectItem value="difference">
-                                  差の絶対値
+                                  {t("blend.difference")}
                                 </SelectItem>
-                                <SelectItem value="exclusion">除外</SelectItem>
-                                <SelectItem value="hue">色相</SelectItem>
-                                <SelectItem value="saturation">彩度</SelectItem>
-                                <SelectItem value="luminosity">輝度</SelectItem>
+                                <SelectItem value="exclusion">
+                                  {t("blend.exclusion")}
+                                </SelectItem>
+                                <SelectItem value="hue">
+                                  {t("blend.hue")}
+                                </SelectItem>
+                                <SelectItem value="saturation">
+                                  {t("blend.saturation")}
+                                </SelectItem>
+                                <SelectItem value="luminosity">
+                                  {t("blend.luminosity")}
+                                </SelectItem>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {t("blend.desc")}
+                                </p>
                               </SelectContent>
                             </Select>
-                            <p className="text-xs text-gray-500 mt-1">
-                              画像全体のブレンドモードを変更します
-                            </p>
                           </div>
                         </TabsContent>
                       </Tabs>
@@ -1707,7 +1715,7 @@ export default function ImageEditor2() {
                 {/* ぼかし効果 */}
                 <AccordionItem value="blur">
                   <AccordionTrigger className="py-2 text-sm">
-                    ぼかし効果
+                    {t("accordion.blur")}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4">
@@ -1715,7 +1723,7 @@ export default function ImageEditor2() {
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <Label htmlFor="blur-slider" className="text-sm">
-                            全体ぼかし
+                            {t("blur.all")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {blurStrength}
@@ -1730,14 +1738,13 @@ export default function ImageEditor2() {
                           onValueChange={(value) => applyBlur(value[0])}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>なし</span>
-                          <span>強く</span>
+                          <span>{t("blur.none")}</span>
+                          <span>{t("blur.strong")}</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
-                          画像全体をぼかします
+                          {t("blur.descAll")}
                         </p>
                       </div>
-
                       {/* 水平ぼかし */}
                       <div>
                         <div className="flex items-center justify-between mb-3">
@@ -1745,7 +1752,7 @@ export default function ImageEditor2() {
                             htmlFor="horizontal-blur-slider"
                             className="text-sm"
                           >
-                            水平ぼかし
+                            {t("blur.horizontal")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {horizontalBlurStrength}
@@ -1762,14 +1769,13 @@ export default function ImageEditor2() {
                           }
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>なし</span>
-                          <span>強く</span>
+                          <span>{t("blur.none")}</span>
+                          <span>{t("blur.strong")}</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
-                          水平方向のぼかします
+                          {t("blur.descHorizontal")}
                         </p>
                       </div>
-
                       {/* 垂直ぼかし */}
                       <div>
                         <div className="flex items-center justify-between mb-3">
@@ -1777,7 +1783,7 @@ export default function ImageEditor2() {
                             htmlFor="vertical-blur-slider"
                             className="text-sm"
                           >
-                            垂直ぼかし
+                            {t("blur.vertical")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {verticalBlurStrength}
@@ -1792,11 +1798,11 @@ export default function ImageEditor2() {
                           onValueChange={(value) => applyVerticalBlur(value[0])}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>なし</span>
-                          <span>強く</span>
+                          <span>{t("blur.none")}</span>
+                          <span>{t("blur.strong")}</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
-                          垂直方向のぼかします
+                          {t("blur.descVertical")}
                         </p>
                       </div>
                     </div>
@@ -1806,7 +1812,7 @@ export default function ImageEditor2() {
                 {/* 高度な調整 */}
                 <AccordionItem value="advanced">
                   <AccordionTrigger className="py-2 text-sm">
-                    高度な調整
+                    {t("accordion.advanced")}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4">
@@ -1814,7 +1820,7 @@ export default function ImageEditor2() {
                       <div>
                         <div className="flex items-center justify-between mb-3">
                           <Label htmlFor="alpha-slider" className="text-sm">
-                            透明度
+                            {t("alpha")}
                           </Label>
                           <span className="text-sm font-medium text-gray-900">
                             {alpha}%
@@ -1829,8 +1835,8 @@ export default function ImageEditor2() {
                           onValueChange={(value) => applyAlpha(value[0])}
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>透明</span>
-                          <span>不透明</span>
+                          <span>{t("alphaTransparent")}</span>
+                          <span>{t("alphaOpaque")}</span>
                         </div>
                       </div>
                     </div>
@@ -1840,41 +1846,39 @@ export default function ImageEditor2() {
                 {/* 変形 */}
                 <AccordionItem value="transform">
                   <AccordionTrigger className="py-2 text-sm">
-                    画像変形
+                    {t("accordion.transform")}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-3">
                       <h3 className="text-sm font-medium text-gray-900">
-                        回転/反転
+                        {t("transform.title")}
                       </h3>
-
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
                           onClick={() => rotateImage(-90)}
                         >
-                          左に90°
+                          {t("transform.left90")}
                         </button>
                         <button
                           className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
                           onClick={() => rotateImage(90)}
                         >
-                          右に90°
+                          {t("transform.right90")}
                         </button>
                       </div>
-
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
                           onClick={() => flipImage("horizontal")}
                         >
-                          水平反転
+                          {t("transform.flipH")}
                         </button>
                         <button
                           className="p-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium rounded transition-colors flex items-center justify-center"
                           onClick={() => flipImage("vertical")}
                         >
-                          垂直反転
+                          {t("transform.flipV")}
                         </button>
                       </div>
                     </div>
@@ -1884,7 +1888,7 @@ export default function ImageEditor2() {
                 {/* 物体検出 */}
                 <AccordionItem value="object-detection">
                   <AccordionTrigger className="py-2 text-sm">
-                    物体検出
+                    {t("accordion.objectDetection")}
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-3">
@@ -1893,7 +1897,7 @@ export default function ImageEditor2() {
                           htmlFor="object-detection"
                           className="text-xs flex-1"
                         >
-                          物体を検出
+                          {t("objectDetection.detect")}
                         </Label>
                         <Button
                           onClick={() => detectObjects()}
@@ -1901,14 +1905,17 @@ export default function ImageEditor2() {
                           variant="outline"
                           size="sm"
                         >
-                          {isDetecting ? "検出中..." : "検出開始"}
+                          {isDetecting
+                            ? t("objectDetection.detecting")
+                            : t("objectDetection.start")}
                         </Button>
                       </div>
-
                       {detectedObjects.length > 0 && (
                         <div className="space-y-2 mt-3">
                           <div className="text-xs text-gray-500">
-                            検出オブジェクト: {detectedObjects.length}件
+                            {t("objectDetection.resultCount", {
+                              count: detectedObjects.length,
+                            })}
                           </div>
                           <div className="max-h-60 overflow-y-auto">
                             {detectedObjects.map((obj, index) => (
@@ -1925,8 +1932,12 @@ export default function ImageEditor2() {
                                   </span>
                                 </div>
                                 <div className="text-gray-600 mt-1">
-                                  座標: ({obj.x1},{obj.y1}) - ({obj.x2},{obj.y2}
-                                  )
+                                  {t("objectDetection.coordsRange", {
+                                    x1: obj.x1,
+                                    y1: obj.y1,
+                                    x2: obj.x2,
+                                    y2: obj.y2,
+                                  })}
                                 </div>
                               </div>
                             ))}
@@ -1937,15 +1948,14 @@ export default function ImageEditor2() {
                             size="sm"
                             className="mt-2 w-full"
                           >
-                            検出結果をクリア
+                            {t("objectDetection.clearResult")}
                           </Button>
                         </div>
                       )}
-
                       {!isDetecting && detectedObjects.length === 0 && (
                         <div className="text-center py-2">
                           <div className="text-xs text-gray-500">
-                            画像内のオブジェクトを検出します
+                            {t("objectDetection.desc")}
                           </div>
                         </div>
                       )}
@@ -1962,10 +1972,10 @@ export default function ImageEditor2() {
                   className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition-colors"
                   onClick={resetImageTransform}
                 >
-                  すべてリセット
+                  {t("resetAll")}
                 </button>
                 <p className="text-xs text-gray-500 mt-1">
-                  位置・サイズ・回転・画像加工をすべて初期状態に戻します
+                  {t("resetAllDesc")}
                 </p>
               </div>
             )}
