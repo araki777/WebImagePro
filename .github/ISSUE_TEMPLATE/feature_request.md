@@ -2,7 +2,7 @@
 name: 機能要望
 about: 新しい機能の提案や改善要望を提出するためのテンプレート
 title: '[機能要望] '
-labels: enhancement
+labels: feature🚀
 assignees: ''
 
 ---

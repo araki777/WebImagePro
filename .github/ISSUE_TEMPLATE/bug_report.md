@@ -2,7 +2,7 @@
 name: バグ報告
 about: 不具合や問題点を報告するためのテンプレート
 title: '[バグ] '
-labels: bug
+labels: bug🐛
 assignees: ''
 
 ---
