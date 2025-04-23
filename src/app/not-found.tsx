@@ -15,7 +15,7 @@ export default function NotFound() {
           ページが見つかりません
         </h2>
         <p className="mb-8 text-gray-600 dark:text-gray-400">
-          お探しのページは存在しないか、移動した可能性があります。
+          指定されたページは存在しません。
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Link

@@ -4,6 +4,7 @@ import TourGuid from "@/components/common/TourGuid";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Header } from "@/components/ui/header";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { Step } from "react-joyride";
@@ -14,26 +15,25 @@ const Footer = dynamic(() =>
 );
 
 export default function UploadPage() {
+  const t = useTranslations("Upload");
   const { user, isLoading, signOut, checkUser } = useAuthStore();
 
   const steps: Step[] = [
     {
       target: ".upload-header",
-      content: "ここでファイルを選択する",
+      content: t("selectFile"),
       placement: "bottom",
       disableBeacon: true,
     },
     {
       target: ".compression-settings",
-      content:
-        "画像の圧縮設定を調整できます。画質とファイルサイズのバランスを調整しましょう",
+      content: t("compressionSettings"),
       placement: "bottom",
       disableBeacon: true,
     },
     {
       target: ".upload-button",
-      content:
-        "選択した画像をアップロードするボタンです。複数の画像を一括でアップロードできます",
+      content: t("uploadButton"),
       placement: "bottom",
       disableBeacon: true,
     },

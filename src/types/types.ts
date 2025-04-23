@@ -96,7 +96,6 @@ export interface IImageListProps {
 export interface IImagePreviewListProps {
   images: IImagePreview[];
   onRemove: (index: number) => void;
-  onEdit: (index: number) => void;
 }
 
 // ============================================================================

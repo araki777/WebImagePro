@@ -11,10 +11,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Header } from "@/components/ui/header";
+import { Link } from "@/i18n/routing";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Image as ImageIcon, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useEffect } from "react";
 import { Step } from "react-joyride";
 
@@ -24,22 +25,21 @@ const Footer = dynamic(() =>
 );
 
 export default function Home() {
+  const t = useTranslations("Home");
   const { user, isLoading, signOut, checkUser } = useAuthStore();
 
   // トップページのツアーステップを定義
   const steps: Step[] = [
     {
       target: ".card:nth-child(1)",
-      content:
-        "新しい画像をアップロードするには、このカードからアップロードページに移動します。様々な画像形式に対応しています。",
+      content: t("tourUpload"),
       placement: "right",
       disableBeacon: true,
       spotlightClicks: true,
     },
     {
       target: ".card:nth-child(2)",
-      content:
-        "アップロードした画像はすべてギャラリーで管理できます。編集、ダウンロード、削除などの操作が可能です。",
+      content: t("tourGallery"),
       placement: "left",
       disableBeacon: true,
       spotlightClicks: true,
@@ -63,27 +63,23 @@ export default function Home() {
         userName={user.user_metadata.full_name || user.email}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-3xl font-bold mb-8 text-center">WebImagePro</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">{t("title")}</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           <Card className="card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5" />
-                画像アップロード
+                {t("uploadTitle")}
               </CardTitle>
-              <CardDescription>
-                画像をアップロードして編集することができます
-              </CardDescription>
+              <CardDescription>{t("uploadDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p>
-                新しい画像をアップロードして加工しましょう。様々な画像処理機能が利用できます。
-              </p>
+              <p>{t("uploadContent")}</p>
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link href="/upload">アップロードページへ</Link>
+                <Link href="/upload">{t("uploadButton")}</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -92,20 +88,16 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5" />
-                画像ギャラリー
+                {t("galleryTitle")}
               </CardTitle>
-              <CardDescription>
-                これまでにアップロードした画像を閲覧できます
-              </CardDescription>
+              <CardDescription>{t("galleryDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p>
-                過去にアップロードした画像の一覧を表示し、管理することができます。
-              </p>
+              <p>{t("galleryContent")}</p>
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link href="/gallery">ギャラリーページへ</Link>
+                <Link href="/gallery">{t("galleryButton")}</Link>
               </Button>
             </CardFooter>
           </Card>

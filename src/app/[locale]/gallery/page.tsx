@@ -2,9 +2,10 @@
 
 import { ImageGallery } from "@/components/ImageGallery";
 import { Header } from "@/components/ui/header";
+import { useRouter } from "@/i18n/routing";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 // フッターを動的にインポート
@@ -13,6 +14,7 @@ const Footer = dynamic(() =>
 );
 
 export default function GalleryPage() {
+  const t = useTranslations("Gallery");
   const router = useRouter();
   const { user, isLoading, signOut, checkUser } = useAuthStore();
 
@@ -43,7 +45,7 @@ export default function GalleryPage() {
         userName={user.user_metadata.full_name || user.email}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <h1 className="text-3xl font-bold mb-8">ギャラリー</h1>
+        <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
         <ImageGallery />
       </main>
       <Footer />

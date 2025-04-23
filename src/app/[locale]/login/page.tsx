@@ -6,9 +6,11 @@ import { OAUTH_PROVIDERS } from "@/lib/constants";
 import { supabase } from "@/lib/supabase";
 import { Canvas } from "@react-three/fiber";
 import { Chrome, Github } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Suspense, useState } from "react";
 
 function LoginContent() {
+  const t = useTranslations("Login");
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({
     google: false,
     github: false,
@@ -52,7 +54,7 @@ function LoginContent() {
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-full max-w-md p-6 space-y-6 bg-black/20 backdrop-blur-lg rounded-2xl border border-white/10">
           <h1 className="text-2xl font-bold text-center text-white">
-            ログイン
+            {t("title")}
           </h1>
           <div className="flex flex-col gap-4">
             {OAUTH_PROVIDERS.includes("google") && (
@@ -62,7 +64,7 @@ function LoginContent() {
                 isLoading={isLoading.google}
               >
                 <Chrome className="w-4 h-4 mr-2" />
-                Google でログイン
+                {t("loginWithGoogle")}
               </Button>
             )}
             {OAUTH_PROVIDERS.includes("github") && (
@@ -72,7 +74,7 @@ function LoginContent() {
                 isLoading={isLoading.github}
               >
                 <Github className="w-4 h-4 mr-2" />
-                GitHub でログイン
+                {t("loginWithGithub")}
               </Button>
             )}
           </div>
@@ -83,11 +85,12 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
+  const t = useTranslations("Login");
   return (
     <Suspense
       fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
-          読み込み中...
+          {t("loading")}
         </div>
       }
     >
