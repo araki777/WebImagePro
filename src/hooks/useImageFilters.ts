@@ -36,6 +36,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       let brightnessFilter = existingFilters.find(
         (f: PIXI.Filter) =>
           f instanceof PIXI.ColorMatrixFilter &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (f as any)._filterType === "brightness"
       ) as PIXI.ColorMatrixFilter | undefined;
 
@@ -45,6 +46,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       if (!brightnessFilter) {
         // 新しいフィルターを作成
         brightnessFilter = new PIXI.ColorMatrixFilter();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (brightnessFilter as any)._filterType = "brightness";
         // 新しい配列に追加
         newFilters.push(brightnessFilter);
@@ -53,6 +55,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
         const index = existingFilters.indexOf(brightnessFilter);
         if (index !== -1) {
           brightnessFilter = new PIXI.ColorMatrixFilter();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (brightnessFilter as any)._filterType = "brightness";
           newFilters[index] = brightnessFilter;
         } else {
@@ -89,6 +92,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       let saturationFilter = existingFilters.find(
         (f: PIXI.Filter) =>
           f instanceof PIXI.ColorMatrixFilter &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (f as any)._filterType === "saturation"
       ) as PIXI.ColorMatrixFilter | undefined;
 
@@ -98,6 +102,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       if (!saturationFilter) {
         // 新しいフィルターを作成
         saturationFilter = new PIXI.ColorMatrixFilter();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (saturationFilter as any)._filterType = "saturation";
         // 新しい配列に追加
         newFilters.push(saturationFilter);
@@ -106,6 +111,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
         const index = existingFilters.indexOf(saturationFilter);
         if (index !== -1) {
           saturationFilter = new PIXI.ColorMatrixFilter();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (saturationFilter as any)._filterType = "saturation";
           newFilters[index] = saturationFilter;
         } else {
@@ -171,6 +177,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       let contrastFilter = existingFilters.find(
         (f: PIXI.Filter) =>
           f instanceof PIXI.ColorMatrixFilter &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (f as any)._filterType === "contrast"
       ) as PIXI.ColorMatrixFilter | undefined;
 
@@ -180,6 +187,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       if (!contrastFilter) {
         // 新しいフィルターを作成
         contrastFilter = new PIXI.ColorMatrixFilter();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (contrastFilter as any)._filterType = "contrast";
         // 新しい配列に追加
         newFilters.push(contrastFilter);
@@ -188,6 +196,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
         const index = existingFilters.indexOf(contrastFilter);
         if (index !== -1) {
           contrastFilter = new PIXI.ColorMatrixFilter();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (contrastFilter as any)._filterType = "contrast";
           newFilters[index] = contrastFilter;
         } else {
@@ -245,6 +254,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       let hueFilter = existingFilters.find(
         (f: PIXI.Filter) =>
           f instanceof PIXI.ColorMatrixFilter &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (f as any)._filterType === "hue"
       ) as PIXI.ColorMatrixFilter | undefined;
 
@@ -254,6 +264,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       if (!hueFilter) {
         // 新しいフィルターを作成
         hueFilter = new PIXI.ColorMatrixFilter();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (hueFilter as any)._filterType = "hue";
         // 新しい配列に追加
         newFilters.push(hueFilter);
@@ -262,6 +273,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
         const index = existingFilters.indexOf(hueFilter);
         if (index !== -1) {
           hueFilter = new PIXI.ColorMatrixFilter();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (hueFilter as any)._filterType = "hue";
           newFilters[index] = hueFilter;
         } else {
@@ -337,6 +349,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       let sepiaFilter = existingFilters.find(
         (f: PIXI.Filter) =>
           f instanceof PIXI.ColorMatrixFilter &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (f as any)._filterType === "sepia"
       ) as PIXI.ColorMatrixFilter | undefined;
 
@@ -346,6 +359,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       if (!sepiaFilter) {
         // 新しいフィルターを作成
         sepiaFilter = new PIXI.ColorMatrixFilter();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (sepiaFilter as any)._filterType = "sepia";
         // 新しい配列に追加
         newFilters.push(sepiaFilter);
@@ -354,6 +368,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
         const index = existingFilters.indexOf(sepiaFilter);
         if (index !== -1) {
           sepiaFilter = new PIXI.ColorMatrixFilter();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (sepiaFilter as any)._filterType = "sepia";
           newFilters[index] = sepiaFilter;
         } else {
@@ -435,6 +450,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       let invertFilter = existingFilters.find(
         (f: PIXI.Filter) =>
           f instanceof PIXI.ColorMatrixFilter &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (f as any)._filterType === "invert"
       ) as PIXI.ColorMatrixFilter | undefined;
 
@@ -444,6 +460,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       if (!invertFilter) {
         // 新しいフィルターを作成
         invertFilter = new PIXI.ColorMatrixFilter();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (invertFilter as any)._filterType = "invert";
         // 新しい配列に追加
         newFilters.push(invertFilter);
@@ -452,6 +469,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
         const index = existingFilters.indexOf(invertFilter);
         if (index !== -1) {
           invertFilter = new PIXI.ColorMatrixFilter();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (invertFilter as any)._filterType = "invert";
           newFilters[index] = invertFilter;
         } else {
@@ -498,6 +516,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // アルファフィルターを探す
       let alphaFilter = existingFilters.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (f: PIXI.Filter) => (f as any)._filterType === "alpha"
       ) as PIXI.AlphaFilter | undefined;
 
@@ -520,6 +539,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
       if (!alphaFilter) {
         // 新しいフィルターを作成
         alphaFilter = new PIXI.AlphaFilter({ alpha: alphaValue });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (alphaFilter as any)._filterType = "alpha";
         newFilters.push(alphaFilter);
       } else {
@@ -547,6 +567,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // ぼかしフィルターを探す
       let blurFilter = existingFilters.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (f: PIXI.Filter) => (f as any)._filterType === "blur"
       ) as PIXI.BlurFilter | undefined;
 
@@ -574,6 +595,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
           quality: 3, // 品質（パス回数、高いほど品質が良いが処理が重くなる）
           kernelSize: 5, // カーネルサイズ (5, 7, 9, 11, 13, 15のいずれか)
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (blurFilter as any)._filterType = "blur";
 
         // パディング値を設定（ぼかしフィルターの場合、パディングを適切に設定しないと端が切れる）
@@ -608,6 +630,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 水平ぼかしフィルターを探す
       let horizontalBlurFilter = existingFilters.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (f: PIXI.Filter) => (f as any)._filterType === "horizontalBlur"
       ) as PIXI.BlurFilterPass | undefined;
 
@@ -635,6 +658,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
           quality: 3, // 品質
           kernelSize: 5, // カーネルサイズ
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (horizontalBlurFilter as any)._filterType = "horizontalBlur";
 
         // パディング値を設定
@@ -669,6 +693,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 垂直ぼかしフィルターを探す
       let verticalBlurFilter = existingFilters.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (f: PIXI.Filter) => (f as any)._filterType === "verticalBlur"
       ) as PIXI.BlurFilterPass | undefined;
 
@@ -696,6 +721,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
           quality: 3, // 品質
           kernelSize: 5, // カーネルサイズ
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (verticalBlurFilter as any)._filterType = "verticalBlur";
 
         // パディング値を設定
@@ -726,6 +752,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
     try {
       // PIXI.js v8でのブレンドモード設定
       // 型エラー回避のために型アサーションを使用
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (spriteRef.current as any).blendMode = blendMode;
 
       console.log(`ブレンドモードを設定: ${blendMode}`);
@@ -753,6 +780,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // ColorMatrixFilterかつ特殊エフェクトタイプを持つフィルターを削除
       if (filter instanceof PIXI.ColorMatrixFilter) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const filterType = (filter as any)._filterType;
         return !effectFilterTypes.includes(filterType);
       }
@@ -792,6 +820,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 新しいティントフィルターを作成
       const tintFilter = new PIXI.ColorMatrixFilter();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (tintFilter as any)._filterType = "tint";
 
       // ティント効果用のカラーマトリックス
@@ -856,6 +885,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 新しいLSDフィルターを作成
       const lsdFilter = new PIXI.ColorMatrixFilter();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (lsdFilter as any)._filterType = "lsd";
 
       // LSD効果用のカラーマトリックス
@@ -894,6 +924,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 新しい夜間モードフィルターを作成
       const nightFilter = new PIXI.ColorMatrixFilter();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (nightFilter as any)._filterType = "night";
 
       // 夜間モード用のカラーマトリックス
@@ -932,6 +963,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 新しい捕食者視点フィルターを作成
       const predatorFilter = new PIXI.ColorMatrixFilter();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (predatorFilter as any)._filterType = "predator";
 
       // 捕食者視点用のカラーマトリックス
@@ -970,6 +1002,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 新しいテクニカラーフィルターを作成
       const technicolorFilter = new PIXI.ColorMatrixFilter();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (technicolorFilter as any)._filterType = "technicolor";
 
       // テクニカラー効果用のカラーマトリックス
@@ -1008,6 +1041,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 新しいRGB反転フィルターを作成
       const toBGRFilter = new PIXI.ColorMatrixFilter();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (toBGRFilter as any)._filterType = "toBGR";
 
       // RGB反転用のカラーマトリックス
@@ -1045,6 +1079,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
       // 新しいビンテージフィルターを作成
       const vintageFilter = new PIXI.ColorMatrixFilter();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vintageFilter as any)._filterType = "vintage";
 
       // ビンテージ効果用のカラーマトリックス
@@ -1091,6 +1126,7 @@ export const useImageFilters = (spriteRef: RefObject<PIXI.Sprite | null>) => {
 
     // ブレンドモードをリセット
     if (spriteRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (spriteRef.current as any).blendMode = "normal";
     }
   };

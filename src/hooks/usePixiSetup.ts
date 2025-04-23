@@ -359,7 +359,7 @@ export const usePixiSetup = ({
         appRef.current = null;
       }
     };
-  }, []);
+  }, [appRef]);
 
   return {
     createPixiApp,
