@@ -24,69 +24,12 @@ export const useObjectDetection = (
   const [isDetecting, setIsDetecting] = useState(false);
   const objectGraphicsRef = useRef<PIXI.Graphics | null>(null);
 
-  const detectObjects = useCallback(async () => {
-    if (!spriteRef.current || !imageContainerRef.current || !imageUrl)
-      return null;
-
-    setIsDetecting(true);
-
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const imageData = new Uint8Array(arrayBuffer);
-
-      // モデルが事前初期化されているか確認し、されていなければ実行時に自動初期化される
-      // detectメソッドが自動的に画像サイズに基づいて適切なモデルを選択
-
-      // オブジェクト検出を実行（最適なサイズは内部で自動的に決定される）
-      const result = wasmExports.detect_objects(imageData);
-
-      if (result) {
-        const objectCount = result.get_detections_count();
-        const objects: DetectedObject[] = [];
-
-        // 検出結果を保存
-        for (let i = 0; i < objectCount; i++) {
-          const obj = result.get_detection(i);
-          if (obj) {
-            objects.push({
-              class_id: obj.get_class_id(),
-              class_name: obj.get_class_name(),
-              confidence: obj.get_confidence(),
-              x1: obj.get_x1(),
-              y1: obj.get_y1(),
-              x2: obj.get_x2(),
-              y2: obj.get_y2(),
-            });
-          }
-        }
-
-        // 信頼度順にソート
-        objects.sort((a, b) => b.confidence - a.confidence);
-        setDetectedObjects(objects);
-
-        // 検出されたオブジェクトの枠を描画
-        drawObjectBoxes(objects);
-
-        setIsDetecting(false);
-        return objects;
-      }
-    } catch (error) {
-      console.error("物体検出中にエラーが発生しました:", error);
-    }
-
-    setIsDetecting(false);
-    return null;
-  }, [spriteRef, imageContainerRef, imageUrl]);
-
   // 検出されたオブジェクトの枠を描画する関数
   const drawObjectBoxes = useCallback(
     (objects: DetectedObject[]) => {
       if (!spriteRef.current || !imageContainerRef.current) return;
 
       const sprite = spriteRef.current;
-      const scale = sprite.scale;
       const position = sprite.position;
       const rotation = sprite.rotation;
 
@@ -175,6 +118,62 @@ export const useObjectDetection = (
     },
     [spriteRef, imageContainerRef]
   );
+
+  const detectObjects = useCallback(async () => {
+    if (!spriteRef.current || !imageContainerRef.current || !imageUrl)
+      return null;
+
+    setIsDetecting(true);
+
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const imageData = new Uint8Array(arrayBuffer);
+
+      // モデルが事前初期化されているか確認し、されていなければ実行時に自動初期化される
+      // detectメソッドが自動的に画像サイズに基づいて適切なモデルを選択
+
+      // オブジェクト検出を実行（最適なサイズは内部で自動的に決定される）
+      const result = wasmExports.detect_objects(imageData);
+
+      if (result) {
+        const objectCount = result.get_detections_count();
+        const objects: DetectedObject[] = [];
+
+        // 検出結果を保存
+        for (let i = 0; i < objectCount; i++) {
+          const obj = result.get_detection(i);
+          if (obj) {
+            objects.push({
+              class_id: obj.get_class_id(),
+              class_name: obj.get_class_name(),
+              confidence: obj.get_confidence(),
+              x1: obj.get_x1(),
+              y1: obj.get_y1(),
+              x2: obj.get_x2(),
+              y2: obj.get_y2(),
+            });
+          }
+        }
+
+        // 信頼度順にソート
+        objects.sort((a, b) => b.confidence - a.confidence);
+        setDetectedObjects(objects);
+
+        // 検出されたオブジェクトの枠を描画
+        drawObjectBoxes(objects);
+
+        setIsDetecting(false);
+        return objects;
+      }
+    } catch (error) {
+      console.error("物体検出中にエラーが発生しました:", error);
+    }
+
+    setIsDetecting(false);
+    return null;
+  }, [spriteRef, imageContainerRef, imageUrl, drawObjectBoxes]);
 
   const clearObjectDetection = useCallback(() => {
     setDetectedObjects([]);

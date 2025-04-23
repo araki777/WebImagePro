@@ -33,7 +33,6 @@ export const useFaceDetection = (
           const faceCount = result.get_faces_count();
 
           const sprite = spriteRef.current;
-          const scale = sprite.scale;
           const position = sprite.position;
           const rotation = sprite.rotation;
 

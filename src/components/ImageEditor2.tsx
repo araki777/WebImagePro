@@ -37,6 +37,7 @@ import init from "@araki777/wasm-image-pro";
 // import init from "../../wasm/pkg/wasm_image_pro";
 
 // wasmModuleをany型として宣言
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let wasmModule: any;
 let wasmInitError: Error | null = null;
 let wasmInitialized = false;
@@ -100,7 +101,7 @@ export default function ImageEditor2() {
     pixiRefs.componentContainerRef.current,
   ]);
 
-  const loadImageFromUrl = async (url: string, forceResize = false) => {
+  const loadImageFromUrl = async (url: string) => {
     if (
       !pixiRefs.appRef.current ||
       !pixiRefs.imageContainerRef.current ||
@@ -154,10 +155,6 @@ export default function ImageEditor2() {
       // スプライトの位置は0,0に設定（コンテナの中心）
       sprite.x = 0;
       sprite.y = 0;
-
-      // ウィンドウサイズを取得（より確実にするため）
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
 
       // キャンバスサイズを確認または再計算
       let canvasWidth = pixiRefs.appRef.current?.screen.width || 0;
@@ -530,6 +527,7 @@ export default function ImageEditor2() {
         wasmModule = await Promise.race([init(), timeoutPromise]);
         wasmInitialized = true;
         console.log("WebAssemblyモジュール初期化成功", wasmModule);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error("Wasmの初期化に失敗しました:", error);
         wasmInitError = error;
