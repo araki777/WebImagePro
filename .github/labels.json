@@ -10,11 +10,6 @@
 		"description": "ドキュメントを更新するためのラベルです。"
 	},
 	{
-		"name": "duplicate🔄",
-		"color": "cfd3d7",
-		"description": "重複報告をするためのラベルです。"
-	},
-	{
 		"name": "enhancement🔧",
 		"color": "a2eeef",
 		"description": "改善提案をするためのラベルです。"
