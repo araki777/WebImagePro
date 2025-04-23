@@ -7,7 +7,7 @@ import { Footer } from "@/components/ui/footer";
 import { Header } from "@/components/ui/header";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Link, usePathname } from "@/i18n/routing";
+import { usePathname, useRouter } from "@/i18n/routing";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { loadStripe } from "@stripe/stripe-js";
@@ -26,26 +26,34 @@ const stripePromise = loadStripe(
 
 function LanguageSwitcher() {
   const pathname = usePathname();
-  // 対応言語リスト
+  const router = useRouter();
+  const { updateUserSettings } = useAuthStore();
+
   const locales = [
     { code: "ja-JP", label: "日本語" },
     { code: "en-US", label: "English" },
   ];
 
+  const handleLanguageChange = async (code: string) => {
+    await updateUserSettings({ language: code });
+    // 言語切り替え後にページ遷移
+    router.push(pathname, { locale: code });
+  };
+
   return (
     <div className="flex gap-2 items-center mb-6">
       {locales.map(({ code, label }) => (
-        <Link key={code} locale={code} href={pathname} passHref>
-          <Button
-            variant="outline"
-            className="px-3 py-1"
-            aria-current={
-              pathname.startsWith(`/${code.split("-")[0]}`) ? "page" : undefined
-            }
-          >
-            {label}
-          </Button>
-        </Link>
+        <Button
+          key={code}
+          variant="outline"
+          className="px-3 py-1"
+          aria-current={
+            pathname.startsWith(`/${code.split("-")[0]}`) ? "page" : undefined
+          }
+          onClick={() => handleLanguageChange(code)}
+        >
+          {label}
+        </Button>
       ))}
     </div>
   );
@@ -53,7 +61,8 @@ function LanguageSwitcher() {
 
 function SettingsContent() {
   const t = useTranslations("Settings");
-  const { user, userSettings, updateUserSettings, signOut } = useAuthStore();
+  const { user, userSettings, updateUserSettings, signOut, checkUser } =
+    useAuthStore();
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
 
@@ -131,6 +140,10 @@ function SettingsContent() {
       );
     }
   };
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
 
   if (!user) {
     return null;
