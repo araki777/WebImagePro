@@ -7,11 +7,11 @@ export default async function LocaleLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }> | { locale: string };
 }) {
-  const resolvedParams = await params;
-  const { locale } = resolvedParams;
-  const messages = await getMessages();
+  const resolvedParams = "then" in params ? await params : params;
+  const locale = resolvedParams.locale;
+  const messages = await getMessages({ locale });
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <div className="flex flex-col min-h-screen">
