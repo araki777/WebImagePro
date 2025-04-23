@@ -134,6 +134,9 @@ async function fetchUserSettings(userId: string) {
       if (data && data.length > 0) {
         useAuthStore.setState({ userSettings: data[0] });
       }
+      if (data && data.length > 0) {
+        useAuthStore.setState({ userSettings: data[0] });
+      }
     } catch (error) {
       // エラーの内容を確認して、設定が存在しない場合は新規作成
       if (error instanceof Error && error.message.includes("PGRST116")) {
@@ -152,10 +155,10 @@ async function createUserSettings(userId: string) {
   try {
     const { data, error } = await supabase
       .from("user_settings")
-      .insert({
+      .upsert({
         user_id: userId,
         theme: "light",
-        language: "ja",
+        language: "ja-JP",
         subscription_status: null,
         subscription_id: null,
         subscription_end_date: null,
