@@ -7,10 +7,11 @@ export default async function LocaleLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }> | { locale: string };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params: Promise<any> | undefined;
 }) {
-  const resolvedParams = "then" in params ? await params : params;
-  const locale = resolvedParams.locale;
+  const resolvedParams = params ? await params : {};
+  const locale = resolvedParams?.locale || "ja-JP";
   const messages = await getMessages({ locale });
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
