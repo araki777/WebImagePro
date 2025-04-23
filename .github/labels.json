@@ -43,5 +43,10 @@
 		"name": "refactor🔨",
 		"color": "fbca04",
 		"description": "リファクタリングをするためのラベルです。"
+	},
+	{
+		"name": "feature🚀",
+		"color": "1E90FF",
+		"description": "新機能を追加するためのラベルです。"
 	}
 ]
