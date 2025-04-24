@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { ISendEmailParams } from "@/types/types";
 
 // 認証トークンを取得する関数
 async function getAuthToken(): Promise<string | null> {
@@ -7,8 +8,7 @@ async function getAuthToken(): Promise<string | null> {
       data: { session },
     } = await supabase.auth.getSession();
     return session?.access_token || null;
-  } catch (error) {
-    console.error("認証トークン取得エラー:", error);
+  } catch {
     return null;
   }
 }
@@ -40,14 +40,23 @@ async function fetchApi<T>(
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "APIリクエストに失敗しました");
+      let errorData: Record<string, unknown> = {};
+      try {
+        errorData = await response.json();
+      } catch {
+        // JSONでない場合や空の場合
+        errorData = { message: await response.text() };
+      }
+      throw new Error(
+        (errorData as { message?: string; error?: string }).message ||
+          (errorData as { message?: string; error?: string }).error ||
+          "APIリクエストに失敗しました"
+      );
     }
 
     const responseData = await response.json();
-    return responseData.data as T;
+    return responseData as T;
   } catch (error) {
-    console.error(`API ${method} エラー:`, error);
     throw error;
   }
 }
@@ -103,5 +112,35 @@ export const api = {
       "DELETE",
       `/api/supabase?${params.toString()}`
     );
+  },
+
+  /**
+   * メールを送信する
+   */
+  async send({
+    to,
+    subject,
+    message,
+    from,
+    name,
+    email,
+  }: ISendEmailParams): Promise<{
+    success: boolean;
+    message?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    error?: any;
+  }> {
+    try {
+      const response = await fetchApi<{
+        success: boolean;
+        message?: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        error?: any;
+      }>("POST", `/api/send`, { to, subject, message, from, name, email });
+      return response;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      throw new Error(error.message || "メール送信に失敗しました");
+    }
   },
 };

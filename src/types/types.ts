@@ -291,3 +291,16 @@ export const IMAGE_FORMATS: IFormatOption[] = [
   { value: "bmp", label: "BMP" },
   { value: "webp", label: "WebP" },
 ];
+
+// ============================================================================
+// メール関連の型定義
+// ============================================================================
+
+export interface ISendEmailParams {
+  to: string;
+  subject: string;
+  message: string;
+  from: string;
+  name: string;
+  email: string;
+}
