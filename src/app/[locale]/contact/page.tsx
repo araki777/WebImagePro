@@ -77,6 +77,16 @@ export default function ContactPage() {
         status: "pending",
       });
 
+      // メール送信
+      await api.send({
+        to: process.env.NEXT_PUBLIC_RESEND_EMAIL_TO || "",
+        subject: formData.subject,
+        message: formData.message,
+        from: process.env.NEXT_PUBLIC_RESEND_EMAIL_FROM || "",
+        name: formData.name,
+        email: formData.email,
+      });
+
       // トースト通知を表示
       toast.success(t("success"), {
         duration: 5000,
