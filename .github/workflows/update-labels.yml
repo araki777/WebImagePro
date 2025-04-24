@@ -3,7 +3,7 @@ name: Update Labels on File Change
 on:
   push:
     branches:
-      - master
+      - develop
     paths:
       - ".github/labels.json"
 
