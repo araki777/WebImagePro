@@ -39,9 +39,9 @@
   },
   "Login": {
     "loading": "読み込み中...",
-    "title": "ログイン",
-    "loginWithGoogle": "Googleでログイン",
-    "loginWithGithub": "GitHubでログイン"
+    "welcomeBack": "おかえりなさい",
+    "continueWithGoogle": "Googleで続行",
+    "continueWithGitHub": "GitHubで続行"
   },
   "Home": {
     "tourUpload": "画像をアップロードしてみましょう！",
