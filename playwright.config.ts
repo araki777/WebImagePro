@@ -22,4 +22,8 @@ export default defineConfig({
       use: { browserName: "webkit" },
     },
   ],
+  webServer: {
+    command: "npm run dev",
+    port: 3000,
+  },
 });
