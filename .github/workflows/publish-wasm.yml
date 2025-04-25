@@ -5,7 +5,7 @@ on:
     branches:
       - develop
     paths:
-      - "wasm/**"
+      - "wasm/src/**"
   workflow_dispatch:
 
 permissions:
@@ -66,6 +66,9 @@ jobs:
         run: |
           cd wasm
           wasm-pack build --target web --release
+
+      - name: Copy README for npm package
+        run: cp wasm/README.md wasm/pkg/README.md
 
       - name: Create package.json
         run: |
