@@ -41,7 +41,10 @@
     "loading": "Loading...",
     "title": "Login",
     "loginWithGoogle": "Login with Google",
-    "loginWithGithub": "Login with GitHub"
+    "loginWithGithub": "Login with GitHub",
+    "welcomeBack": "Welcome back",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithGitHub": "Continue with GitHub"
   },
   "Home": {
     "tourUpload": "Let's try uploading an image!",

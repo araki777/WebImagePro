@@ -11,6 +11,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "e2e:all": "playwright test",
+    "e2e:chromium": "playwright test --project=chromium",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "preinstall": "node scripts/preinstall.js"
@@ -62,6 +64,7 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.6",
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.52.0",
     "@storybook/addon-essentials": "^8.6.10",
     "@storybook/addon-onboarding": "^8.6.10",
     "@storybook/blocks": "^8.6.10",
