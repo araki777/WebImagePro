@@ -5,12 +5,18 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useImageCompression } from "@/hooks/useImageCompression";
+import { DEFAULT_COMPRESSION_SETTINGS } from "@/lib/constants";
+
 export function ImageUploadActions({
   images,
   setImages,
+  compressionSettings,
 }: IImageUploadActionsProps) {
   const t = useTranslations("ImageUploadActions");
   const [isUploading, setIsUploading] = useState(false);
+
+  const { imageCompression } = useImageCompression();
 
   // 画像をアップロードする関数
   const handleUpload = async () => {
@@ -20,10 +26,16 @@ export function ImageUploadActions({
 
     // 画像ごとにアップロード処理を行う
     const uploadPromises = images.map(async (image) => {
-      const formData = new FormData();
-      formData.append("file", image.file);
-
       try {
+        // 画像を圧縮
+        const compressedImage = await imageCompression(
+          image.file,
+          compressionSettings || DEFAULT_COMPRESSION_SETTINGS
+        );
+
+        const formData = new FormData();
+        formData.append("file", compressedImage);
+
         // APIへ画像ファイルをPOSTリクエストで送信
         const response = await fetch("/api/upload", {
           method: "POST",
@@ -38,6 +50,7 @@ export function ImageUploadActions({
         const data = await response.json();
         return data.url;
       } catch (error) {
+        console.error("アップロードエラー:", error);
         throw error;
       }
     });

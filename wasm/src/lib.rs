@@ -7,7 +7,7 @@ pub mod image_composition;
 pub mod filter_effects;
 pub mod face_detection;
 pub mod object_detection;
+pub mod image_compression;
 
-// 必要な要素を明示的にエクスポート
 pub use object_detection::detect::{detect_objects, ObjectDetectionResult, DetectedObject};
 pub use face_detection::detect::{detect_faces, Face, FaceDetectionResult, Landmark};

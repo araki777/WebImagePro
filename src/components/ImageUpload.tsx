@@ -23,6 +23,17 @@ export function ImageUpload() {
   const [compressionSettings, setCompressionSettings] =
     useState<ICompressionSettings>(DEFAULT_COMPRESSION_SETTINGS); // 圧縮設定の状態
 
+  const handleCompressionSettingsChange = (
+    index: number,
+    settings: ICompressionSettings
+  ) => {
+    setImages((prev) =>
+      prev.map((img, i) =>
+        i === index ? { ...img, compressionSettings: settings } : img
+      )
+    );
+  };
+
   // 画像を削除する関数
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
@@ -61,10 +72,19 @@ export function ImageUpload() {
 
           {/* アップロードされた画像の表示 */}
           {images.length > 0 && (
-            <ImagePreviewList images={images} onRemove={removeImage} />
+            <ImagePreviewList
+              images={images}
+              onRemove={removeImage}
+              onCompressionSettingsChange={handleCompressionSettingsChange}
+              compressionSettings={compressionSettings}
+            />
           )}
 
-          <ImageUploadActions images={images} setImages={setImages} />
+          <ImageUploadActions
+            images={images}
+            setImages={setImages}
+            compressionSettings={compressionSettings}
+          />
         </CardContent>
       </Card>
     </>
