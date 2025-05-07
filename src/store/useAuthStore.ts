@@ -10,52 +10,65 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user) => set({ user }),
   checkUser: async () => {
     try {
+      // セッションを取得
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session) {
         set({ user: null, isLoading: false, userSettings: null });
         window.location.href = "/login";
         return;
       }
 
-      // Redisからキャッシュされたユーザー情報を取得
-      const response = await fetch(`/api/cache/user?userId=${user.id}`);
-      const { user: cachedUser } = await response.json();
+      // キャッシュからセッションデータを取得
+      const sessionResponse = await fetch(
+        `/api/cache/session?sessionId=${session.access_token}`
+      );
+      const { session: cachedSession } = await sessionResponse.json();
 
-      if (cachedUser) {
-        set({
-          user: cachedUser,
-          isLoading: false,
-        });
-      } else {
+      if (cachedSession) {
+        // キャッシュされたセッションを使用
         const userData: IUserData = {
-          id: user.id,
-          email: user.email || "",
-          user_metadata: user.user_metadata,
+          id: cachedSession.user.id,
+          email: cachedSession.user.email || "",
+          user_metadata: cachedSession.user.user_metadata,
         };
-
-        // ユーザー情報をRedisにキャッシュ
-        await fetch("/api/cache/user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            userData,
-          }),
-        });
 
         set({
           user: userData,
           isLoading: false,
         });
-      }
 
-      // ユーザー設定を取得
-      await fetchUserSettings(user.id);
+        // ユーザー設定を取得
+        await fetchUserSettings(userData.id);
+      } else {
+        // セッションをキャッシュに保存
+        await fetch("/api/cache/session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sessionId: session.access_token,
+            sessionData: session,
+          }),
+        });
+
+        const userData: IUserData = {
+          id: session.user.id,
+          email: session.user.email || "",
+          user_metadata: session.user.user_metadata,
+        };
+
+        set({
+          user: userData,
+          isLoading: false,
+        });
+
+        // ユーザー設定を取得
+        await fetchUserSettings(userData.id);
+      }
 
       // 認証状態の変更を監視（一度だけ登録）
       const {
@@ -63,33 +76,36 @@ export const useAuthStore = create<AuthState>((set) => ({
       } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === "SIGNED_OUT") {
           // ログアウト時にキャッシュを削除
-          if (user) {
-            await fetch(`/api/cache/user?userId=${user.id}`, {
-              method: "DELETE",
-            });
+          if (session?.access_token) {
+            await fetch(
+              `/api/cache/session?sessionId=${session.access_token}`,
+              {
+                method: "DELETE",
+              }
+            );
           }
           set({ user: null, userSettings: null, isLoading: false });
           window.location.href = "/login";
         } else if (event === "TOKEN_REFRESHED") {
-          if (session?.user) {
+          if (session) {
             try {
-              const userData = {
-                id: session.user.id,
-                email: session.user.email || "",
-                user_metadata: session.user.user_metadata,
-              };
-
-              // キャッシュを更新
-              await fetch("/api/cache/user", {
+              // 新しいセッションをキャッシュに保存
+              await fetch("/api/cache/session", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  userId: session.user.id,
-                  userData,
+                  sessionId: session.access_token,
+                  sessionData: session,
                 }),
               });
+
+              const userData: IUserData = {
+                id: session.user.id,
+                email: session.user.email || "",
+                user_metadata: session.user.user_metadata,
+              };
 
               set({
                 user: userData,
@@ -104,31 +120,6 @@ export const useAuthStore = create<AuthState>((set) => ({
               window.location.href = "/login";
             }
           }
-        } else if (session?.user) {
-          const userData = {
-            id: session.user.id,
-            email: session.user.email || "",
-            user_metadata: session.user.user_metadata,
-          };
-
-          // キャッシュを更新
-          await fetch("/api/cache/user", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: session.user.id,
-              userData,
-            }),
-          });
-
-          set({
-            user: userData,
-            isLoading: false,
-          });
-          // ユーザー設定を再取得
-          fetchUserSettings(session.user.id);
         }
       });
 
@@ -151,12 +142,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
       // ログアウト時にキャッシュを削除
-      if (user) {
-        await fetch(`/api/cache/user?userId=${user.id}`, {
+      if (session?.access_token) {
+        await fetch(`/api/cache/session?sessionId=${session.access_token}`, {
           method: "DELETE",
         });
       }
