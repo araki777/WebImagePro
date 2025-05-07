@@ -66,8 +66,8 @@
   },
   "ImageUpload": {
     "title": "画像アップロード",
-    "description": "アップロードする画像を選択してください。",
-    "compressionWarning": "2MBを超える画像は圧縮を有効にすることをおすすめします。"
+    "description": "画像をアップロードして圧縮や編集を行います",
+    "compressionWarning": "大きな画像ファイルが検出されました。圧縮を有効にすることをお勧めします。"
   },
   "ImageUploadActions": {
     "upload": "アップロード",
@@ -132,7 +132,17 @@
     "fileSize": "ファイルサイズ",
     "lastModified": "最終更新日",
     "edit": "編集",
-    "delete": "削除"
+    "delete": "削除",
+    "compressionEnabled": "圧縮を有効にする",
+    "format": "フォーマット",
+    "quality": "品質",
+    "previewCompression": "圧縮プレビュー",
+    "compressionPreview": "圧縮プレビュー",
+    "compressionPreviewDescription": "元の画像と圧縮後の画像を比較できます。",
+    "original": "元の画像",
+    "compressed": "圧縮後",
+    "compressionSettings": "圧縮設定",
+    "previewError": "プレビューの生成に失敗しました。"
   },
   "Settings": {
     "title": "設定",

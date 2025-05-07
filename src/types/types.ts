@@ -76,9 +76,19 @@ export interface IApiImage extends IBaseImage {
   uploadedAt: string;
 }
 
+export interface ICompressionSettings {
+  enabled: boolean;
+  format: "JPEG" | "PNG" | "WebP";
+  quality: number;
+  maxWidth: number;
+  maxHeight: number;
+}
+
 export interface IImagePreview {
+  id: string;
   file: File;
   preview: string;
+  compressionSettings?: ICompressionSettings;
 }
 
 // ============================================================================
@@ -96,18 +106,16 @@ export interface IImageListProps {
 export interface IImagePreviewListProps {
   images: IImagePreview[];
   onRemove: (index: number) => void;
+  onCompressionSettingsChange: (
+    index: number,
+    settings: ICompressionSettings
+  ) => void;
+  compressionSettings: ICompressionSettings;
 }
 
 // ============================================================================
 // 画像アップロード関連の型定義
 // ============================================================================
-
-export interface ICompressionSettings {
-  enabled: boolean;
-  quality: number;
-  maxWidth: number;
-  maxHeight: number;
-}
 
 export interface ICompressionSettingsProps {
   compressionSettings: ICompressionSettings;
@@ -129,6 +137,7 @@ export interface IImageUploadFormProps extends ICompressionSettingsProps {
 export interface IImageUploadActionsProps {
   images: IImagePreview[];
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
+  compressionSettings: ICompressionSettings;
 }
 
 // ============================================================================
