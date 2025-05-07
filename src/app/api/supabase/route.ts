@@ -206,11 +206,13 @@ export async function GET(request: Request) {
 
     if (adminSupabase && RLS_BYPASS_TABLES.includes(table)) {
       // 管理者権限でRLSをバイパス
-      let query = adminSupabase.from(table).select("*").eq("user_id", userId);
+      let query = adminSupabase.from(table).select("*");
 
       // IDが指定されている場合は特定のレコードのみ取得
       if (id) {
         query = query.eq("id", id);
+      } else {
+        query = query.eq("user_id", userId);
       }
 
       const response = await query;
@@ -218,11 +220,13 @@ export async function GET(request: Request) {
       error = response.error;
     } else {
       // 通常のクライアントを使用
-      let query = supabase.from(table).select("*").eq("user_id", userId);
+      let query = supabase.from(table).select("*");
 
       // IDが指定されている場合は特定のレコードのみ取得
       if (id) {
         query = query.eq("id", id);
+      } else {
+        query = query.eq("user_id", userId);
       }
 
       const response = await query;
