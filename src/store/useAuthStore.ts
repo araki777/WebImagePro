@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
-import { AuthState, UserSettings } from "@/types/types";
+import { AuthState, IUserData, UserSettings } from "@/types/types";
 import { create } from "zustand";
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -20,14 +20,39 @@ export const useAuthStore = create<AuthState>((set) => ({
         return;
       }
 
-      set({
-        user: {
+      // Redisからキャッシュされたユーザー情報を取得
+      const response = await fetch(`/api/cache/user?userId=${user.id}`);
+      const { user: cachedUser } = await response.json();
+
+      if (cachedUser) {
+        set({
+          user: cachedUser,
+          isLoading: false,
+        });
+      } else {
+        const userData: IUserData = {
           id: user.id,
           email: user.email || "",
           user_metadata: user.user_metadata,
-        },
-        isLoading: false,
-      });
+        };
+
+        // ユーザー情報をRedisにキャッシュ
+        await fetch("/api/cache/user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            userData,
+          }),
+        });
+
+        set({
+          user: userData,
+          isLoading: false,
+        });
+      }
 
       // ユーザー設定を取得
       await fetchUserSettings(user.id);
@@ -37,17 +62,37 @@ export const useAuthStore = create<AuthState>((set) => ({
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === "SIGNED_OUT") {
+          // ログアウト時にキャッシュを削除
+          if (user) {
+            await fetch(`/api/cache/user?userId=${user.id}`, {
+              method: "DELETE",
+            });
+          }
           set({ user: null, userSettings: null, isLoading: false });
           window.location.href = "/login";
         } else if (event === "TOKEN_REFRESHED") {
           if (session?.user) {
             try {
-              set({
-                user: {
-                  id: session.user.id,
-                  email: session.user.email || "",
-                  user_metadata: session.user.user_metadata,
+              const userData = {
+                id: session.user.id,
+                email: session.user.email || "",
+                user_metadata: session.user.user_metadata,
+              };
+
+              // キャッシュを更新
+              await fetch("/api/cache/user", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
                 },
+                body: JSON.stringify({
+                  userId: session.user.id,
+                  userData,
+                }),
+              });
+
+              set({
+                user: userData,
                 isLoading: false,
               });
               await fetchUserSettings(session.user.id);
@@ -60,12 +105,26 @@ export const useAuthStore = create<AuthState>((set) => ({
             }
           }
         } else if (session?.user) {
-          set({
-            user: {
-              id: session.user.id,
-              email: session.user.email || "",
-              user_metadata: session.user.user_metadata,
+          const userData = {
+            id: session.user.id,
+            email: session.user.email || "",
+            user_metadata: session.user.user_metadata,
+          };
+
+          // キャッシュを更新
+          await fetch("/api/cache/user", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
+            body: JSON.stringify({
+              userId: session.user.id,
+              userData,
+            }),
+          });
+
+          set({
+            user: userData,
             isLoading: false,
           });
           // ユーザー設定を再取得
@@ -91,9 +150,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   signOut: async () => {
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // ログアウト時にキャッシュを削除
+      if (user) {
+        await fetch(`/api/cache/user?userId=${user.id}`, {
+          method: "DELETE",
+        });
+      }
+
       // サインアウト
       await supabase.auth.signOut();
-      // ユーザー状態をクリア
       set({ user: null, isLoading: false, userSettings: null });
       // ログインページに直接リダイレクト
       window.location.href = "/login";
@@ -131,9 +200,6 @@ async function fetchUserSettings(userId: string) {
     // APIを使用してユーザー設定を取得
     try {
       const data = await api.get<UserSettings[]>("user_settings", userId);
-      if (data && data.length > 0) {
-        useAuthStore.setState({ userSettings: data[0] });
-      }
       if (data && data.length > 0) {
         useAuthStore.setState({ userSettings: data[0] });
       }
