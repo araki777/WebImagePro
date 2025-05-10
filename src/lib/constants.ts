@@ -8,8 +8,6 @@ export const DEFAULT_COMPRESSION_SETTINGS: ICompressionSettings = {
   enabled: true,
   format: "JPEG",
   quality: 80,
-  maxWidth: 1920,
-  maxHeight: 1080,
 };
 
 // 切り抜き領域の比率
