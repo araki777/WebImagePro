@@ -77,17 +77,15 @@ export default function ImageEditor2() {
   const pixiRefs = usePixiRefs();
 
   // 顔検出のフックを使用
-  const { detectFaces, clearFaceDetection } = useFaceDetection(
-    pixiRefs.spriteRef,
-    pixiRefs.imageContainerRef,
-    imageUrl
-  );
+  const { detectFaces, clearFaceDetection, redrawFacesForSave } =
+    useFaceDetection(pixiRefs.spriteRef, pixiRefs.imageContainerRef, imageUrl);
 
-  const { detectObjects, clearObjectDetection } = useObjectDetection(
-    pixiRefs.spriteRef,
-    pixiRefs.imageContainerRef,
-    imageUrl
-  );
+  const { detectObjects, clearObjectDetection, redrawBoxesForSave } =
+    useObjectDetection(
+      pixiRefs.spriteRef,
+      pixiRefs.imageContainerRef,
+      imageUrl
+    );
 
   const loadImage = useCallback(async () => {
     if (
@@ -1011,6 +1009,13 @@ export default function ImageEditor2() {
       sprite.position.set(width / 2, height / 2);
       sprite.rotation = 0;
 
+      // 物体検出フレームも保存用状態で再描画
+      redrawBoxesForSave(sprite);
+      // 顔検出（枠・ぼかし）も保存用状態で再描画
+      if (faceDetectionMode) {
+        await redrawFacesForSave(faceDetectionMode, sprite);
+      }
+
       // RenderTextureを作成し、imageContainerRefを描画
       const renderer = pixiRefs.appRef.current.renderer;
       const renderTexture = PIXI.RenderTexture.create({ width, height });
@@ -1035,6 +1040,8 @@ export default function ImageEditor2() {
       sprite.scale = oldScale;
       sprite.position = oldPosition;
       sprite.rotation = oldRotation;
+      // 物体検出フレームも元の状態で再描画
+      redrawBoxesForSave(sprite);
 
       // canvasからBlobを生成
       const blob = await new Promise<Blob>((resolve, reject) => {
