@@ -44,6 +44,8 @@ let wasmModule: any;
 let wasmInitError: Error | null = null;
 let wasmInitialized = false;
 
+import { Loader } from "lucide-react";
+
 export default function ImageEditor2() {
   const t = useTranslations("ImageEditor2");
   const router = useRouter();
@@ -68,6 +70,7 @@ export default function ImageEditor2() {
   } | null>(null);
   // 検出タイプの選択状態
   const [selectedDetection, setSelectedDetection] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // 認証関連
   const searchParams = useSearchParams();
@@ -986,6 +989,10 @@ export default function ImageEditor2() {
       !pixiRefs.imageContainerRef.current
     )
       return;
+
+    // 保存処理開始時にローディング状態をセット
+    setIsSaving(true);
+
     try {
       // 元画像のサイズを取得
       const sprite = pixiRefs.spriteRef.current;
@@ -1201,6 +1208,18 @@ export default function ImageEditor2() {
               {t("error.reload")}
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ローディング画面
+  if (isSaving) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center fixed inset-0 z-50">
+        <div className="flex flex-col items-center">
+          <Loader className="w-12 h-12 text-black animate-spin mb-4" />
+          <h2 className="text-2xl font-medium text-black">{t("saving")}...</h2>
         </div>
       </div>
     );
@@ -1988,14 +2007,18 @@ export default function ImageEditor2() {
                   <Button
                     className="flex-1 bg-green-500 hover:bg-green-600 text-white"
                     onClick={() => onSaveEdit(true)}
+                    isLoading={isSaving}
+                    disabled={isSaving}
                   >
-                    新規保存
+                    {t("saveNew")}
                   </Button>
                   <Button
                     className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
                     onClick={() => onSaveEdit(false)}
+                    isLoading={isSaving}
+                    disabled={isSaving}
                   >
-                    上書き保存
+                    {t("saveOverwrite")}
                   </Button>
                 </div>
               </div>

@@ -379,6 +379,9 @@
       "title": "検出機能",
       "select": "検出タイプを選択",
       "selectPlaceholder": "選択してください"
-    }
+    },
+    "saving": "画像を保存中",
+    "saveNew": "新規保存",
+    "saveOverwrite": "上書き保存"
   }
 }
