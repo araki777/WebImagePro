@@ -1,9 +1,16 @@
 import { Input } from "@/components/ui/input";
-import { ISearchBarProps } from "@/types/types";
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-export function SearchBar({ query, onChange, className }: ISearchBarProps) {
+export function SearchBar({
+  query,
+  onChange,
+  className,
+}: {
+  query: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
+}) {
   const t = useTranslations("SearchBar");
   return (
     <div className={`relative search-bar ${className}`}>
