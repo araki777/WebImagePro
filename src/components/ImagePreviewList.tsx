@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,22 +24,22 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { useImageCompression } from "@/hooks/useImageCompression";
 import {
   DEFAULT_COMPRESSION_SETTINGS,
   ICompressionSettings,
 } from "@/lib/constants";
 import { formatFileSize } from "@/lib/utils";
 import { IImagePreview, IImagePreviewListProps } from "@/types/types";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL } from "@ffmpeg/util";
 import { Eye, Settings2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function ImagePreviewList({
   images,
   onRemove,
   onCompressionSettingsChange,
-  compressionSettings,
 }: IImagePreviewListProps) {
   const t = useTranslations("ImagePreviewList");
   const [previewImage, setPreviewImage] = useState<{
@@ -46,7 +48,42 @@ export function ImagePreviewList({
     originalSize: number;
     compressedSize: number;
   } | null>(null);
-  const { imageCompression } = useImageCompression();
+
+  const ffmpeg = useRef<FFmpeg | null>(null);
+  const [isFFmpegLoaded, setIsFFmpegLoaded] = useState(false);
+
+  useEffect(() => {
+    const initFFmpeg = async () => {
+      try {
+        const ffmpegInstance = new FFmpeg();
+        const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+        await ffmpegInstance.load({
+          coreURL: await toBlobURL(
+            `${baseURL}/ffmpeg-core.js`,
+            "text/javascript"
+          ),
+          wasmURL: await toBlobURL(
+            `${baseURL}/ffmpeg-core.wasm`,
+            "application/wasm"
+          ),
+        });
+        ffmpeg.current = ffmpegInstance;
+        setIsFFmpegLoaded(true);
+      } catch (error) {
+        console.error("FFmpegの初期化中にエラーが発生しました:", error);
+      }
+    };
+
+    initFFmpeg();
+
+    return () => {
+      if (ffmpeg.current) {
+        ffmpeg.current.terminate();
+        ffmpeg.current = null;
+        setIsFFmpegLoaded(false);
+      }
+    };
+  }, []);
 
   const handleCompressionSettingsChange = (
     index: number,
@@ -61,8 +98,14 @@ export function ImagePreviewList({
     image: IImagePreview,
     compressionSettings: ICompressionSettings
   ) => {
+    let inputFileName = "";
+    let outputFileName = "";
+    let compressedUrl = "";
+
     try {
-      if (compressionSettings) return;
+      if (!compressionSettings.enabled || !isFFmpegLoaded || !ffmpeg.current) {
+        return;
+      }
 
       // 画像のコピーを作成
       const response = await fetch(image.preview);
@@ -71,31 +114,141 @@ export function ImagePreviewList({
         type: image.file.type,
       });
 
-      console.log(imageFile);
+      // 入力ファイルをFFmpegに書き込む
+      const arrayBuffer = await imageFile.arrayBuffer();
+      inputFileName = `input_${Date.now()}_${image.file.name}`;
+      outputFileName = `output_${Date.now()}_${image.file.name}`;
 
-      // 圧縮を適用
-      const compressedFile = await imageCompression(
-        imageFile,
-        compressionSettings
-      );
-      console.log(compressedFile);
-      const compressedUrl = URL.createObjectURL(compressedFile);
+      try {
+        // 入力ファイルの書き込み
+        await ffmpeg.current.writeFile(
+          inputFileName,
+          new Uint8Array(arrayBuffer)
+        );
 
-      setPreviewImage({
-        url: compressedUrl,
-        settings: compressionSettings,
-        originalSize: image.file.size,
-        compressedSize: compressedFile.size,
-      });
+        // 圧縮コマンドの実行
+        const quality = compressionSettings.quality;
+        const format = compressionSettings.format.toLowerCase();
 
-      // クリーンアップ関数を設定
+        // フォーマットに応じたFFmpegコマンドの構築
+        let command: string[];
+        switch (format) {
+          case "jpeg":
+          case "jpg":
+            command = [
+              "-i",
+              inputFileName,
+              "-c:v",
+              "mjpeg",
+              "-q:v",
+              quality.toString(),
+              "-preset",
+              "medium",
+              "-y",
+              outputFileName,
+            ];
+            break;
+          case "png":
+            const pngQuality = Math.max(
+              0,
+              Math.min(9, Math.floor((100 - quality) / 11))
+            );
+            command = [
+              "-i",
+              inputFileName,
+              "-c:v",
+              "png",
+              "-compression_level",
+              pngQuality.toString(),
+              "-y",
+              outputFileName,
+            ];
+            break;
+          case "webp":
+            command = [
+              "-i",
+              inputFileName,
+              "-c:v",
+              "libwebp",
+              "-quality",
+              quality.toString(),
+              "-preset",
+              "medium",
+              "-y",
+              outputFileName,
+            ];
+            break;
+          default:
+            throw new Error(`未対応のフォーマットです: ${format}`);
+        }
+
+        // コマンド実行
+        const result = await ffmpeg.current.exec(command);
+
+        if (result !== 0) {
+          throw new Error(
+            `FFmpegコマンドの実行に失敗しました（終了コード: ${result}）`
+          );
+        }
+
+        // 圧縮されたファイルを読み込む
+        let compressedData;
+        try {
+          // ファイルの読み込み
+          compressedData = await ffmpeg.current.readFile(outputFileName);
+        } catch (readError) {
+          console.error("出力ファイルの読み込みに失敗:", readError);
+          throw new Error(
+            `出力ファイルの読み込みに失敗しました: ${readError instanceof Error ? readError.message : "不明なエラー"}`
+          );
+        }
+
+        const compressedBlob = new Blob([compressedData], {
+          type: `image/${format}`,
+        });
+        compressedUrl = URL.createObjectURL(compressedBlob);
+        const compressedFile = new File([compressedBlob], outputFileName, {
+          type: `image/${format}`,
+        });
+
+        // 圧縮後のサイズを計算
+        const compressedSize = compressedFile.size;
+
+        setPreviewImage({
+          url: compressedUrl,
+          settings: compressionSettings,
+          originalSize: image.file.size,
+          compressedSize: compressedSize,
+        });
+      } finally {
+        // 一時ファイルの削除
+        if (ffmpeg.current) {
+          try {
+            if (inputFileName) {
+              await ffmpeg.current.deleteFile(inputFileName);
+            }
+            if (outputFileName) {
+              await ffmpeg.current.deleteFile(outputFileName);
+            }
+          } catch (cleanupError) {
+            console.warn(
+              "一時ファイルの削除中にエラーが発生しました:",
+              cleanupError
+            );
+          }
+        }
+      }
+
       return () => {
         if (compressedUrl) {
           URL.revokeObjectURL(compressedUrl);
         }
       };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("プレビューの生成中にエラーが発生しました:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "不明なエラー";
+      throw new Error(`プレビューの生成に失敗しました: ${errorMessage}`);
     }
   };
 
@@ -177,20 +330,29 @@ export function ImagePreviewList({
 
                       <div className="space-y-2">
                         <Label>{t("quality")}</Label>
-                        <Slider
-                          value={[
-                            image.compressionSettings?.quality ??
-                              DEFAULT_COMPRESSION_SETTINGS.quality,
-                          ]}
-                          min={1}
-                          max={100}
-                          step={1}
-                          onValueChange={([value]) =>
-                            handleCompressionSettingsChange(index, {
-                              quality: value,
-                            })
-                          }
-                        />
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1">
+                            <Slider
+                              value={[
+                                image.compressionSettings?.quality ??
+                                  DEFAULT_COMPRESSION_SETTINGS.quality,
+                              ]}
+                              min={1}
+                              max={100}
+                              step={1}
+                              onValueChange={([value]) =>
+                                handleCompressionSettingsChange(index, {
+                                  quality: value,
+                                })
+                              }
+                            />
+                          </div>
+                          <span className="text-sm text-muted-foreground min-w-[3ch]">
+                            {image.compressionSettings?.quality ??
+                              DEFAULT_COMPRESSION_SETTINGS.quality}
+                            %
+                          </span>
+                        </div>
                       </div>
 
                       <Dialog>
@@ -201,7 +363,8 @@ export function ImagePreviewList({
                             onClick={() =>
                               handlePreviewCompression(
                                 image,
-                                compressionSettings
+                                image.compressionSettings ||
+                                  DEFAULT_COMPRESSION_SETTINGS
                               )
                             }
                           >
@@ -229,7 +392,7 @@ export function ImagePreviewList({
                                 />
                                 <p className="text-sm text-muted-foreground mt-2">
                                   {t("fileSize")}:{" "}
-                                  {formatFileSize(image.file.size)}
+                                  {formatFileSize(previewImage.originalSize)}
                                 </p>
                               </div>
                               <div>
@@ -241,11 +404,20 @@ export function ImagePreviewList({
                                   alt="Compressed"
                                   className="w-full rounded-lg"
                                 />
-                                <p className="text-sm text-muted-foreground mt-2">
-                                  {t("compressionSettings")}:{" "}
-                                  {previewImage.settings.format}, {t("quality")}
-                                  : {previewImage.settings.quality}%
-                                </p>
+                                <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                                  <p>
+                                    {t("fileSize")}:{" "}
+                                    {formatFileSize(
+                                      previewImage.compressedSize
+                                    )}
+                                  </p>
+                                  <p>
+                                    {t("compressionSettings")}:{" "}
+                                    {previewImage.settings.format},{" "}
+                                    {t("quality")}:{" "}
+                                    {previewImage.settings.quality}%
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           )}
