@@ -77,18 +77,24 @@ export interface IApiImage extends IBaseImage {
 }
 
 export interface ICompressionSettings {
-  enabled: boolean;
   format: "JPEG" | "PNG" | "WebP";
-  quality: number;
-  maxWidth: number;
-  maxHeight: number;
+  // JPEG
+  quality?: number; // 画質 2-31
+  width?: number; // リサイズ幅
+  height?: number; // リサイズ高さ
+  // PNG
+  compression_level?: number; // 圧縮レベル 0-9
+  // WebP
+  lossless?: boolean; // ロスレス圧縮
+  webp_quality?: number; // ロッシー時の品質 0-100
+  enabled?: boolean;
 }
 
 export interface IImagePreview {
   id: string;
   file: File;
   preview: string;
-  compressionSettings?: ICompressionSettings;
+  compressionSettings: ICompressionSettings;
 }
 
 // ============================================================================
