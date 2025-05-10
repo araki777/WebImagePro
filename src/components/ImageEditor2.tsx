@@ -83,12 +83,11 @@ export default function ImageEditor2() {
     imageUrl
   );
 
-  const { detectObjects, clearObjectDetection, detectedObjects, isDetecting } =
-    useObjectDetection(
-      pixiRefs.spriteRef,
-      pixiRefs.imageContainerRef,
-      imageUrl
-    );
+  const { detectObjects, clearObjectDetection } = useObjectDetection(
+    pixiRefs.spriteRef,
+    pixiRefs.imageContainerRef,
+    imageUrl
+  );
 
   const loadImage = useCallback(async () => {
     if (
@@ -983,18 +982,77 @@ export default function ImageEditor2() {
   };
 
   const onSaveEdit = async (isNewImage: boolean) => {
-    if (!editingImage || !editingImage.url) return;
+    if (
+      !pixiRefs.appRef.current ||
+      !pixiRefs.spriteRef.current ||
+      !pixiRefs.imageContainerRef.current
+    )
+      return;
     try {
-      // 元画像をfetchで取得
-      const response = await fetch(editingImage.url);
-      if (!response.ok) throw new Error("画像の取得に失敗しました");
-      const blob = await response.blob();
-      // ファイル名
+      // 元画像のサイズを取得
+      const sprite = pixiRefs.spriteRef.current;
+      const width = sprite.texture.width;
+      const height = sprite.texture.height;
+
+      // オフスクリーンcanvasを作成
+      const offscreen = document.createElement("canvas");
+      offscreen.width = width;
+      offscreen.height = height;
+      const ctx = offscreen.getContext("2d");
+      if (!ctx) throw new Error("Canvas contextの取得に失敗しました");
+
+      // spriteの現在の状態を保存
+      const oldScale = sprite.scale.clone();
+      const oldPosition = sprite.position.clone();
+      const oldRotation = sprite.rotation;
+
+      // spriteを元画像サイズ・中央・回転なしに一時リセット
+      sprite.scale.set(1, 1);
+      sprite.position.set(width / 2, height / 2);
+      sprite.rotation = 0;
+
+      // RenderTextureを作成し、imageContainerRefを描画
+      const renderer = pixiRefs.appRef.current.renderer;
+      const renderTexture = PIXI.RenderTexture.create({ width, height });
+      renderer.render(pixiRefs.imageContainerRef.current, { renderTexture });
+
+      // RenderTextureの内容をbase64データURLとして取得し、Image経由でcanvasに描画
+      const dataUrl = await renderer.extract.base64(renderTexture);
+      await new Promise<void>((resolve, reject) => {
+        const img = new window.Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+          resolve();
+        };
+        img.onerror = (e) => reject(e);
+        img.src = dataUrl;
+      });
+
+      // 後始末
+      renderTexture.destroy(true);
+
+      // spriteを元の状態に戻す
+      sprite.scale = oldScale;
+      sprite.position = oldPosition;
+      sprite.rotation = oldRotation;
+
+      // canvasからBlobを生成
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        offscreen.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error("Blob生成に失敗しました"));
+        }, "image/png");
+      });
+
+      // ファイル名を決定
       const fileName = isNewImage
-        ? `copy_${editingImage.name}`
-        : editingImage.name;
+        ? `copy_${editingImage?.name ?? "image"}.png`
+        : `${editingImage?.name ?? "image"}.png`;
+
+      // Fileを作成
       const file = new File([blob], fileName, { type: blob.type });
-      // アップロード
+
+      // アップロード処理（既存のまま）
       const formData = new FormData();
       formData.append("file", file);
       const uploadResponse = await fetch("/api/upload", {
@@ -1003,7 +1061,7 @@ export default function ImageEditor2() {
       });
       if (!uploadResponse.ok) throw new Error("アップロードに失敗しました");
       // 上書き保存の場合は元画像を削除
-      if (!isNewImage && editingImage.url) {
+      if (!isNewImage && editingImage?.url) {
         const encodedUrl = btoa(editingImage.url);
         await fetch(`/api/images/${encodedUrl}`, { method: "DELETE" });
       }
@@ -1907,58 +1965,6 @@ export default function ImageEditor2() {
                           {t("transform.flipV")}
                         </button>
                       </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                {/* 物体検出 */}
-                <AccordionItem value="object-detection">
-                  <AccordionTrigger className="py-2 text-sm">
-                    {t("accordion.objectDetection")}
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label
-                          htmlFor="object-detection"
-                          className="text-xs flex-1"
-                        >
-                          {t("objectDetection.detect")}
-                        </Label>
-                        <Button
-                          onClick={() => detectObjects()}
-                          disabled={isDetecting}
-                          variant="outline"
-                          size="sm"
-                        >
-                          {isDetecting
-                            ? t("objectDetection.detecting")
-                            : t("objectDetection.start")}
-                        </Button>
-                      </div>
-                      {objectDetectionMode &&
-                        detectedObjects.map((object, index) => (
-                          <div key={`object-${index}-${object.class_id}`}>
-                            <p>
-                              {t("objectDetection.name")}: {object.class_name}
-                            </p>
-                            <p>
-                              {t("objectDetection.confidence")}:{" "}
-                              {object.confidence}
-                            </p>
-                            <p>
-                              {t("objectDetection.coords")}: {object.x1},{" "}
-                              {object.y1}, {object.x2}, {object.y2}
-                            </p>
-                          </div>
-                        ))}
-                      {!isDetecting && detectedObjects.length === 0 && (
-                        <div className="text-center py-2">
-                          <div className="text-xs text-gray-500">
-                            {t("objectDetection.desc")}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
