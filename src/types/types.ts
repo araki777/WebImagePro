@@ -110,34 +110,19 @@ export interface IImagePreviewListProps {
     index: number,
     settings: ICompressionSettings
   ) => void;
-  compressionSettings: ICompressionSettings;
 }
 
 // ============================================================================
 // 画像アップロード関連の型定義
 // ============================================================================
 
-export interface ICompressionSettingsProps {
-  compressionSettings: ICompressionSettings;
-  setCompressionSettings: React.Dispatch<
-    React.SetStateAction<ICompressionSettings>
-  >;
-}
-
-export interface ISearchBarProps {
-  query: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  className?: string;
-}
-
-export interface IImageUploadFormProps extends ICompressionSettingsProps {
+export interface IImageUploadFormProps {
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
 }
 
 export interface IImageUploadActionsProps {
   images: IImagePreview[];
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
-  compressionSettings: ICompressionSettings;
 }
 
 // ============================================================================

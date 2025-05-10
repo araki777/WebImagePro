@@ -1,14 +1,9 @@
-import { CompressionSettings } from "@/components/form/CompressionSettings";
 import { Input } from "@/components/ui/input";
 import { IImagePreview, IImageUploadFormProps } from "@/types/types";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
-export function ImageUploadForm({
-  setImages,
-  compressionSettings,
-  setCompressionSettings,
-}: IImageUploadFormProps) {
+export function ImageUploadForm({ setImages }: IImageUploadFormProps) {
   const t = useTranslations("ImageUploadForm");
   // 画像ファイルが変更されたときの処理
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +23,7 @@ export function ImageUploadForm({
           const reader = new FileReader();
           reader.onloadend = () => {
             resolve({
+              id: crypto.randomUUID(),
               file,
               preview: reader.result as string,
             });
@@ -55,10 +51,6 @@ export function ImageUploadForm({
         onChange={handleFileChange}
         className="cursor-pointer upload-header"
         aria-label={t("fileInputLabel")}
-      />
-      <CompressionSettings
-        compressionSettings={compressionSettings}
-        setCompressionSettings={setCompressionSettings}
       />
     </div>
   );
