@@ -28,13 +28,12 @@ import {
   DEFAULT_COMPRESSION_SETTINGS,
   ICompressionSettings,
 } from "@/lib/constants";
+import { compressImageWithFFmpeg } from "@/lib/ffmpegCompress";
 import { formatFileSize } from "@/lib/utils";
 import { IImagePreview, IImagePreviewListProps } from "@/types/types";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { toBlobURL } from "@ffmpeg/util";
 import { Eye, Settings2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 export function ImagePreviewList({
   images,
@@ -49,42 +48,6 @@ export function ImagePreviewList({
     compressedSize: number;
   } | null>(null);
 
-  const ffmpeg = useRef<FFmpeg | null>(null);
-  const [isFFmpegLoaded, setIsFFmpegLoaded] = useState(false);
-
-  useEffect(() => {
-    const initFFmpeg = async () => {
-      try {
-        const ffmpegInstance = new FFmpeg();
-        const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
-        await ffmpegInstance.load({
-          coreURL: await toBlobURL(
-            `${baseURL}/ffmpeg-core.js`,
-            "text/javascript"
-          ),
-          wasmURL: await toBlobURL(
-            `${baseURL}/ffmpeg-core.wasm`,
-            "application/wasm"
-          ),
-        });
-        ffmpeg.current = ffmpegInstance;
-        setIsFFmpegLoaded(true);
-      } catch (error) {
-        console.error("FFmpegの初期化中にエラーが発生しました:", error);
-      }
-    };
-
-    initFFmpeg();
-
-    return () => {
-      if (ffmpeg.current) {
-        ffmpeg.current.terminate();
-        ffmpeg.current = null;
-        setIsFFmpegLoaded(false);
-      }
-    };
-  }, []);
-
   const handleCompressionSettingsChange = (
     index: number,
     settings: Partial<ICompressionSettings>
@@ -98,152 +61,22 @@ export function ImagePreviewList({
     image: IImagePreview,
     compressionSettings: ICompressionSettings
   ) => {
-    let inputFileName = "";
-    let outputFileName = "";
-    let compressedUrl = "";
-
     try {
-      if (!compressionSettings.enabled || !isFFmpegLoaded || !ffmpeg.current) {
+      if (!compressionSettings.enabled) {
         return;
       }
-
-      // 画像のコピーを作成
-      const response = await fetch(image.preview);
-      const blob = await response.blob();
-      const imageFile = new File([blob], image.file.name, {
-        type: image.file.type,
+      // プレビュー用に圧縮ファイルを生成
+      const compressedFile = await compressImageWithFFmpeg(
+        image.file,
+        compressionSettings
+      );
+      const compressedUrl = URL.createObjectURL(compressedFile);
+      setPreviewImage({
+        url: compressedUrl,
+        settings: compressionSettings,
+        originalSize: image.file.size,
+        compressedSize: compressedFile.size,
       });
-
-      // 入力ファイルをFFmpegに書き込む
-      const arrayBuffer = await imageFile.arrayBuffer();
-      inputFileName = `input_${Date.now()}_${image.file.name}`;
-      outputFileName = `output_${Date.now()}_${image.file.name}`;
-
-      try {
-        // 入力ファイルの書き込み
-        await ffmpeg.current.writeFile(
-          inputFileName,
-          new Uint8Array(arrayBuffer)
-        );
-
-        // 圧縮コマンドの実行
-        const quality = compressionSettings.quality;
-        const format = compressionSettings.format.toLowerCase();
-
-        // フォーマットに応じたFFmpegコマンドの構築
-        let command: string[];
-        switch (format) {
-          case "jpeg":
-          case "jpg":
-            command = [
-              "-i",
-              inputFileName,
-              "-c:v",
-              "mjpeg",
-              "-q:v",
-              quality.toString(),
-              "-preset",
-              "medium",
-              "-y",
-              outputFileName,
-            ];
-            break;
-          case "png":
-            const pngQuality = Math.max(
-              0,
-              Math.min(9, Math.floor((100 - quality) / 11))
-            );
-            command = [
-              "-i",
-              inputFileName,
-              "-c:v",
-              "png",
-              "-compression_level",
-              pngQuality.toString(),
-              "-y",
-              outputFileName,
-            ];
-            break;
-          case "webp":
-            command = [
-              "-i",
-              inputFileName,
-              "-c:v",
-              "libwebp",
-              "-quality",
-              quality.toString(),
-              "-preset",
-              "medium",
-              "-y",
-              outputFileName,
-            ];
-            break;
-          default:
-            throw new Error(`未対応のフォーマットです: ${format}`);
-        }
-
-        // コマンド実行
-        const result = await ffmpeg.current.exec(command);
-
-        if (result !== 0) {
-          throw new Error(
-            `FFmpegコマンドの実行に失敗しました（終了コード: ${result}）`
-          );
-        }
-
-        // 圧縮されたファイルを読み込む
-        let compressedData;
-        try {
-          // ファイルの読み込み
-          compressedData = await ffmpeg.current.readFile(outputFileName);
-        } catch (readError) {
-          console.error("出力ファイルの読み込みに失敗:", readError);
-          throw new Error(
-            `出力ファイルの読み込みに失敗しました: ${readError instanceof Error ? readError.message : "不明なエラー"}`
-          );
-        }
-
-        const compressedBlob = new Blob([compressedData], {
-          type: `image/${format}`,
-        });
-        compressedUrl = URL.createObjectURL(compressedBlob);
-        const compressedFile = new File([compressedBlob], outputFileName, {
-          type: `image/${format}`,
-        });
-
-        // 圧縮後のサイズを計算
-        const compressedSize = compressedFile.size;
-
-        setPreviewImage({
-          url: compressedUrl,
-          settings: compressionSettings,
-          originalSize: image.file.size,
-          compressedSize: compressedSize,
-        });
-      } finally {
-        // 一時ファイルの削除
-        if (ffmpeg.current) {
-          try {
-            if (inputFileName) {
-              await ffmpeg.current.deleteFile(inputFileName);
-            }
-            if (outputFileName) {
-              await ffmpeg.current.deleteFile(outputFileName);
-            }
-          } catch (cleanupError) {
-            console.warn(
-              "一時ファイルの削除中にエラーが発生しました:",
-              cleanupError
-            );
-          }
-        }
-      }
-
-      return () => {
-        if (compressedUrl) {
-          URL.revokeObjectURL(compressedUrl);
-        }
-      };
     } catch (error: unknown) {
       console.error("プレビューの生成中にエラーが発生しました:", error);
       const errorMessage =
@@ -276,17 +109,14 @@ export function ImagePreviewList({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80">
-                <div className="space-y-4">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor={`compression-enabled-${index}`}>
-                      {t("compressionEnabled")}
+                      {t("imageSettingsEnabled")}
                     </Label>
                     <Switch
                       id={`compression-enabled-${index}`}
-                      checked={
-                        image.compressionSettings?.enabled ??
-                        DEFAULT_COMPRESSION_SETTINGS.enabled
-                      }
+                      checked={image.compressionSettings.enabled}
                       onCheckedChange={(checked) =>
                         handleCompressionSettingsChange(index, {
                           enabled: checked,
@@ -295,21 +125,28 @@ export function ImagePreviewList({
                     />
                   </div>
 
-                  {(image.compressionSettings?.enabled ??
-                    DEFAULT_COMPRESSION_SETTINGS.enabled) && (
+                  {image.compressionSettings.enabled && (
                     <>
                       <div className="space-y-2">
                         <Label>{t("format")}</Label>
                         <Select
-                          value={
-                            image.compressionSettings?.format ??
-                            DEFAULT_COMPRESSION_SETTINGS.format
-                          }
-                          onValueChange={(value) =>
-                            handleCompressionSettingsChange(index, {
-                              format: value as "JPEG" | "PNG" | "WebP",
-                            })
-                          }
+                          value={image.compressionSettings.format}
+                          onValueChange={(value) => {
+                            const format = value as "JPEG" | "PNG" | "WebP";
+                            // フォーマットに応じたデフォルト値の設定
+                            const settings: Partial<ICompressionSettings> = {
+                              format,
+                            };
+                            if (format === "JPEG") {
+                              settings.quality = 8;
+                            } else if (format === "PNG") {
+                              settings.compression_level = 6;
+                            } else if (format === "WebP") {
+                              settings.lossless = false;
+                              settings.webp_quality = 80;
+                            }
+                            handleCompressionSettingsChange(index, settings);
+                          }}
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -328,17 +165,14 @@ export function ImagePreviewList({
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label>{t("quality")}</Label>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1">
+                      {image.compressionSettings.format === "JPEG" && (
+                        <>
+                          <Label>画質</Label>
+                          <div className="flex items-center gap-2">
                             <Slider
-                              value={[
-                                image.compressionSettings?.quality ??
-                                  DEFAULT_COMPRESSION_SETTINGS.quality,
-                              ]}
-                              min={1}
-                              max={100}
+                              value={[image.compressionSettings.quality ?? 8]}
+                              min={4}
+                              max={31}
                               step={1}
                               onValueChange={([value]) =>
                                 handleCompressionSettingsChange(index, {
@@ -346,14 +180,131 @@ export function ImagePreviewList({
                                 })
                               }
                             />
+                            <span className="ml-1 text-sm text-muted-foreground">
+                              {image.compressionSettings.quality ?? 8}
+                            </span>
                           </div>
-                          <span className="text-sm text-muted-foreground min-w-[3ch]">
-                            {image.compressionSettings?.quality ??
-                              DEFAULT_COMPRESSION_SETTINGS.quality}
-                            %
-                          </span>
-                        </div>
-                      </div>
+                          <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                            <span>高品質</span>
+                            <span>高圧縮</span>
+                          </div>
+                          <div className="flex gap-1 mt-1">
+                            <div className="flex-1">
+                              <Label>幅</Label>
+                              <div className="flex items-center gap-1">
+                                <Slider
+                                  value={[
+                                    image.compressionSettings.width ?? 1000,
+                                  ]}
+                                  min={100}
+                                  max={5000}
+                                  step={10}
+                                  onValueChange={([value]) =>
+                                    handleCompressionSettingsChange(index, {
+                                      width: value,
+                                    })
+                                  }
+                                />
+                                <span className="ml-1 text-sm text-muted-foreground">
+                                  {image.compressionSettings.width ?? 1000}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <Label>高さ</Label>
+                              <div className="flex items-center gap-1">
+                                <Slider
+                                  value={[
+                                    image.compressionSettings.height ?? 1000,
+                                  ]}
+                                  min={100}
+                                  max={5000}
+                                  step={10}
+                                  onValueChange={([value]) =>
+                                    handleCompressionSettingsChange(index, {
+                                      height: value,
+                                    })
+                                  }
+                                />
+                                <span className="ml-1 text-sm text-muted-foreground">
+                                  {image.compressionSettings.height ?? 1000}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {image.compressionSettings.format === "PNG" && (
+                        <>
+                          <Label>圧縮レベル</Label>
+                          <div className="flex items-center gap-2">
+                            <Slider
+                              value={[
+                                image.compressionSettings.compression_level ??
+                                  6,
+                              ]}
+                              min={0}
+                              max={9}
+                              step={1}
+                              onValueChange={([value]) =>
+                                handleCompressionSettingsChange(index, {
+                                  compression_level: value,
+                                })
+                              }
+                            />
+                            <span className="ml-1 text-sm text-muted-foreground">
+                              {image.compressionSettings.compression_level ?? 6}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                            <span>低圧縮</span>
+                            <span>高圧縮</span>
+                          </div>
+                        </>
+                      )}
+                      {image.compressionSettings.format === "WebP" && (
+                        <>
+                          <Label>ロスレス</Label>
+                          <Switch
+                            checked={
+                              image.compressionSettings.lossless ?? false
+                            }
+                            onCheckedChange={(checked) =>
+                              handleCompressionSettingsChange(index, {
+                                lossless: checked,
+                              })
+                            }
+                          />
+                          {!(image.compressionSettings.lossless ?? false) && (
+                            <>
+                              <Label>品質</Label>
+                              <div className="flex items-center gap-2">
+                                <Slider
+                                  value={[
+                                    image.compressionSettings.webp_quality ??
+                                      80,
+                                  ]}
+                                  min={0}
+                                  max={100}
+                                  step={1}
+                                  onValueChange={([value]) =>
+                                    handleCompressionSettingsChange(index, {
+                                      webp_quality: value,
+                                    })
+                                  }
+                                />
+                                <span className="ml-1 text-sm text-muted-foreground">
+                                  {image.compressionSettings.webp_quality ?? 80}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-xs text-muted-foreground mt-0.5">
+                                <span>高品質</span>
+                                <span>高圧縮</span>
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
 
                       <Dialog>
                         <DialogTrigger asChild>
@@ -380,7 +331,7 @@ export function ImagePreviewList({
                             </DialogDescription>
                           </DialogHeader>
                           {previewImage && (
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <h3 className="text-sm font-medium mb-2">
                                   {t("original")}
@@ -394,6 +345,16 @@ export function ImagePreviewList({
                                   {t("fileSize")}:{" "}
                                   {formatFileSize(previewImage.originalSize)}
                                 </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  フォーマット: {previewImage.settings.format}
+                                </p>
+                                {previewImage.settings.format === "JPEG" && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    幅: {image.compressionSettings.width ?? "-"}{" "}
+                                    px / 高さ:{" "}
+                                    {image.compressionSettings.height ?? "-"} px
+                                  </p>
+                                )}
                               </div>
                               <div>
                                 <h3 className="text-sm font-medium mb-2">
@@ -411,12 +372,16 @@ export function ImagePreviewList({
                                       previewImage.compressedSize
                                     )}
                                   </p>
-                                  <p>
-                                    {t("compressionSettings")}:{" "}
-                                    {previewImage.settings.format},{" "}
-                                    {t("quality")}:{" "}
-                                    {previewImage.settings.quality}%
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    フォーマット: {previewImage.settings.format}
                                   </p>
+                                  {previewImage.settings.format === "JPEG" && (
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      幅: {previewImage.settings.width ?? "-"}{" "}
+                                      px / 高さ:{" "}
+                                      {previewImage.settings.height ?? "-"} px
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             </div>

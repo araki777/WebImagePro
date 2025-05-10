@@ -133,12 +133,14 @@
     "lastModified": "最終更新日",
     "edit": "編集",
     "delete": "削除",
+    "compression": "圧縮",
+    "imageSettingsEnabled": "画像設定を有効にする",
     "compressionEnabled": "圧縮を有効にする",
     "format": "フォーマット",
     "quality": "品質",
     "previewCompression": "圧縮プレビュー",
     "compressionPreview": "圧縮プレビュー",
-    "compressionPreviewDescription": "元の画像と圧縮後の画像を比較できます。",
+    "compressionPreviewDescription": "圧縮前後の画像を比較できます",
     "original": "元の画像",
     "compressed": "圧縮後",
     "compressionSettings": "圧縮設定",
@@ -372,6 +374,7 @@
       "title": "エラー",
       "wasmLoad": "画像編集エンジン（WASM）の読み込みに失敗しました。再読み込みしてください。",
       "reload": "再読み込み"
-    }
+    },
+    "imageSettingsEnabled": "画像設定を有効にする"
   }
 }
