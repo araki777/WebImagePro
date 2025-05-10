@@ -1317,7 +1317,7 @@ export default function ImageEditor2() {
               )}
             </div>
 
-            {/* 検出機能（顔検出・物体検出）をプルダウンで選択 */}
+            {/* 画像編集アコーディオン */}
             {pixiRefs.spriteRef.current && (
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="detection">
@@ -1381,12 +1381,6 @@ export default function ImageEditor2() {
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-              </Accordion>
-            )}
-
-            {/* 画像編集アコーディオン */}
-            {pixiRefs.spriteRef.current && (
-              <Accordion type="single" collapsible className="w-full">
                 {/* 基本調整 */}
                 <AccordionItem value="basic">
                   <AccordionTrigger className="py-2 text-sm">
