@@ -66,8 +66,8 @@
   },
   "ImageUpload": {
     "title": "画像アップロード",
-    "description": "アップロードする画像を選択してください。",
-    "compressionWarning": "2MBを超える画像は圧縮を有効にすることをおすすめします。"
+    "description": "画像をアップロードして圧縮や編集を行います",
+    "compressionWarning": "大きな画像ファイルが検出されました。圧縮を有効にすることをお勧めします。"
   },
   "ImageUploadActions": {
     "upload": "アップロード",
@@ -132,7 +132,19 @@
     "fileSize": "ファイルサイズ",
     "lastModified": "最終更新日",
     "edit": "編集",
-    "delete": "削除"
+    "delete": "削除",
+    "compression": "圧縮",
+    "imageSettingsEnabled": "画像設定を有効にする",
+    "compressionEnabled": "圧縮を有効にする",
+    "format": "フォーマット",
+    "quality": "品質",
+    "previewCompression": "圧縮プレビュー",
+    "compressionPreview": "圧縮プレビュー",
+    "compressionPreviewDescription": "圧縮前後の画像を比較できます",
+    "original": "元の画像",
+    "compressed": "圧縮後",
+    "compressionSettings": "圧縮設定",
+    "previewError": "プレビューの生成に失敗しました。"
   },
   "Settings": {
     "title": "設定",
@@ -362,6 +374,14 @@
       "title": "エラー",
       "wasmLoad": "画像編集エンジン（WASM）の読み込みに失敗しました。再読み込みしてください。",
       "reload": "再読み込み"
-    }
+    },
+    "detection": {
+      "title": "検出機能",
+      "select": "検出タイプを選択",
+      "selectPlaceholder": "選択してください"
+    },
+    "saving": "画像を保存中",
+    "saveNew": "新規保存",
+    "saveOverwrite": "上書き保存"
   }
 }

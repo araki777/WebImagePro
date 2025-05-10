@@ -26,10 +26,10 @@ export const useObjectDetection = (
 
   // 検出されたオブジェクトの枠を描画する関数
   const drawObjectBoxes = useCallback(
-    (objects: DetectedObject[]) => {
-      if (!spriteRef.current || !imageContainerRef.current) return;
+    (objects: DetectedObject[], spriteOverride?: PIXI.Sprite) => {
+      const sprite = spriteOverride ?? spriteRef.current;
+      if (!sprite || !imageContainerRef.current) return;
 
-      const sprite = spriteRef.current;
       const position = sprite.position;
       const rotation = sprite.rotation;
 
@@ -185,10 +185,16 @@ export const useObjectDetection = (
     }
   }, []);
 
+  // 保存用に一時的なスプライト状態で枠を再描画する関数
+  const redrawBoxesForSave = (spriteForSave: PIXI.Sprite) => {
+    drawObjectBoxes(detectedObjects, spriteForSave);
+  };
+
   return {
     detectObjects,
     clearObjectDetection,
     detectedObjects,
     isDetecting,
+    redrawBoxesForSave,
   };
 };

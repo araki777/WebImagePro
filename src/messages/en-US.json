@@ -365,6 +365,14 @@
       "title": "Error",
       "wasmLoad": "Failed to load the image editor engine (WASM). Please reload.",
       "reload": "Reload"
-    }
+    },
+    "detection": {
+      "title": "Detection Features",
+      "select": "Select Detection Type",
+      "selectPlaceholder": "Please select"
+    },
+    "saving": "Saving image",
+    "saveNew": "Save as New",
+    "saveOverwrite": "Overwrite"
   }
 }
