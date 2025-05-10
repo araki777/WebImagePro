@@ -25,9 +25,10 @@ import { usePixiRefs } from "@/hooks/usePixiRefs";
 import { usePixiSetup } from "@/hooks/usePixiSetup";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as PIXI from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 // WebAssemblyモジュールを直接インポート
 import {
@@ -45,6 +46,7 @@ let wasmInitialized = false;
 
 export default function ImageEditor2() {
   const t = useTranslations("ImageEditor2");
+  const router = useRouter();
   // 状態管理
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(false);
@@ -60,6 +62,12 @@ export default function ImageEditor2() {
     useState<FaceDetectionMode | null>(null);
   const [objectDetectionMode, setObjectDetectionMode] =
     useState<ObjectDetectionMode | null>(null);
+  const [editingImage, setEditingImage] = useState<{
+    name: string;
+    url: string;
+  } | null>(null);
+  // 検出タイプの選択状態
+  const [selectedDetection, setSelectedDetection] = useState<string>("");
 
   // 認証関連
   const searchParams = useSearchParams();
@@ -202,6 +210,12 @@ export default function ImageEditor2() {
       // 画像の実際のサイズを状態に保存
       setImageWidth(Math.round(sprite.width));
       setImageHeight(Math.round(sprite.height));
+
+      // 画像名をURLから推測してセット（クエリパラメータ除去）
+      const urlObj = new URL(url, window.location.origin);
+      const pathname = urlObj.pathname;
+      const name = pathname.split("/").pop() || "image.png";
+      setEditingImage({ name, url });
 
       // コンテナを空にして新しいスプライトを追加
       pixiRefs.imageContainerRef.current.removeChildren();
@@ -940,7 +954,11 @@ export default function ImageEditor2() {
   // 顔検出ボタンのクリックハンドラ
   const handleFaceDetection = async (mode: FaceDetectionMode) => {
     setFaceDetectionMode(mode);
-    await detectFaces(mode);
+    const result = await detectFaces(mode);
+    console.log(result);
+    if (!result) {
+      toast.error("検出できませんでした");
+    }
   };
 
   // 顔検出のクリア
@@ -952,13 +970,49 @@ export default function ImageEditor2() {
   // 物体検出ボタンのクリックハンドラ
   const handleObjectDetection = async () => {
     setObjectDetectionMode("outline");
-    await detectObjects();
+    const result = await detectObjects();
+    if (!result) {
+      toast.error("検出できませんでした");
+    }
   };
 
   // オブジェクト検出をクリアする関数
   const handleClearObjectDetection = () => {
     setObjectDetectionMode(null);
     clearObjectDetection();
+  };
+
+  const onSaveEdit = async (isNewImage: boolean) => {
+    if (!editingImage || !editingImage.url) return;
+    try {
+      // 元画像をfetchで取得
+      const response = await fetch(editingImage.url);
+      if (!response.ok) throw new Error("画像の取得に失敗しました");
+      const blob = await response.blob();
+      // ファイル名
+      const fileName = isNewImage
+        ? `copy_${editingImage.name}`
+        : editingImage.name;
+      const file = new File([blob], fileName, { type: blob.type });
+      // アップロード
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadResponse = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!uploadResponse.ok) throw new Error("アップロードに失敗しました");
+      // 上書き保存の場合は元画像を削除
+      if (!isNewImage && editingImage.url) {
+        const encodedUrl = btoa(editingImage.url);
+        await fetch(`/api/images/${encodedUrl}`, { method: "DELETE" });
+      }
+    } catch (error) {
+      console.error("画像の保存エラー:", error);
+    } finally {
+      setEditingImage(null);
+      router.push("/gallery");
+    }
   };
 
   useEffect(() => {
@@ -1198,99 +1252,71 @@ export default function ImageEditor2() {
               )}
             </div>
 
-            {/* 顔検出セクション */}
+            {/* 検出機能（顔検出・物体検出）をプルダウンで選択 */}
             {pixiRefs.spriteRef.current && (
-              <div className="rounded-lg border border-gray-200 p-3">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">
-                  {t("faceDetection.title")}
-                </h3>
-                <div className="space-y-2">
-                  <Button
-                    className={`w-full ${
-                      faceDetectionMode === "outline"
-                        ? "bg-red-500 hover:bg-red-600"
-                        : "bg-indigo-500 hover:bg-indigo-600"
-                    }`}
-                    onClick={() => handleFaceDetection("outline")}
-                  >
-                    {t("faceDetection.showOutline")}
-                  </Button>
-                  <Button
-                    className={`w-full ${
-                      faceDetectionMode === "blur"
-                        ? "bg-red-500 hover:bg-red-600"
-                        : "bg-indigo-500 hover:bg-indigo-600"
-                    }`}
-                    onClick={() => handleFaceDetection("blur")}
-                  >
-                    {t("faceDetection.blur")}
-                  </Button>
-                  {faceDetectionMode && (
-                    <Button
-                      className="w-full bg-gray-500 hover:bg-gray-600"
-                      onClick={handleClearFaceDetection}
-                    >
-                      {t("faceDetection.clear")}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 物体検出セクション */}
-            {pixiRefs.spriteRef.current && (
-              <div className="rounded-lg border border-gray-200 p-3 mt-3">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">
-                  {t("objectDetection.title")}
-                </h3>
-                <div className="space-y-2">
-                  <Button
-                    className="w-full bg-indigo-500 hover:bg-indigo-600"
-                    onClick={handleObjectDetection}
-                    disabled={!imageUrl}
-                  >
-                    {isDetecting
-                      ? t("objectDetection.detecting")
-                      : !imageUrl
-                      ? t("objectDetection.noImage")
-                      : t("objectDetection.run")}
-                  </Button>
-                  {detectedObjects.map((object, index) => (
-                    <div key={`object-${index}-${object.class_id}`}>
-                      <p>
-                        {t("objectDetection.name")}: {object.class_name}
-                      </p>
-                      <p>
-                        {t("objectDetection.confidence")}: {object.confidence}
-                      </p>
-                      <p>
-                        {t("objectDetection.coords")}: {object.x1}, {object.y1},{" "}
-                        {object.x2}, {object.y2}
-                      </p>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="detection">
+                  <AccordionTrigger className="py-2 text-sm">
+                    {t("detection.title")}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      <div>
+                        <Select
+                          onValueChange={(value) => setSelectedDetection(value)}
+                          value={selectedDetection}
+                        >
+                          <SelectTrigger className="w-full mt-2">
+                            <SelectValue
+                              placeholder={t("detection.selectPlaceholder")}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="face-outline">
+                              {t("faceDetection.showOutline")}
+                            </SelectItem>
+                            <SelectItem value="face-blur">
+                              {t("faceDetection.blur")}
+                            </SelectItem>
+                            <SelectItem value="object">
+                              {t("objectDetection.title")}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {/* 検出ボタン */}
+                      {faceDetectionMode ||
+                      faceDetectionMode ||
+                      objectDetectionMode ? (
+                        <Button
+                          className="w-full mt-2 bg-gray-500 hover:bg-gray-600"
+                          onClick={() => {
+                            handleClearFaceDetection();
+                            handleClearObjectDetection();
+                          }}
+                        >
+                          クリア
+                        </Button>
+                      ) : (
+                        <Button
+                          className="w-full mt-2 bg-indigo-500 hover:bg-indigo-600"
+                          onClick={() => {
+                            if (selectedDetection === "face-outline")
+                              handleFaceDetection("outline");
+                            else if (selectedDetection === "face-blur")
+                              handleFaceDetection("blur");
+                            else if (selectedDetection === "object")
+                              handleObjectDetection();
+                          }}
+                          disabled={!selectedDetection}
+                        >
+                          検出する
+                        </Button>
+                      )}
                     </div>
-                  ))}
-                  {objectDetectionMode && (
-                    <Button
-                      className="w-full bg-gray-500 hover:bg-gray-600"
-                      onClick={handleClearObjectDetection}
-                    >
-                      {t("objectDetection.clear")}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 画像サイズ表示 */}
-            {pixiRefs.spriteRef.current && (
-              <div className="rounded-lg border border-gray-200 p-3">
-                <h3 className="text-sm font-medium text-gray-900 mb-1">
-                  {t("imageSize.title")}
-                </h3>
-                <div className="text-sm text-gray-500">
-                  {imageWidth} × {imageHeight} px
-                </div>
-              </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             )}
 
             {/* 画像編集アコーディオン */}
@@ -1910,48 +1936,22 @@ export default function ImageEditor2() {
                             : t("objectDetection.start")}
                         </Button>
                       </div>
-                      {detectedObjects.length > 0 && (
-                        <div className="space-y-2 mt-3">
-                          <div className="text-xs text-gray-500">
-                            {t("objectDetection.resultCount", {
-                              count: detectedObjects.length,
-                            })}
+                      {objectDetectionMode &&
+                        detectedObjects.map((object, index) => (
+                          <div key={`object-${index}-${object.class_id}`}>
+                            <p>
+                              {t("objectDetection.name")}: {object.class_name}
+                            </p>
+                            <p>
+                              {t("objectDetection.confidence")}:{" "}
+                              {object.confidence}
+                            </p>
+                            <p>
+                              {t("objectDetection.coords")}: {object.x1},{" "}
+                              {object.y1}, {object.x2}, {object.y2}
+                            </p>
                           </div>
-                          <div className="max-h-60 overflow-y-auto">
-                            {detectedObjects.map((obj, index) => (
-                              <div
-                                key={index}
-                                className="p-2 bg-gray-100 rounded mb-2 text-xs"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium">
-                                    {obj.class_name}
-                                  </span>
-                                  <span>
-                                    {(obj.confidence * 100).toFixed(0)}%
-                                  </span>
-                                </div>
-                                <div className="text-gray-600 mt-1">
-                                  {t("objectDetection.coordsRange", {
-                                    x1: obj.x1,
-                                    y1: obj.y1,
-                                    x2: obj.x2,
-                                    y2: obj.y2,
-                                  })}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <Button
-                            onClick={clearObjectDetection}
-                            variant="ghost"
-                            size="sm"
-                            className="mt-2 w-full"
-                          >
-                            {t("objectDetection.clearResult")}
-                          </Button>
-                        </div>
-                      )}
+                        ))}
                       {!isDetecting && detectedObjects.length === 0 && (
                         <div className="text-center py-2">
                           <div className="text-xs text-gray-500">
@@ -1965,7 +1965,7 @@ export default function ImageEditor2() {
               </Accordion>
             )}
 
-            {/* リセットボタン */}
+            {/* リセットボタンと保存ボタン */}
             {pixiRefs.spriteRef.current && (
               <div className="pt-2">
                 <button
@@ -1977,6 +1977,20 @@ export default function ImageEditor2() {
                 <p className="text-xs text-gray-500 mt-1">
                   {t("resetAllDesc")}
                 </p>
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                    onClick={() => onSaveEdit(true)}
+                  >
+                    新規保存
+                  </Button>
+                  <Button
+                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
+                    onClick={() => onSaveEdit(false)}
+                  >
+                    上書き保存
+                  </Button>
+                </div>
               </div>
             )}
           </div>

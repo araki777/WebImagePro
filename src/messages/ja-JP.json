@@ -375,6 +375,10 @@
       "wasmLoad": "画像編集エンジン（WASM）の読み込みに失敗しました。再読み込みしてください。",
       "reload": "再読み込み"
     },
-    "imageSettingsEnabled": "画像設定を有効にする"
+    "detection": {
+      "title": "検出機能",
+      "select": "検出タイプを選択",
+      "selectPlaceholder": "選択してください"
+    }
   }
 }

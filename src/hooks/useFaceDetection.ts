@@ -14,8 +14,8 @@ export const useFaceDetection = (
   const blurSpritesRef = useRef<PIXI.Sprite[]>([]);
 
   const detectFaces = useCallback(
-    async (mode: FaceDetectionMode) => {
-      if (!spriteRef.current || !imageContainerRef.current) return;
+    async (mode: FaceDetectionMode): Promise<boolean> => {
+      if (!spriteRef.current || !imageContainerRef.current) return false;
 
       try {
         if (!imageUrl) {
@@ -31,6 +31,7 @@ export const useFaceDetection = (
 
         if (result) {
           const faceCount = result.get_faces_count();
+          if (faceCount === 0) return false;
 
           const sprite = spriteRef.current;
           const position = sprite.position;
@@ -214,9 +215,12 @@ export const useFaceDetection = (
               }
             }
           }
+          return true;
         }
+        return false;
       } catch (error) {
         console.error("顔検出中にエラーが発生しました:", error);
+        return false;
       }
     },
     [spriteRef, imageContainerRef, imageUrl]

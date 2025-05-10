@@ -116,51 +116,6 @@ export function ImageGallery() {
     router.push(`/editor?url=${encodeURIComponent(image.url)}`);
   };
 
-  // // 編集中の画像を保存する関数
-  // const handleSaveEdit = async (
-  //   editedImageUrl: string,
-  //   isNewImage: boolean,
-  //   format: string
-  // ) => {
-  //   if (!editingImage) return;
-  //   try {
-  //     const response = await fetch(editedImageUrl);
-  //     const blob = await response.blob();
-  //     const fileName = isNewImage
-  //       ? `copy_${editingImage.name.replace(/\.[^/.]+$/, "")}.${format}`
-  //       : editingImage.name.replace(/\.[^/.]+$/, "") + "." + format;
-  //     const file = new File([blob], fileName, { type: `image/${format}` });
-  //     const formData = new FormData();
-  //     formData.append("file", file);
-  //     const uploadResponse = await fetch("/api/upload", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-  //     if (!uploadResponse.ok) throw new Error(t("error.uploadFailed"));
-  //     if (!isNewImage) {
-  //       const encodedUrl = encodeURIComponent(
-  //         Buffer.from(editingImage.url).toString("base64")
-  //       );
-  //       const deleteResponse = await fetch(`/api/images/${encodedUrl}`, {
-  //         method: "DELETE",
-  //       });
-  //       if (!deleteResponse.ok) {
-  //         console.warn("元の画像の削除に失敗しましたが、処理を続行します");
-  //       }
-  //     }
-  //     URL.revokeObjectURL(editedImageUrl);
-  //     await fetchImages();
-  //     toast.success(isNewImage ? t("success.saveAsNew") : t("success.update"));
-  //   } catch (error: unknown) {
-  //     console.error("画像の更新エラー:", error);
-  //     toast.error(
-  //       isNewImage ? t("error.saveAsNewFailed") : t("error.updateFailed")
-  //     );
-  //   } finally {
-  //     setEditingImage(null);
-  //   }
-  // };
-
   // 画像をダウンロードする関数
   const handleDownload = async (image: IApiImage) => {
     try {
