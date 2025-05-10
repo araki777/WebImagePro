@@ -3,6 +3,7 @@
 import { ImageUploadForm } from "@/components/form/ImageUploadForm";
 import { ImagePreviewList } from "@/components/ImagePreviewList";
 import { ImageUploadActions } from "@/components/ImageUploadActions";
+import NoSSRWrapper from "@/components/NoSSRWrapper";
 import {
   Card,
   CardContent,
@@ -10,28 +11,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DEFAULT_COMPRESSION_SETTINGS } from "@/lib/constants";
 import { ICompressionSettings, IImagePreview } from "@/types/types";
-import { Image as ImageIcon, Settings2 } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 export function ImageUpload() {
   const t = useTranslations("ImageUpload");
-  // 状態管理: アップロードした画像、設定、編集中の画像インデックスなど
   const [images, setImages] = useState<IImagePreview[]>([]);
-  const [compressionSettings, setCompressionSettings] =
-    useState<ICompressionSettings>(DEFAULT_COMPRESSION_SETTINGS); // 圧縮設定の状態
 
-  // 画像を削除する関数
+  const handleCompressionSettingsChange = (
+    index: number,
+    settings: ICompressionSettings
+  ) => {
+    setImages((prev) =>
+      prev.map((img, i) =>
+        i === index ? { ...img, compressionSettings: settings } : img
+      )
+    );
+  };
+
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
-
-  // 圧縮設定の警告表示の条件
-  const shouldShowCompressionWarning = images.some(
-    (img) => img.file.size > 1024 * 1024 * 2
-  ); // 2MB
 
   return (
     <>
@@ -44,24 +46,16 @@ export function ImageUpload() {
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 画像ファイル選択用のインプット */}
-          <ImageUploadForm
-            setImages={setImages}
-            compressionSettings={compressionSettings}
-            setCompressionSettings={setCompressionSettings}
-          />
+          <ImageUploadForm setImages={setImages} />
 
-          {/* 圧縮設定の警告表示 */}
-          {shouldShowCompressionWarning && !compressionSettings.enabled && (
-            <div className="text-sm text-yellow-600 dark:text-yellow-500 flex items-center gap-2">
-              <Settings2 className="h-4 w-4" />
-              {t("compressionWarning")}
-            </div>
-          )}
-
-          {/* アップロードされた画像の表示 */}
           {images.length > 0 && (
-            <ImagePreviewList images={images} onRemove={removeImage} />
+            <NoSSRWrapper>
+              <ImagePreviewList
+                images={images}
+                onRemove={removeImage}
+                onCompressionSettingsChange={handleCompressionSettingsChange}
+              />
+            </NoSSRWrapper>
           )}
 
           <ImageUploadActions images={images} setImages={setImages} />

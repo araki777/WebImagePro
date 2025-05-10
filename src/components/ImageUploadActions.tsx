@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { compressImageWithFFmpeg } from "@/lib/ffmpegCompress";
 import { IImageUploadActionsProps } from "@/types/types";
 import { Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -18,12 +19,26 @@ export function ImageUploadActions({
 
     setIsUploading(true);
 
-    // 画像ごとにアップロード処理を行う
-    const uploadPromises = images.map(async (image) => {
-      const formData = new FormData();
-      formData.append("file", image.file);
+    // 画像ごとにcompressionSettingsを参照し、必要なら圧縮
+    const processedImages = await Promise.all(
+      images.map(async (image) => {
+        if (image.compressionSettings.enabled) {
+          const compressedFile = await compressImageWithFFmpeg(
+            image.file,
+            image.compressionSettings
+          );
+          return { ...image, file: compressedFile };
+        }
+        return image;
+      })
+    );
 
+    // 画像ごとにアップロード処理を行う
+    const uploadPromises = processedImages.map(async (image) => {
       try {
+        const formData = new FormData();
+        formData.append("file", image.file);
+
         // APIへ画像ファイルをPOSTリクエストで送信
         const response = await fetch("/api/upload", {
           method: "POST",
@@ -38,6 +53,7 @@ export function ImageUploadActions({
         const data = await response.json();
         return data.url;
       } catch (error) {
+        console.error("アップロードエラー:", error);
         throw error;
       }
     });

@@ -7,7 +7,7 @@
     "access": "restricted"
   },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -20,12 +20,15 @@
   "dependencies": {
     "@araki777/wasm-image-pro": "^0.1.9",
     "@azure/storage-blob": "^12.17.0",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@netlify/plugin-nextjs": "^5.10.3",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-avatar": "^1.1.3",
     "@radix-ui/react-collapsible": "^1.1.3",
-    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-label": "^2.0.2",
+    "@radix-ui/react-popover": "^1.1.13",
     "@radix-ui/react-scroll-area": "^1.2.3",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-separator": "^1.1.2",

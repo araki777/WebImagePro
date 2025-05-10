@@ -76,9 +76,25 @@ export interface IApiImage extends IBaseImage {
   uploadedAt: string;
 }
 
+export interface ICompressionSettings {
+  format: "JPEG" | "PNG" | "WebP";
+  // JPEG
+  quality?: number; // 画質 2-31
+  width?: number; // リサイズ幅
+  height?: number; // リサイズ高さ
+  // PNG
+  compression_level?: number; // 圧縮レベル 0-9
+  // WebP
+  lossless?: boolean; // ロスレス圧縮
+  webp_quality?: number; // ロッシー時の品質 0-100
+  enabled?: boolean;
+}
+
 export interface IImagePreview {
+  id: string;
   file: File;
   preview: string;
+  compressionSettings: ICompressionSettings;
 }
 
 // ============================================================================
@@ -96,33 +112,17 @@ export interface IImageListProps {
 export interface IImagePreviewListProps {
   images: IImagePreview[];
   onRemove: (index: number) => void;
+  onCompressionSettingsChange: (
+    index: number,
+    settings: ICompressionSettings
+  ) => void;
 }
 
 // ============================================================================
 // 画像アップロード関連の型定義
 // ============================================================================
 
-export interface ICompressionSettings {
-  enabled: boolean;
-  quality: number;
-  maxWidth: number;
-  maxHeight: number;
-}
-
-export interface ICompressionSettingsProps {
-  compressionSettings: ICompressionSettings;
-  setCompressionSettings: React.Dispatch<
-    React.SetStateAction<ICompressionSettings>
-  >;
-}
-
-export interface ISearchBarProps {
-  query: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  className?: string;
-}
-
-export interface IImageUploadFormProps extends ICompressionSettingsProps {
+export interface IImageUploadFormProps {
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
 }
 
