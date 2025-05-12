@@ -38,10 +38,28 @@
     "fileInputLabel": "画像ファイルを選択"
   },
   "Login": {
-    "loading": "読み込み中...",
+    "login": "ログイン",
     "welcomeBack": "おかえりなさい",
-    "continueWithGoogle": "Googleで続行",
-    "continueWithGitHub": "GitHubで続行"
+    "email": "メールアドレス",
+    "emailDescription": "ご登録のメールアドレスを入力してください",
+    "password": "パスワード",
+    "passwordDescription": "パスワードを入力してください",
+    "continueWithGoogle": "Googleで続ける",
+    "continueWithGitHub": "GitHubで続ける",
+    "loading": "読み込み中...",
+    "signup": "新規登録",
+    "resetPassword": "パスワード再設定",
+    "sendEmail": "パスワード再設定メール送信",
+    "confirmPassword": "パスワード確認",
+    "signingUp": "登録中...",
+    "signupDone": "確認メールを送信しました。メールをご確認ください。",
+    "newPassword": "新しいパスワード",
+    "newPasswordConfirm": "新しいパスワード確認",
+    "resetPasswordDone": "パスワードを再設定しました。",
+    "sendEmailDone": "パスワード再設定メールを送信しました。",
+    "toSignup": "新規登録はこちら",
+    "toSendEmail": "パスワードを忘れた方はこちら",
+    "loggingIn": "ログイン中..."
   },
   "Home": {
     "tourUpload": "画像をアップロードしてみましょう！",
@@ -383,5 +401,11 @@
     "saving": "画像を保存中",
     "saveNew": "新規保存",
     "saveOverwrite": "上書き保存"
+  },
+  "Common": {
+    "back": "元のページに戻る",
+    "goHome": "トップページに戻る",
+    "send": "送信",
+    "sending": "送信中..."
   }
 }
