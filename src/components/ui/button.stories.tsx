@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react"
-import { Button } from "./button"
+import { Button } from "@/components/ui/button";
+import type { Meta, StoryObj } from "@storybook/react";
 
-import { action } from "@storybook/addon-actions"
+import { action } from "@storybook/addon-actions";
 
 const meta: Meta<typeof Button> = {
   title: "Components/UI/Button",
@@ -35,11 +35,11 @@ const meta: Meta<typeof Button> = {
       description: "Custom tailwind CSS classes to apply to the button",
     },
   },
-} satisfies Meta<typeof Button>
+} satisfies Meta<typeof Button>;
 
-export default meta
+export default meta;
 
-type Story = StoryObj<typeof meta>
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
@@ -49,7 +49,7 @@ export const Default: Story = {
     onClick: action("default click"),
     children: "Default Button",
   },
-}
+};
 
 export const Outline: Story = {
   args: {
@@ -59,4 +59,4 @@ export const Outline: Story = {
     onClick: action("outline click"),
     children: "Outline Button",
   },
-}
+};
