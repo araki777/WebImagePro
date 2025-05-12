@@ -44,7 +44,17 @@
     "loginWithGithub": "Login with GitHub",
     "welcomeBack": "Welcome back",
     "continueWithGoogle": "Continue with Google",
-    "continueWithGitHub": "Continue with GitHub"
+    "continueWithGitHub": "Continue with GitHub",
+    "confirmPassword": "Confirm Password",
+    "signingUp": "Signing up...",
+    "signupDone": "A confirmation email has been sent. Please check your email.",
+    "newPassword": "New Password",
+    "newPasswordConfirm": "Confirm New Password",
+    "resetPasswordDone": "Password has been reset.",
+    "sendEmailDone": "Password reset email has been sent.",
+    "toSignup": "Sign up here",
+    "toSendEmail": "Forgot your password?",
+    "loggingIn": "Logging in..."
   },
   "Home": {
     "tourUpload": "Let's try uploading an image!",
@@ -374,5 +384,11 @@
     "saving": "Saving image",
     "saveNew": "Save as New",
     "saveOverwrite": "Overwrite"
+  },
+  "Common": {
+    "back": "Back to previous page",
+    "goHome": "Go to Home",
+    "send": "Send",
+    "sending": "Sending..."
   }
 }
