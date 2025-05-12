@@ -42,6 +42,9 @@ export const SignupForm = () => {
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
+      },
     });
     if (error) {
       form.setError("root", { message: error.message });
