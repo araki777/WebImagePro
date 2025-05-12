@@ -209,9 +209,9 @@ export default function ContactPage() {
                   <Button
                     type="submit"
                     className="w-full"
-                    isLoading={isSubmitting}
+                    disabled={isSubmitting}
                   >
-                    {t("submit")}
+                    {isSubmitting ? t("submitting") : t("submit")}
                   </Button>
                 </form>
               </div>
