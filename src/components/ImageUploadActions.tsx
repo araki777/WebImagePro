@@ -77,11 +77,36 @@ export function ImageUploadActions({
     <div className="flex items-center gap-4">
       <Button
         onClick={handleUpload}
-        disabled={images.length === 0}
-        className="flex-1 upload-button"
-        isLoading={isUploading}
+        disabled={images.length === 0 || isUploading}
+        className={`flex-1 upload-button${isUploading ? " opacity-50 cursor-not-allowed" : ""}`}
       >
-        <Upload className="mr-2 h-4 w-4" />
+        {isUploading ? (
+          <span className="mr-2 h-4 w-4 animate-spin">
+            {/* ローディングインジケーター（例: スピナーアイコン） */}
+            <svg
+              className="animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+          </span>
+        ) : (
+          <Upload className="mr-2 h-4 w-4" />
+        )}
         {images.length > 0
           ? t("uploadButton", { count: images.length })
           : t("upload")}
