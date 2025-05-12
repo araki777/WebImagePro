@@ -2007,7 +2007,6 @@ export default function ImageEditor2() {
                   <Button
                     className="flex-1 bg-green-500 hover:bg-green-600 text-white"
                     onClick={() => onSaveEdit(true)}
-                    isLoading={isSaving}
                     disabled={isSaving}
                   >
                     {t("saveNew")}
@@ -2015,7 +2014,6 @@ export default function ImageEditor2() {
                   <Button
                     className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
                     onClick={() => onSaveEdit(false)}
-                    isLoading={isSaving}
                     disabled={isSaving}
                   >
                     {t("saveOverwrite")}
