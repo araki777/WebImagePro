@@ -61,17 +61,17 @@
 ## ディレクトリ構成
 
 ```sh
-$ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg" -L 3 | sed 's/│/|/g; s/├──/|--/g; s/└──/`--/g' | sed 's/|--/├──/g'.
-├── .env.example
-├── .env.local
+$ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg|.env*|.venv|test-results" -L 3 | sed 's/│/|/g; s/├──/|--/g; s/└──/`--/g' | sed 's/|--/├──/g'
+.
 ├── .github
-|   |                                               `-- ISSUE_TEMPLATE
-|   |   |                                           `-- bug_report.md
-|   |                                               `-- feature_request.md
+|   |               `-- ISSUE_TEMPLATE
+|   |   |           `-- bug_report.md
+|   |   |           `-- feature_request.md
+|   |               `-- improvement_suggestion.md
 |   ├── labels.json
 |   `-- workflows
-|       |                                           `-- publish-wasm.yml
-|                                                   `-- update-labels.yml
+|       |           `-- publish-wasm.yml
+|                   `-- update-labels.yml
 ├── .gitignore
 ├── .npmrc
 ├── README.md
@@ -80,82 +80,112 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg" -L 3 
 |   ├── architecture.drawio
 |   `-- architecture.png
 ├── eslint.config.mjs
+├── netlify.toml
 ├── next-env.d.ts
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
+├── playwright.config.ts
 ├── postcss.config.mjs
 ├── public
+|   ├── ffmpeg
 |   ├── file.svg
 |   ├── globe.svg
 |   ├── next.svg
 |   ├── vercel.svg
 |   `-- window.svg
+├── python
+|   ├── .gitignore
+|   ├── .python-version
+|   ├── export_model.py
+|   ├── mise.toml
+|   ├── models
+|   |   |           `-- yolo11n.pt
+|   |               `-- yolov8n.pt
+|   `-- requirements.txt
+├── scripts
+|   `-- preinstall.js
 ├── src
 |   ├── app
-|   |   |                                           `-- api
-|   |   |                                           `-- contact
-|   |   |                                           `-- favicon.ico
-|   |   |                                           `-- gallery
-|   |   |                                           `-- globals.css
-|   |   |                                           `-- layout.tsx
-|   |   |                                           `-- login
-|   |   |                                           `-- page.tsx
-|   |   |                                           `-- privacy
-|   |   |                                           `-- profile
-|   |   |                                           `-- settings
-|   |   |                                           `-- terms
-|   |                                               `-- upload
+|   |   |           `-- [locale]
+|   |   |           `-- api
+|   |   |           `-- favicon.ico
+|   |   |           `-- globals.css
+|   |   |           `-- layout.tsx
+|   |               `-- not-found.tsx
 |   ├── components
-|   |   |                                           `-- ImageCliper.tsx
-|   |   |                                           `-- ImageCliperControls.tsx
-|   |   |                                           `-- ImageColorAjustment.tsx
-|   |   |                                           `-- ImageComposition.tsx
-|   |   |                                           `-- ImageEditor.tsx
-|   |   |                                           `-- ImageFilter.tsx
-|   |   |                                           `-- ImageGallery.tsx
-|   |   |                                           `-- ImageList.tsx
-|   |   |                                           `-- ImagePreviewList.tsx
-|   |   |                                           `-- ImageResizer.tsx
-|   |   |                                           `-- ImageTransform.tsx
-|   |   |                                           `-- ImageUpload.tsx
-|   |   |                                           `-- ImageUploadActions.tsx
-|   |   |                                           `-- common
-|   |   |                                           `-- form
-|   |                                               `-- ui
+|   |   |           `-- AuroraWave.tsx
+|   |   |           `-- FloatingCrystals.tsx
+|   |   |           `-- GlowingSpheres.tsx
+|   |   |           `-- ImageEditor2.tsx
+|   |   |           `-- ImageFilter.tsx
+|   |   |           `-- ImageGallery.tsx
+|   |   |           `-- ImageList.tsx
+|   |   |           `-- ImagePreviewList.tsx
+|   |   |           `-- ImageUpload.tsx
+|   |   |           `-- ImageUploadActions.tsx
+|   |   |           `-- LoadingScreen.tsx
+|   |   |           `-- LoginPanel.tsx
+|   |   |           `-- NoSSRWrapper.tsx
+|   |   |           `-- ParticleField.tsx
+|   |   |           `-- common
+|   |   |           `-- form
+|   |               `-- ui
+|   ├── hooks
+|   |   |           `-- useFaceDetection.ts
+|   |   |           `-- useImageFilters.ts
+|   |   |           `-- useObjectDetection.ts
+|   |   |           `-- usePixiRefs.ts
+|   |               `-- usePixiSetup.ts
+|   ├── i18n
+|   |   |           `-- request.ts
+|   |               `-- routing.ts
 |   ├── lib
-|   |   |                                           `-- api.ts
-|   |   |                                           `-- azure-storage.ts
-|   |   |                                           `-- constants.ts
-|   |   |                                           `-- stripe.ts
-|   |   |                                           `-- supabase.ts
-|   |                                               `-- utils.ts
+|   |   |           `-- api.ts
+|   |   |           `-- azure-storage.ts
+|   |   |           `-- constants.ts
+|   |   |           `-- ffmpegCompress.ts
+|   |   |           `-- redis.ts
+|   |   |           `-- stripe.ts
+|   |   |           `-- supabase.ts
+|   |               `-- utils.ts
+|   ├── messages
+|   |   |           `-- en-US.json
+|   |               `-- ja-JP.json
 |   ├── middleware.ts
 |   ├── providers
-|   |                                               `-- ThemeProvider.tsx
+|   |               `-- ThemeProvider.tsx
 |   ├── store
-|   |                                               `-- useAuthStore.ts
+|   |               `-- useAuthStore.ts
 |   `-- types
-|       |                                           `-- types.ts
-|                                                   `-- wasm-module.d.ts
+|       |           `-- types.ts
+|                   `-- wasm-module.d.ts
 ├── taskfile.yml
+├── tests
+|   `-- login.spec.ts
 ├── tsconfig.json
 ├── vitest.config.ts
 `-- wasm
     ├── .gitignore
     ├── Cargo.lock
     ├── Cargo.toml
-    ├── fonts
+    ├── README.md
+    ├── ai_models
+    |   |           `-- centerface.onnx
+    |               `-- yolo11n.onnx
     `-- src
-        |                                           `-- brightness_adjustment
-        |                                           `-- color_adjustment
-        |                                           `-- color_conversion.rs
-        |                                           `-- filter_effects
-        |                                           `-- image_composition
-        |                                           `-- image_operations
-                                                    `-- lib.rs
+        |           `-- brightness_adjustment
+        |           `-- color_adjustment
+        |           `-- color_conversion.rs
+        |           `-- face_detection
+        |           `-- filter_effects
+        |           `-- image_composition
+        |           `-- image_compression
+        |           `-- image_operations
+        |           `-- lib.rs
+                    `-- object_detection
 
-32 directories, 60 files
+36 directories, 85 files
 ```
 <p align="right">(<a href="#top">トップへ</a>)</p>
 
