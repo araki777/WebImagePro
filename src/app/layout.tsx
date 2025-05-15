@@ -1,8 +1,8 @@
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/providers/ThemeProvider";
 import "./globals.css"; // グローバルCSSを適用
-import { Toaster } from "@/components/ui/sonner";
 
 // GoogleFontsGeist Sansフォントを設定
 const geistSans = Geist({
@@ -31,14 +31,14 @@ export const metadata: Metadata = {
 
 // ビューポート設定
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: 'cover',
-  interactiveWidget: 'resizes-content',
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
   minimumScale: 1,
-  height: 'device-height',
+  height: "device-height",
 };
 
 // ルートレイアウトコンポーネント
@@ -49,6 +49,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link
+          rel="icon"
+          type="image/png"
+          href="/webimagepro.png"
+          sizes="512x512"
+        />
+      </head>
       <body
         suppressHydrationWarning // ハイドレーションエラーを抑制
         className={`${geistSans.variable} ${geistMono.variable} antialiased`} // フォント適用 & アンチエイリアス
