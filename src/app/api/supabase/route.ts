@@ -18,8 +18,6 @@ const adminSupabase = (() => {
       return null;
     }
 
-    console.log("Creating admin Supabase client with URL:", SUPABASE_URL);
-
     return createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: {
         autoRefreshToken: false,
