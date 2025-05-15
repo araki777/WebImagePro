@@ -49,5 +49,9 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
   // APIはSupabase認証、それ以外はi18n
-  matcher: ["/api/supabase/:path*", "/((?!api|trpc|_next|_vercel|.*\\..*).*)"],
+  matcher: [
+    "/api/supabase/:path*",
+    // 拡張子があるファイル（静的ファイル）はすべて除外
+    "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
+  ],
 };
