@@ -100,6 +100,10 @@
   "ImageGallery": {
     "title": "画像ギャラリー",
     "description": "アップロードした画像を一覧で表示します。",
+    "tabs": {
+      "personal": "個人",
+      "shared": "共有"
+    },
     "tour": {
       "searchBar": "画像名で検索できます。",
       "imageList": "画像の一覧です。",
@@ -162,7 +166,9 @@
     "original": "元の画像",
     "compressed": "圧縮後",
     "compressionSettings": "圧縮設定",
-    "previewError": "プレビューの生成に失敗しました。"
+    "previewError": "プレビューの生成に失敗しました。",
+    "shared": "共有設定",
+    "sharedDescription": "画像を共有コンテナに保存します"
   },
   "Settings": {
     "title": "設定",
@@ -400,7 +406,14 @@
     },
     "saving": "画像を保存中",
     "saveNew": "新規保存",
-    "saveOverwrite": "上書き保存"
+    "saveOverwrite": "上書き保存",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "saveMode": {
+      "overwrite": "上書き保存",
+      "new": "新規保存",
+      "shared": "共有コンテナに保存"
+    }
   },
   "Common": {
     "back": "元のページに戻る",

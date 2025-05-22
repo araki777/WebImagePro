@@ -88,6 +88,7 @@ export interface ICompressionSettings {
   lossless?: boolean; // ロスレス圧縮
   webp_quality?: number; // ロッシー時の品質 0-100
   enabled?: boolean;
+  isShared?: boolean;
 }
 
 export interface IImagePreview {
@@ -129,6 +130,7 @@ export interface IImageUploadFormProps {
 export interface IImageUploadActionsProps {
   images: IImagePreview[];
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
+  userId: string | undefined;
 }
 
 // ============================================================================
