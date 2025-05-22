@@ -9,6 +9,7 @@ import { toast } from "sonner";
 export function ImageUploadActions({
   images,
   setImages,
+  userId,
 }: IImageUploadActionsProps) {
   const t = useTranslations("ImageUploadActions");
   const [isUploading, setIsUploading] = useState(false);
@@ -38,6 +39,11 @@ export function ImageUploadActions({
       try {
         const formData = new FormData();
         formData.append("file", image.file);
+        formData.append(
+          "isShared",
+          image.compressionSettings.isShared?.toString() || "false"
+        );
+        formData.append("userId", userId || "");
 
         // APIへ画像ファイルをPOSTリクエストで送信
         const response = await fetch("/api/upload", {

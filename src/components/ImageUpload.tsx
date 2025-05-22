@@ -11,12 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuthStore } from "@/store/useAuthStore";
 import { ICompressionSettings, IImagePreview } from "@/types/types";
 import { Image as ImageIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 export function ImageUpload() {
+  const { user } = useAuthStore();
   const t = useTranslations("ImageUpload");
   const [images, setImages] = useState<IImagePreview[]>([]);
 
@@ -58,7 +60,11 @@ export function ImageUpload() {
             </NoSSRWrapper>
           )}
 
-          <ImageUploadActions images={images} setImages={setImages} />
+          <ImageUploadActions
+            images={images}
+            setImages={setImages}
+            userId={user?.id}
+          />
         </CardContent>
       </Card>
     </>
