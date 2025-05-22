@@ -29,7 +29,6 @@ import {
   ICompressionSettings,
 } from "@/lib/constants";
 import { compressImageWithFFmpeg } from "@/lib/ffmpegCompress";
-import { formatFileSize } from "@/lib/utils";
 import { IImagePreview, IImagePreviewListProps } from "@/types/types";
 import { Eye, Settings2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -111,6 +110,18 @@ export function ImagePreviewList({
               <PopoverContent className="w-80">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
+                    <Label htmlFor={`shared-${index}`}>{t("shared")}</Label>
+                    <Switch
+                      id={`shared-${index}`}
+                      checked={image.compressionSettings.isShared}
+                      onCheckedChange={(checked) =>
+                        handleCompressionSettingsChange(index, {
+                          isShared: checked,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
                     <Label htmlFor={`compression-enabled-${index}`}>
                       {t("imageSettingsEnabled")}
                     </Label>
@@ -124,7 +135,6 @@ export function ImagePreviewList({
                       }
                     />
                   </div>
-
                   {image.compressionSettings.enabled && (
                     <>
                       <div className="space-y-2">
@@ -133,7 +143,6 @@ export function ImagePreviewList({
                           value={image.compressionSettings.format}
                           onValueChange={(value) => {
                             const format = value as "JPEG" | "PNG" | "WebP";
-                            // フォーマットに応じたデフォルト値の設定
                             const settings: Partial<ICompressionSettings> = {
                               format,
                             };

@@ -11,19 +11,23 @@ import {
 } from "@/components/ui/card";
 import { SearchBar } from "@/components/ui/searchBar";
 import { useRouter } from "@/i18n/routing";
+import { useAuthStore } from "@/store/useAuthStore";
 import { IApiImage } from "@/types/types";
-import { Image as ImageIcon, Loader2 } from "lucide-react";
+import { Image as ImageIcon, Loader2, User, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Step } from "react-joyride";
 import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 
 export function ImageGallery() {
+  const { user } = useAuthStore();
   const t = useTranslations("ImageGallery");
   const router = useRouter();
   const [images, setImages] = useState<IApiImage[]>([]); // 画像データの状態
   const [loading, setLoading] = useState(true); // ローディング状態
   const [searchQuery, setSearchQuery] = useState(""); // 検索クエリ
+  const [viewMode, setViewMode] = useState<"personal" | "shared">("personal");
 
   // ツアーガイドのステップを定義
   const getTourSteps = (): Step[] => {
@@ -83,12 +87,15 @@ export function ImageGallery() {
   // コンポーネントがマウントされた時に画像データを取得
   useEffect(() => {
     fetchImages();
-  }, []);
+  }, [viewMode]);
 
   // 画像データを取得する関数
   const fetchImages = async () => {
     try {
-      const response = await fetch("/api/images");
+      setLoading(true);
+      const response = await fetch(
+        `/api/images?isShared=${viewMode === "shared"}&userId=${user?.id}`
+      );
       if (!response.ok) throw new Error(t("error.fetchFailed"));
       const data = await response.json();
       setImages(
@@ -174,13 +181,37 @@ export function ImageGallery() {
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 検索フォーム */}
-          <SearchBar
-            query={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setSearchQuery(e.target.value)
-            }
-          />
+          <div className="flex flex-col gap-4">
+            <Tabs
+              value={viewMode}
+              onValueChange={(value) =>
+                setViewMode(value as "personal" | "shared")
+              }
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger
+                  value="personal"
+                  className="flex items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  {t("tabs.personal")}
+                </TabsTrigger>
+                <TabsTrigger value="shared" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  {t("tabs.shared")}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            {/* 検索フォーム */}
+            <SearchBar
+              query={searchQuery}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSearchQuery(e.target.value)
+              }
+            />
+          </div>
           <ImageList
             images={filteredImages}
             onEditImage={handleEditImage}
