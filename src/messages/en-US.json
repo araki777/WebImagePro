@@ -95,6 +95,10 @@
   "ImageGallery": {
     "title": "Image Gallery",
     "description": "Displays a list of uploaded images.",
+    "tabs": {
+      "personal": "Personal",
+      "shared": "Shared"
+    },
     "tour": {
       "searchBar": "You can search by image name.",
       "imageList": "List of images.",
@@ -145,7 +149,21 @@
     "fileSize": "File Size",
     "lastModified": "Last Modified",
     "edit": "Edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "compression": "Compression",
+    "imageSettingsEnabled": "Enable Image Settings",
+    "compressionEnabled": "Enable Compression",
+    "format": "Format",
+    "quality": "Quality",
+    "previewCompression": "Compression Preview",
+    "compressionPreview": "Compression Preview",
+    "compressionPreviewDescription": "Compare before and after compression",
+    "original": "Original",
+    "compressed": "Compressed",
+    "compressionSettings": "Compression Settings",
+    "previewError": "Failed to generate preview.",
+    "shared": "Shared Settings",
+    "sharedDescription": "Save image to shared container"
   },
   "Settings": {
     "title": "Settings",
@@ -383,7 +401,15 @@
     },
     "saving": "Saving image",
     "saveNew": "Save as New",
-    "saveOverwrite": "Overwrite"
+    "saveOverwrite": "Overwrite",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save",
+    "saveMode": {
+      "overwrite": "Overwrite",
+      "new": "Save as New",
+      "shared": "Save to Shared Container"
+    }
   },
   "Common": {
     "back": "Back to previous page",

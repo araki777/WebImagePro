@@ -44,6 +44,7 @@ let wasmModule: any;
 let wasmInitError: Error | null = null;
 let wasmInitialized = false;
 
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader } from "lucide-react";
 
 export default function ImageEditor2() {
@@ -71,6 +72,8 @@ export default function ImageEditor2() {
   // 検出タイプの選択状態
   const [selectedDetection, setSelectedDetection] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
+  const [saveMode, setSaveMode] = useState<"edit" | "new">("edit");
+  const [isShared, setIsShared] = useState(false);
 
   // 認証関連
   const searchParams = useSearchParams();
@@ -990,7 +993,6 @@ export default function ImageEditor2() {
     )
       return;
 
-    // 保存処理開始時にローディング状態をセット
     setIsSaving(true);
 
     try {
@@ -1066,25 +1068,40 @@ export default function ImageEditor2() {
       // Fileを作成
       const file = new File([blob], fileName, { type: blob.type });
 
-      // アップロード処理（既存のまま）
+      // アップロード処理
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("isShared", isShared.toString());
+      formData.append("userId", user?.id || "");
+
       const uploadResponse = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
       if (!uploadResponse.ok) throw new Error("アップロードに失敗しました");
+
       // 上書き保存の場合は元画像を削除
       if (!isNewImage && editingImage?.url) {
         const encodedUrl = btoa(editingImage.url);
         await fetch(`/api/images/${encodedUrl}`, { method: "DELETE" });
       }
+      router.push("/gallery");
+      toast.success(isNewImage ? "新規保存しました" : "上書き保存しました");
     } catch (error) {
       console.error("画像の保存エラー:", error);
-    } finally {
-      setEditingImage(null);
-      router.push("/gallery");
+      toast.error("保存に失敗しました");
+      setIsSaving(false);
     }
+  };
+
+  // 保存モードの切り替え
+  const handleSaveModeChange = (mode: "edit" | "new") => {
+    setSaveMode(mode);
+  };
+
+  // 共有設定の切り替え
+  const handleSharedChange = (shared: boolean) => {
+    setIsShared(shared);
   };
 
   useEffect(() => {
@@ -1226,14 +1243,14 @@ export default function ImageEditor2() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col h-screen">
       <Header
         onLogout={signOut}
-        userImage={user.user_metadata.avatar_url}
-        userName={user.user_metadata.full_name || user.email}
+        userImage={user?.user_metadata.avatar_url}
+        userName={user?.user_metadata.full_name || user?.email}
       />
-      <div className="flex h-[calc(100vh-3.5rem)]">
-        <main className="flex-1 h-full overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
+        <main className="flex-1 relative">
           <div
             className="w-full h-full relative"
             style={{
@@ -1296,7 +1313,7 @@ export default function ImageEditor2() {
             />
           </div>
         </main>
-        <aside className="w-64 bg-white border-l border-gray-200 p-4 overflow-y-auto">
+        <aside className="w-64 border-l p-4 overflow-y-auto">
           <div className="space-y-4">
             {/* グリッド設定 */}
             <div>
@@ -1991,7 +2008,7 @@ export default function ImageEditor2() {
               </Accordion>
             )}
 
-            {/* リセットボタンと保存ボタン */}
+            {/* リセットボタン */}
             {pixiRefs.spriteRef.current && (
               <div className="pt-2">
                 <button
@@ -2000,29 +2017,55 @@ export default function ImageEditor2() {
                 >
                   {t("resetAll")}
                 </button>
-                <p className="text-xs text-gray-500 mt-1">
-                  {t("resetAllDesc")}
-                </p>
-                <div className="flex gap-2 mt-4">
-                  <Button
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white"
-                    onClick={() => onSaveEdit(true)}
-                    disabled={isSaving}
-                  >
-                    {t("saveNew")}
-                  </Button>
-                  <Button
-                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
-                    onClick={() => onSaveEdit(false)}
-                    disabled={isSaving}
-                  >
-                    {t("saveOverwrite")}
-                  </Button>
-                </div>
               </div>
             )}
           </div>
         </aside>
+      </div>
+      <div className="flex justify-between items-center p-4 border-t">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/gallery")}
+            disabled={isSaving}
+          >
+            {t("cancel")}
+          </Button>
+          <div className="flex items-center space-x-4">
+            <RadioGroup
+              value={saveMode}
+              onValueChange={(value: string) =>
+                handleSaveModeChange(value as "edit" | "new")
+              }
+              className="flex items-center space-x-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="edit" id="edit" />
+                <Label htmlFor="edit">{t("saveMode.overwrite")}</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="new" id="new" />
+                <Label htmlFor="new">{t("saveMode.new")}</Label>
+              </div>
+            </RadioGroup>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="shared"
+                checked={isShared}
+                onCheckedChange={handleSharedChange}
+              />
+              <Label htmlFor="shared">{t("saveMode.shared")}</Label>
+            </div>
+          </div>
+        </div>
+        {pixiRefs.spriteRef.current && (
+          <Button
+            onClick={() => onSaveEdit(saveMode === "new")}
+            disabled={isSaving}
+          >
+            {isSaving ? t("saving") : t("save")}
+          </Button>
+        )}
       </div>
     </div>
   );
