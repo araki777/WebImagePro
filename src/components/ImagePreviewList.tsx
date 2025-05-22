@@ -29,6 +29,7 @@ import {
   ICompressionSettings,
 } from "@/lib/constants";
 import { compressImageWithFFmpeg } from "@/lib/ffmpegCompress";
+import { formatFileSize } from "@/lib/utils";
 import { IImagePreview, IImagePreviewListProps } from "@/types/types";
 import { Eye, Settings2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
