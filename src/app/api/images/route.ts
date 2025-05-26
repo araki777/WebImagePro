@@ -1,4 +1,5 @@
 import { AzureStorageService } from "@/lib/azure-storage";
+import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 const azureStorage = new AzureStorageService(
@@ -35,7 +36,30 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(images);
+    // Supabaseからタグ情報を取得
+    const { data: dbImages, error } = await supabase
+      .from("images")
+      .select("blob_name, container_name, tags");
+
+    if (error) {
+      throw error;
+    }
+
+    // blob_name+container_nameでマッピング
+    const tagsMap = new Map(
+      (dbImages || []).map((row) => [
+        `${row.container_name}/${row.blob_name}`,
+        row.tags || [],
+      ])
+    );
+
+    // 画像リストにSupabaseのタグをマージ
+    const imagesWithTags = images.map((img) => ({
+      ...img,
+      tags: tagsMap.get(`${img.containerName}/${img.blobName}`) || [],
+    }));
+
+    return NextResponse.json(imagesWithTags);
   } catch (error) {
     console.error("Failed to fetch images:", error);
     return NextResponse.json(

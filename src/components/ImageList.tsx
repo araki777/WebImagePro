@@ -34,6 +34,19 @@ export function ImageList({
             </div>
             <div className="space-y-2">
               <div className="font-medium truncate">{image.name}</div>
+              {/* タグ一覧表示（バッジ風） */}
+              {image.tags && image.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-1">
+                  {image.tags.map((tag, i) => (
+                    <span
+                      key={tag + i}
+                      className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full border border-blue-200"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
               <div className="text-sm text-muted-foreground">
                 {formatFileSize(image.size)}
               </div>

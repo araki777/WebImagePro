@@ -22,6 +22,9 @@ export interface BlobImage {
   contentType: string;
   size: number;
   uploadedAt: Date;
+  blobName: string;
+  containerName: string;
+  tags: string[];
 }
 
 interface UploadMetadata {
@@ -106,6 +109,12 @@ export class AzureStorageService {
     return `${blobClient.url}?${sasToken}`;
   }
 
+  async getSasUrl(containerName: string, blobName: string): Promise<string> {
+    const containerClient = await this.getContainerClient(containerName);
+    const blobClient = containerClient.getBlobClient(blobName);
+    return this.generateSasUrl(blobClient);
+  }
+
   async getListImages(containerClient: ContainerClient): Promise<BlobImage[]> {
     const images: BlobImage[] = [];
     const isSharedContainer =
@@ -127,6 +136,9 @@ export class AzureStorageService {
         name: properties.metadata?.originalName || blob.name,
         contentType: properties.contentType || "application/octet-stream",
         size: properties.contentLength || 0,
+        blobName: blob.name,
+        containerName: containerClient.containerName,
+        tags: properties.metadata?.tags?.split(",") || [],
         uploadedAt: new Date(properties.lastModified || Date.now()),
       });
     }
@@ -140,7 +152,12 @@ export class AzureStorageService {
     file: File | Blob,
     fileName: string,
     options: UploadOptions
-  ): Promise<string> {
+  ): Promise<{
+    url: string;
+    containerName: string;
+    blobName: string;
+    tags: string[];
+  }> {
     const {
       isShared,
       userId,
@@ -179,7 +196,12 @@ export class AzureStorageService {
           : undefined,
       });
 
-      return blockBlobClient.url;
+      return {
+        url: blockBlobClient.url,
+        containerName: containerClient.containerName,
+        blobName: blobName,
+        tags: Array.isArray(uploadMetadata.tags) ? uploadMetadata.tags : [],
+      };
     } catch (error) {
       console.error("File upload failed:", error);
       if (error instanceof Error) {
@@ -187,7 +209,7 @@ export class AzureStorageService {
           `ファイルのアップロードに失敗しました: ${error.message}`
         );
       }
-      throw new Error("ファイルのアップロードに失敗しました");
+      throw error;
     }
   }
 
