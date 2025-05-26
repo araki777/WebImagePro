@@ -1,4 +1,6 @@
 import { AzureStorageService } from "@/lib/azure-storage";
+import { getImageTagsFromVision } from "@/lib/azure-vision";
+import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 const azureStorage = new AzureStorageService(
@@ -43,16 +45,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const url = await azureStorage.uploadFile(file, file.name, {
-      isShared,
-      userId,
-      metadata: {
-        contentType: file.type,
-        size: file.size.toString(),
-      },
-    });
+    const { url, containerName, blobName } = await azureStorage.uploadFile(
+      file,
+      file.name,
+      {
+        isShared,
+        userId,
+        metadata: {
+          contentType: file.type,
+          size: file.size.toString(),
+        },
+      }
+    );
 
-    return NextResponse.json({ url });
+    let tags: string[] | null = null;
+    let visionError: string | null = null;
+    try {
+      const sasUrl = await azureStorage.getSasUrl(containerName, blobName);
+      tags = await getImageTagsFromVision(sasUrl);
+      if (tags === null) {
+        visionError = "limit";
+      }
+    } catch (error) {
+      console.error("Computer Vision API error:", error);
+      visionError = "error";
+    }
+
+    const { error: supabaseError } = await supabase.from("images").upsert([
+      {
+        container_name: containerName,
+        blob_name: blobName,
+        tags,
+      },
+    ]);
+
+    if (supabaseError) {
+      console.error("Supabase insert error:", supabaseError);
+    }
+
+    return NextResponse.json({ url, tags, visionError });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(

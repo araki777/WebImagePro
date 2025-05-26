@@ -74,6 +74,7 @@ export interface IBaseImage {
 
 export interface IApiImage extends IBaseImage {
   uploadedAt: string;
+  tags: string[];
 }
 
 export interface ICompressionSettings {
