@@ -118,7 +118,7 @@ export const SignupForm = () => {
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="8文字以上"
+                        placeholder={t("passwordPlaceholder")}
                         className="bg-white/80 focus:bg-white text-black placeholder-gray-400 border border-white/30 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 transition"
                         {...field}
                       />
@@ -138,7 +138,7 @@ export const SignupForm = () => {
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="もう一度入力"
+                        placeholder={t("confirmPasswordPlaceholder")}
                         className="bg-white/80 focus:bg-white text-black placeholder-gray-400 border border-white/30 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 transition"
                         {...field}
                       />

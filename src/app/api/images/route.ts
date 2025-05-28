@@ -1,5 +1,7 @@
 import { AzureStorageService } from "@/lib/azure-storage";
+import { DEFAULT_LANGUAGE } from "@/lib/constants";
 import { supabase } from "@/lib/supabase";
+import { IDBImageRow } from "@/types/types";
 import { NextRequest, NextResponse } from "next/server";
 
 const azureStorage = new AzureStorageService(
@@ -11,6 +13,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const userId = searchParams.get("userId");
     const isShared = searchParams.get("isShared")?.toLowerCase() === "true";
+    const lang = searchParams.get("lang") || DEFAULT_LANGUAGE;
 
     if (!userId && !isShared) {
       return NextResponse.json(
@@ -39,7 +42,7 @@ export async function GET(request: NextRequest) {
     // Supabaseからタグ情報を取得
     const { data: dbImages, error } = await supabase
       .from("images")
-      .select("blob_name, container_name, tags");
+      .select(`blob_name, container_name, ${lang}_tags`);
 
     if (error) {
       throw error;
@@ -47,9 +50,9 @@ export async function GET(request: NextRequest) {
 
     // blob_name+container_nameでマッピング
     const tagsMap = new Map(
-      (dbImages || []).map((row) => [
+      ((dbImages as unknown as IDBImageRow[]) || []).map((row) => [
         `${row.container_name}/${row.blob_name}`,
-        row.tags || [],
+        row[`${lang}_tags`] || [],
       ])
     );
 

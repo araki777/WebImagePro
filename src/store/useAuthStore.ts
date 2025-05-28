@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { DEFAULT_LANGUAGE } from "@/lib/constants";
 import { supabase } from "@/lib/supabase";
 import { AuthState, IUserData, UserSettings } from "@/types/types";
 import { Session } from "@supabase/supabase-js";
@@ -228,7 +229,7 @@ async function createUserSettings(userId: string, session: Session) {
       id: crypto.randomUUID(),
       user_id: userId,
       theme: "light",
-      language: "ja-JP",
+      language: DEFAULT_LANGUAGE,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       subscription_status: null,
@@ -237,7 +238,10 @@ async function createUserSettings(userId: string, session: Session) {
       stripe_customer_id: null,
     };
 
-    // デフォルト設定をキャッシュに保存
+    // 1. DBに保存
+    await supabase.from("user_settings").insert([defaultSettings]);
+
+    // 2. キャッシュにも保存
     await fetch("/api/cache/session", {
       method: "POST",
       headers: {
@@ -258,7 +262,7 @@ async function createUserSettings(userId: string, session: Session) {
       id: crypto.randomUUID(),
       user_id: userId,
       theme: "light",
-      language: "ja-JP",
+      language: DEFAULT_LANGUAGE,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       subscription_status: null,

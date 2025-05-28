@@ -1,6 +1,7 @@
 import { AzureStorageService } from "@/lib/azure-storage";
 import { getImageTagsFromVision } from "@/lib/azure-vision";
 import { supabase } from "@/lib/supabase";
+import { ITagsByLang } from "@/types/types";
 import { NextRequest, NextResponse } from "next/server";
 
 const azureStorage = new AzureStorageService(
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    let tags: string[] | null = null;
+    let tags: ITagsByLang | null = null;
     let visionError: string | null = null;
     try {
       const sasUrl = await azureStorage.getSasUrl(containerName, blobName);
@@ -75,7 +76,8 @@ export async function POST(request: NextRequest) {
       {
         container_name: containerName,
         blob_name: blobName,
-        tags,
+        ja_tags: tags?.ja,
+        en_tags: tags?.en,
       },
     ]);
 
