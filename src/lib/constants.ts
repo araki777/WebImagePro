@@ -20,3 +20,6 @@ export const RATIOS = [
   { name: "9:16", value: 9 / 16 },
 ];
 export type { ICompressionSettings };
+
+export const LANGUAGES = ["ja", "en"] as const;
+export const DEFAULT_LANGUAGE = "ja" as const;

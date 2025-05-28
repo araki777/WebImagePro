@@ -181,10 +181,10 @@ export const LoginForm = () => {
         </FormProvider>
         <div className="mt-6 flex flex-col items-center gap-2">
           <Button asChild variant="link" className="text-blue-400">
-            <Link href="/signup">新規登録はこちら</Link>
+            <Link href="/signup">{t("toSignup")}</Link>
           </Button>
           <Button asChild variant="link" className="text-blue-400">
-            <Link href="/sendEmail">パスワードを忘れた方はこちら</Link>
+            <Link href="/sendEmail">{t("toSendEmail")}</Link>
           </Button>
         </div>
       </div>

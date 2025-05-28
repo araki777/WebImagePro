@@ -14,7 +14,7 @@ import { useRouter } from "@/i18n/routing";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IApiImage } from "@/types/types";
 import { Image as ImageIcon, Loader2, User, Users } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Step } from "react-joyride";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 
 export function ImageGallery() {
   const { user } = useAuthStore();
+  const locale = useLocale();
   const t = useTranslations("ImageGallery");
   const router = useRouter();
   const [images, setImages] = useState<IApiImage[]>([]); // 画像データの状態
@@ -94,7 +95,7 @@ export function ImageGallery() {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/images?isShared=${viewMode === "shared"}&userId=${user?.id}`
+        `/api/images?isShared=${viewMode === "shared"}&userId=${user?.id}&lang=${locale}`
       );
       if (!response.ok) throw new Error(t("error.fetchFailed"));
       const data = await response.json();
@@ -114,9 +115,9 @@ export function ImageGallery() {
     }
   };
 
-  const filteredImages = images.filter(
-    (image) => image.name.toLowerCase().includes(searchQuery.toLowerCase()) // 検索クエリに一致する画像をフィルタリング
-  );
+  const filteredImages = images.filter((image) => {
+    return image.tags.some((tag: string) => tag.includes(searchQuery));
+  });
 
   // 編集中の画像を設定する関数
   const handleEditImage = (image: IApiImage) => {

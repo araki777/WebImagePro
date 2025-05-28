@@ -8,6 +8,7 @@ import { Header } from "@/components/ui/header";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePathname, useRouter } from "@/i18n/routing";
+import { DEFAULT_LANGUAGE, LANGUAGES } from "@/lib/constants";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { loadStripe } from "@stripe/stripe-js";
@@ -29,10 +30,10 @@ function LanguageSwitcher() {
   const router = useRouter();
   const { updateUserSettings } = useAuthStore();
 
-  const locales = [
-    { code: "ja-JP", label: "日本語" },
-    { code: "en-US", label: "English" },
-  ];
+  const locales = LANGUAGES.map((lang) => ({
+    code: lang,
+    label: lang === DEFAULT_LANGUAGE ? "日本語" : "English",
+  }));
 
   const handleLanguageChange = async (code: string) => {
     await updateUserSettings({ language: code });

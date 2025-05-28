@@ -38,6 +38,9 @@
     "fileInputLabel": "Select image files"
   },
   "Login": {
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
     "loading": "Loading...",
     "title": "Login",
     "loginWithGoogle": "Login with Google",
@@ -54,7 +57,11 @@
     "sendEmailDone": "Password reset email has been sent.",
     "toSignup": "Sign up here",
     "toSendEmail": "Forgot your password?",
-    "loggingIn": "Logging in..."
+    "loggingIn": "Logging in...",
+    "signup": "Sign up",
+    "passwordPlaceholder": "Enter your password",
+    "confirmPasswordPlaceholder": "Enter your password again",
+    "sendEmail": "Send password reset email"
   },
   "Home": {
     "tourUpload": "Let's try uploading an image!",
