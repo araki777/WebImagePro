@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("ログインページ", () => {
   test("日本語ページが正しく表示される", async ({ page }) => {
     // ログインページにアクセス
-    await page.goto("/ja-JP/login");
+    await page.goto("/ja/login");
 
     // 3Dキャンバスが表示されている
     await expect(page.locator("canvas")).toBeVisible();
@@ -15,7 +15,7 @@ test.describe("ログインページ", () => {
 
   test("英語ページが正しく表示される", async ({ page }) => {
     // ログインページにアクセス
-    await page.goto("/en-US/login");
+    await page.goto("/en/login");
 
     // 3Dキャンバスが表示されている
     await expect(page.locator("canvas")).toBeVisible();

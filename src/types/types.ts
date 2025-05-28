@@ -307,3 +307,17 @@ export interface ISendEmailParams {
   name: string;
   email: string;
 }
+
+// ============================================================================
+// 画像タグ関連の型定義
+// ============================================================================
+export interface ITagsByLang {
+  [lang: string]: string[];
+}
+
+export interface IDBImageRow {
+  blob_name: string;
+  container_name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
+}
