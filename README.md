@@ -64,17 +64,20 @@
 $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg|.env*|.venv|test-results" -L 3 | sed 's/│/|/g; s/├──/|--/g; s/└──/`--/g' | sed 's/|--/├──/g'
 .
 ├── .github
-|   |               `-- ISSUE_TEMPLATE
-|   |   |           `-- bug_report.md
-|   |   |           `-- feature_request.md
-|   |               `-- improvement_suggestion.md
+|   ├── ISSUE_TEMPLATE
+|   |   ├── bug_report.md
+|   |   ├── feature_request.md
+|   |   `-- improvement_suggestion.md
 |   ├── labels.json
 |   `-- workflows
-|       |           `-- publish-wasm.yml
-|                   `-- update-labels.yml
+|       ├── publish-wasm.yml
+|       `-- update-labels.yml
 ├── .gitignore
+├── .hintrc
 ├── .npmrc
+├── AzuriteConfig
 ├── README.md
+├── __azurite_db_table__.json
 ├── components.json
 ├── docs
 |   ├── architecture.drawio
@@ -88,78 +91,90 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg|.env*|
 ├── playwright.config.ts
 ├── postcss.config.mjs
 ├── public
+|   ├── android-chrome-192x192.png
+|   ├── android-chrome-512x512.png
+|   ├── apple-touch-icon.png
+|   ├── favicon-16x16.png
+|   ├── favicon-32x32.png
+|   ├── favicon.ico
 |   ├── ffmpeg
-|   ├── file.svg
-|   ├── globe.svg
-|   ├── next.svg
-|   ├── vercel.svg
-|   `-- window.svg
+|   ├── icon512_maskable.png
+|   ├── icon512_rounded.png
+|   ├── manifest.json
+|   ├── sw.js
+|   ├── webimagepro.png
+|   `-- workbox-4754cb34.js
 ├── python
 |   ├── .gitignore
 |   ├── .python-version
+|   ├── app
+|   |   ├── __init__.py
+|   |   `-- main.py
 |   ├── export_model.py
 |   ├── mise.toml
 |   ├── models
-|   |   |           `-- yolo11n.pt
-|   |               `-- yolov8n.pt
-|   `-- requirements.txt
+|   |   ├── yolo11n.pt
+|   |   `-- yolov8n.pt
+|   ├── requirements.txt
+|   `-- start.py
 ├── scripts
 |   `-- preinstall.js
 ├── src
 |   ├── app
-|   |   |           `-- [locale]
-|   |   |           `-- api
-|   |   |           `-- favicon.ico
-|   |   |           `-- globals.css
-|   |   |           `-- layout.tsx
-|   |               `-- not-found.tsx
+|   |   ├── [locale]
+|   |   ├── api
+|   |   ├── globals.css
+|   |   ├── layout.tsx
+|   |   `-- not-found.tsx
 |   ├── components
-|   |   |           `-- AuroraWave.tsx
-|   |   |           `-- FloatingCrystals.tsx
-|   |   |           `-- GlowingSpheres.tsx
-|   |   |           `-- ImageEditor2.tsx
-|   |   |           `-- ImageFilter.tsx
-|   |   |           `-- ImageGallery.tsx
-|   |   |           `-- ImageList.tsx
-|   |   |           `-- ImagePreviewList.tsx
-|   |   |           `-- ImageUpload.tsx
-|   |   |           `-- ImageUploadActions.tsx
-|   |   |           `-- LoadingScreen.tsx
-|   |   |           `-- LoginPanel.tsx
-|   |   |           `-- NoSSRWrapper.tsx
-|   |   |           `-- ParticleField.tsx
-|   |   |           `-- common
-|   |   |           `-- form
-|   |               `-- ui
+|   |   ├── AuroraWave.tsx
+|   |   ├── FloatingCrystals.tsx
+|   |   ├── GlowingSpheres.tsx
+|   |   ├── ImageEditor2.tsx
+|   |   ├── ImageFilter.tsx
+|   |   ├── ImageGallery.tsx
+|   |   ├── ImageList.tsx
+|   |   ├── ImagePreviewList.tsx
+|   |   ├── ImageUpload.tsx
+|   |   ├── ImageUploadActions.tsx
+|   |   ├── NoSSRWrapper.tsx
+|   |   ├── ParticleField.tsx
+|   |   ├── common
+|   |   ├── form
+|   |   `-- ui
 |   ├── hooks
-|   |   |           `-- useFaceDetection.ts
-|   |   |           `-- useImageFilters.ts
-|   |   |           `-- useObjectDetection.ts
-|   |   |           `-- usePixiRefs.ts
-|   |               `-- usePixiSetup.ts
+|   |   ├── useFaceDetection.ts
+|   |   ├── useImageFilters.ts
+|   |   ├── useObjectDetection.ts
+|   |   ├── usePixiRefs.ts
+|   |   `-- usePixiSetup.ts
 |   ├── i18n
-|   |   |           `-- request.ts
-|   |               `-- routing.ts
+|   |   ├── request.ts
+|   |   `-- routing.ts
 |   ├── lib
-|   |   |           `-- api.ts
-|   |   |           `-- azure-storage.ts
-|   |   |           `-- constants.ts
-|   |   |           `-- ffmpegCompress.ts
-|   |   |           `-- redis.ts
-|   |   |           `-- stripe.ts
-|   |   |           `-- supabase.ts
-|   |               `-- utils.ts
+|   |   ├── api.ts
+|   |   ├── azure-storage.ts
+|   |   ├── azure-translation.ts
+|   |   ├── azure-vision.ts
+|   |   ├── backend.ts
+|   |   ├── constants.ts
+|   |   ├── ffmpegCompress.ts
+|   |   ├── redis.ts
+|   |   ├── stripe.ts
+|   |   ├── supabase.ts
+|   |   ├── utils.ts
+|   |   `-- validation
 |   ├── messages
-|   |   |           `-- en-US.json
-|   |               `-- ja-JP.json
+|   |   ├── en.json
+|   |   `-- ja.json
 |   ├── middleware.ts
 |   ├── providers
-|   |               `-- ThemeProvider.tsx
+|   |   `-- ThemeProvider.tsx
 |   ├── store
-|   |               `-- useAuthStore.ts
+|   |   `-- useAuthStore.ts
 |   `-- types
-|       |           `-- types.ts
-|                   `-- wasm-module.d.ts
+|       ├── types.ts
+|       `-- wasm-module.d.ts
 ├── taskfile.yml
 ├── tests
 |   `-- login.spec.ts
@@ -171,21 +186,21 @@ $ tree -a -I ".next|.storybook|.task|.vscode|node_modules|.git|target|pkg|.env*|
     ├── Cargo.toml
     ├── README.md
     ├── ai_models
-    |   |           `-- centerface.onnx
-    |               `-- yolo11n.onnx
+    |   ├── centerface.onnx
+    |   `-- yolo11n.onnx
     `-- src
-        |           `-- brightness_adjustment
-        |           `-- color_adjustment
-        |           `-- color_conversion.rs
-        |           `-- face_detection
-        |           `-- filter_effects
-        |           `-- image_composition
-        |           `-- image_compression
-        |           `-- image_operations
-        |           `-- lib.rs
-                    `-- object_detection
+        ├── brightness_adjustment
+        ├── color_adjustment
+        ├── color_conversion.rs
+        ├── face_detection
+        ├── filter_effects
+        ├── image_composition
+        ├── image_compression
+        ├── image_operations
+        ├── lib.rs
+        `-- object_detection
 
-36 directories, 85 files
+38 directories, 98 files
 ```
 <p align="right">(<a href="#top">トップへ</a>)</p>
 
