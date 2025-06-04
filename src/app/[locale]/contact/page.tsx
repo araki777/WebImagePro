@@ -21,7 +21,7 @@ const Footer = dynamic(() =>
 
 export default function ContactPage() {
   const t = useTranslations("Contact");
-  const { user, isLoading, checkUser } = useAuthStore();
+  const { user, checkUser } = useAuthStore();
   const [formData, setFormData] = useState<IContactForm>({
     name: "",
     email: "",
@@ -38,14 +38,14 @@ export default function ContactPage() {
   // ユーザー情報が変更されたときにフォームデータを更新
   useEffect(() => {
     // ユーザー情報のロードが完了し、ユーザーが存在する場合
-    if (!isLoading && user) {
+    if (user) {
       setFormData((prev) => ({
         ...prev,
         name: user.user_metadata?.full_name || user.email?.split("@")[0] || "",
         email: user.email || "",
       }));
     }
-  }, [user, isLoading]);
+  }, [user]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -69,12 +69,10 @@ export default function ContactPage() {
     try {
       // APIを使用してお問い合わせデータを保存
       await api.create("contacts", {
-        user_id: user?.id || null, // ユーザーがログインしている場合はuser_idを紐づける（API側でも設定されます）
         name: formData.name,
         email: formData.email,
         subject: formData.subject,
         message: formData.message,
-        status: "pending",
       });
 
       // メール送信
@@ -120,7 +118,7 @@ export default function ContactPage() {
           </div>
           <Separator />
 
-          {isLoading ? (
+          {!user ? (
             <div className="flex justify-center py-10">
               <div className="animate-pulse text-center">
                 <p className="text-gray-500">{t("loadingUser")}</p>

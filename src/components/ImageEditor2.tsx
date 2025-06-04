@@ -77,7 +77,7 @@ export default function ImageEditor2() {
 
   // 認証関連
   const searchParams = useSearchParams();
-  const { user, isLoading: isAuthLoading, checkUser, signOut } = useAuthStore();
+  const { userProfiles, checkUser, signOut } = useAuthStore();
 
   // PIXI.jsの参照
   const pixiRefs = usePixiRefs();
@@ -1072,7 +1072,7 @@ export default function ImageEditor2() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("isShared", isShared.toString());
-      formData.append("userId", user?.id || "");
+      formData.append("userId", userProfiles?.id || "");
 
       const uploadResponse = await fetch("/api/upload", {
         method: "POST",
@@ -1191,7 +1191,7 @@ export default function ImageEditor2() {
     }
   }, [imageUrl]);
 
-  if (isAuthLoading || !user) {
+  if (!userProfiles) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -1246,8 +1246,8 @@ export default function ImageEditor2() {
     <div className="flex flex-col h-screen">
       <Header
         onLogout={signOut}
-        userImage={user?.user_metadata.avatar_url}
-        userName={user?.user_metadata.full_name || user?.email}
+        userImage={userProfiles?.avatar_url || undefined}
+        userName={userProfiles?.display_name || "No Names"}
       />
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 relative">

@@ -276,7 +276,8 @@
     "messagePlaceholder": "Enter your message",
     "submit": "Send",
     "success": "Your inquiry has been sent. Thank you!",
-    "error": "An error occurred while sending. Please try again."
+    "error": "An error occurred while sending. Please try again.",
+    "submitting": "Submitting..."
   },
   "ImageEditor2": {
     "imageSize": { "title": "Image Size" },
