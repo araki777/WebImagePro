@@ -62,7 +62,7 @@ function LanguageSwitcher() {
 
 function SettingsContent() {
   const t = useTranslations("Settings");
-  const { user, userSettings, updateUserSettings, signOut, checkUser } =
+  const { userProfiles, userSettings, updateUserSettings, signOut, checkUser } =
     useAuthStore();
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
@@ -146,7 +146,7 @@ function SettingsContent() {
     checkUser();
   }, [checkUser]);
 
-  if (!user) {
+  if (!userProfiles) {
     return null;
   }
 
@@ -173,8 +173,8 @@ function SettingsContent() {
       <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
-        userImage={user.user_metadata.avatar_url}
-        userName={user.user_metadata.full_name || user.email}
+        userImage={userProfiles?.avatar_url || undefined}
+        userName={userProfiles?.display_name || "No Names"}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
         <Card className="max-w-2xl mx-auto">

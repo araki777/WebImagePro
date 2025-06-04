@@ -1,8 +1,6 @@
 import { CACHE_EXPIRY, redis } from "@/lib/redis";
 import { NextResponse } from "next/server";
 
-const SESSION_CACHE_PREFIX = "session:";
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -15,10 +13,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const cachedSession = await redis.get(
-      `${SESSION_CACHE_PREFIX}${sessionId}`
-    );
-    return NextResponse.json({ session: cachedSession });
+    const cachedSession = await redis.get(sessionId);
+    return NextResponse.json(cachedSession);
   } catch (error) {
     console.error("セッションキャッシュ取得エラー:", error);
     return NextResponse.json(
@@ -30,16 +26,16 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { sessionId, sessionData } = await request.json();
+    const { sessionId, ...cacheData } = await request.json();
 
-    if (!sessionId || !sessionData) {
+    if (!sessionId || !cacheData) {
       return NextResponse.json(
         { error: "セッションIDとセッションデータが必要です" },
         { status: 400 }
       );
     }
 
-    await redis.set(`${SESSION_CACHE_PREFIX}${sessionId}`, sessionData, {
+    await redis.set(sessionId, cacheData, {
       ex: CACHE_EXPIRY,
     });
 
@@ -65,7 +61,7 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await redis.del(`${SESSION_CACHE_PREFIX}${sessionId}`);
+    await redis.del(sessionId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("セッションキャッシュ削除エラー:", error);

@@ -277,7 +277,8 @@
     "messagePlaceholder": "ご用件を入力してください",
     "submit": "送信する",
     "success": "お問い合わせを送信しました。ありがとうございます！",
-    "error": "送信中にエラーが発生しました。再度お試しください。"
+    "error": "送信中にエラーが発生しました。再度お試しください。",
+    "submitting": "送信中です..."
   },
   "ImageEditor2": {
     "imageSize": { "title": "画像サイズ" },
