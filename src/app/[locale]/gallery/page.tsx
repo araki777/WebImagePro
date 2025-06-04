@@ -16,7 +16,7 @@ const Footer = dynamic(() =>
 export default function GalleryPage() {
   const t = useTranslations("Gallery");
   const router = useRouter();
-  const { user, isLoading, signOut, checkUser } = useAuthStore();
+  const { signOut, checkUser, userProfiles } = useAuthStore();
 
   useEffect(() => {
     checkUser();
@@ -24,12 +24,12 @@ export default function GalleryPage() {
 
   useEffect(() => {
     // ユーザーの読み込みが終わり、未ログインの場合はログインページへリダイレクト
-    if (!isLoading && !user) {
+    if (!userProfiles) {
       router.push("/login");
     }
-  }, [user, isLoading, router]);
+  }, [userProfiles, router]);
 
-  if (isLoading || !user) {
+  if (!userProfiles) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
@@ -41,8 +41,8 @@ export default function GalleryPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header
         onLogout={signOut}
-        userImage={user.user_metadata.avatar_url}
-        userName={user.user_metadata.full_name || user.email}
+        userImage={userProfiles?.avatar_url || undefined}
+        userName={userProfiles?.display_name || "No Names"}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>

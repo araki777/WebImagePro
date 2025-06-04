@@ -9,7 +9,6 @@ import { Header } from "@/components/ui/header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -20,19 +19,30 @@ import { toast } from "sonner";
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
-  const { user, isLoading, signOut, setUser, checkUser } = useAuthStore();
+  const { user, userProfiles, signOut, checkUser, updateUserProfiles } =
+    useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
-    full_name: user?.user_metadata.full_name || "",
-    display_name: user?.user_metadata.display_name || "",
-    bio: user?.user_metadata.bio || "",
+    display_name: userProfiles?.display_name || "",
+    bio: userProfiles?.bio || "",
+    avatar_url: userProfiles?.avatar_url || "",
   });
 
   useEffect(() => {
     checkUser();
   }, [checkUser]);
 
-  if (isLoading || !user) {
+  useEffect(() => {
+    if (userProfiles) {
+      setFormData({
+        display_name: userProfiles.display_name || "",
+        bio: userProfiles.bio || "",
+        avatar_url: userProfiles.avatar_url || "",
+      });
+    }
+  }, [userProfiles]);
+
+  if (!userProfiles) {
     return null;
   }
 
@@ -83,30 +93,18 @@ export default function ProfilePage() {
 
     try {
       // APIを使用してユーザープロフィールデータを更新
-      await api.update("user_profiles", user.id, {
-        full_name: formData.full_name,
+      await api.update("user_profiles", userProfiles.id, {
         display_name: formData.display_name,
         bio: formData.bio,
+        avatar_url: formData.avatar_url,
       });
-
-      // Auth情報も更新
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          full_name: formData.full_name,
-          display_name: formData.display_name,
-          bio: formData.bio,
-        },
-      });
-
-      if (error) throw error;
 
       // ユーザー情報を更新
-      setUser({
-        ...user,
-        user_metadata: {
-          ...user.user_metadata,
-          ...formData,
-        },
+      await updateUserProfiles({
+        ...userProfiles,
+        display_name: formData.display_name,
+        bio: formData.bio,
+        avatar_url: formData.avatar_url,
       });
 
       toast.success(t("updateSuccess"));
@@ -123,8 +121,8 @@ export default function ProfilePage() {
       <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
-        userImage={user.user_metadata.avatar_url}
-        userName={user.user_metadata.full_name || user.email}
+        userImage={userProfiles.avatar_url}
+        userName={userProfiles.display_name || ""}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
         <Card className="max-w-2xl mx-auto">
@@ -133,30 +131,37 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center space-x-4">
-              <Avatar className="profile-avatar h-20 w-20">
-                <AvatarImage src={user.user_metadata.avatar_url} />
-                <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+              <Avatar
+                className="profile-avatar h-20 w-20"
+                style={{ cursor: "pointer" }}
+              >
+                <AvatarImage src={userProfiles.avatar_url || undefined} />
+                <AvatarFallback>
+                  {userProfiles.display_name
+                    ? userProfiles.display_name[0].toUpperCase()
+                    : "No Names"}
+                </AvatarFallback>
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  aria-label="プロフィール画像をアップロード"
+                />
               </Avatar>
               <div>
                 <h2 className="text-2xl font-bold">
-                  {user.user_metadata.full_name || t("noName")}
+                  {userProfiles.display_name || t("noName")}
                 </h2>
-                <p className="text-gray-500">{user.email}</p>
+                {user?.user_metadata?.full_name && (
+                  <p className=" text-gray-500">
+                    {user.user_metadata.full_name}
+                  </p>
+                )}
+                <p className="text-gray-500">{user?.email}</p>
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className="profile-form space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name">{t("fullName")}</Label>
-                <Input
-                  id="full_name"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleInputChange}
-                  placeholder={t("fullNamePlaceholder")}
-                />
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="display_name">{t("displayName")}</Label>
                 <Input
@@ -182,24 +187,11 @@ export default function ProfilePage() {
               <Button
                 type="submit"
                 disabled={isUpdating}
-                className="update-button"
+                className="update-button w-full mt-5"
               >
                 {isUpdating ? t("updating") : t("updateProfile")}
               </Button>
             </form>
-
-            <div className="user-info space-y-4">
-              <div className="space-y-2">
-                <h3 className="font-semibold">{t("userId")}</h3>
-                <p className="text-gray-600">{user.id}</p>
-              </div>
-              {user.user_metadata.provider && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold">{t("loginMethod")}</h3>
-                  <p className="text-gray-600">{user.user_metadata.provider}</p>
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
       </main>

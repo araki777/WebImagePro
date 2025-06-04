@@ -26,7 +26,7 @@ const Footer = dynamic(() =>
 
 export default function Home() {
   const t = useTranslations("Home");
-  const { user, isLoading, signOut, checkUser } = useAuthStore();
+  const { signOut, checkUser, userProfiles } = useAuthStore();
 
   // トップページのツアーステップを定義
   const steps: Step[] = [
@@ -50,7 +50,7 @@ export default function Home() {
     checkUser();
   }, [checkUser]);
 
-  if (isLoading || !user) {
+  if (!userProfiles) {
     return null;
   }
 
@@ -59,8 +59,8 @@ export default function Home() {
       <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
-        userImage={user.user_metadata.avatar_url}
-        userName={user.user_metadata.full_name || user.email}
+        userImage={userProfiles?.avatar_url || undefined}
+        userName={userProfiles?.display_name || "No Names"}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
         <h1 className="text-3xl font-bold mb-8 text-center">{t("title")}</h1>

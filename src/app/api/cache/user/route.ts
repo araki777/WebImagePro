@@ -1,5 +1,5 @@
 import { CACHE_EXPIRY, getUserCacheKey, redis } from "@/lib/redis";
-import { IUserData } from "@/types/types";
+import { SessionItem } from "@/types/types";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const cachedUser = await redis.get<IUserData>(getUserCacheKey(userId));
+    const cachedUser = await redis.get<SessionItem>(getUserCacheKey(userId));
     return NextResponse.json({ user: cachedUser });
   } catch (error) {
     console.error("キャッシュ取得エラー:", error);

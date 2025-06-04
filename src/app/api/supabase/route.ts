@@ -31,7 +31,7 @@ const adminSupabase = (() => {
 })();
 
 // RLSをバイパスする必要があるテーブルのリスト
-const RLS_BYPASS_TABLES = ["user_settings", "user_profiles", "contacts"];
+const RLS_BYPASS_TABLES = ["user_settings", "user_profiles", "user_roles"];
 
 // データを保存するための汎用的なエンドポイント
 export async function POST(request: Request) {
@@ -60,22 +60,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "データが必要です" }, { status: 400 });
     }
 
-    // ユーザーIDを自動的に追加
-    const dataWithUserId = {
-      ...data,
-      user_id: userId,
-    };
-
     // Supabaseにデータを保存（RLSが問題になる場合はadminクライアントを使用）
     let result, error;
 
     if (adminSupabase && RLS_BYPASS_TABLES.includes(table)) {
       console.log("Using admin client for POST operation on table:", table);
       // 管理者権限でRLSをバイパス
-      const response = await adminSupabase
-        .from(table)
-        .insert([dataWithUserId])
-        .select();
+      const response = await adminSupabase.from(table).insert([data]).select();
 
       result = response.data;
       error = response.error;
@@ -86,10 +77,7 @@ export async function POST(request: Request) {
     } else {
       console.log("Using regular client for POST operation on table:", table);
       // 通常のクライアントを使用
-      const response = await supabase
-        .from(table)
-        .insert([dataWithUserId])
-        .select();
+      const response = await supabase.from(table).insert([data]).select();
 
       result = response.data;
       error = response.error;
@@ -139,7 +127,7 @@ export async function PUT(request: Request) {
       const response = await adminSupabase
         .from(table)
         .update(data)
-        .eq("user_id", id)
+        .eq("id", id)
         .select();
 
       result = response.data;
@@ -149,7 +137,7 @@ export async function PUT(request: Request) {
       const response = await supabase
         .from(table)
         .update(data)
-        .eq("user_id", id)
+        .eq("id", id)
         .select();
 
       result = response.data;
@@ -204,7 +192,7 @@ export async function GET(request: Request) {
       if (id) {
         query = query.eq("id", id);
       } else {
-        query = query.eq("user_id", userId);
+        query = query.eq("id", userId);
       }
 
       const response = await query;
@@ -218,7 +206,7 @@ export async function GET(request: Request) {
       if (id) {
         query = query.eq("id", id);
       } else {
-        query = query.eq("user_id", userId);
+        query = query.eq("id", userId);
       }
 
       const response = await query;
@@ -272,7 +260,7 @@ export async function DELETE(request: Request) {
         .from(table)
         .delete()
         .eq("id", id)
-        .eq("user_id", userId);
+        .eq("id", userId);
 
       error = response.error;
     } else {
@@ -281,7 +269,7 @@ export async function DELETE(request: Request) {
         .from(table)
         .delete()
         .eq("id", id)
-        .eq("user_id", userId);
+        .eq("id", userId);
 
       error = response.error;
     }
