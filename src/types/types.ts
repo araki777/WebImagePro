@@ -2,45 +2,55 @@
 // 認証関連の型定義
 // ============================================================================
 
+import { User } from "@supabase/supabase-js";
+
 export interface HeaderProps {
   onLogout: () => Promise<void>;
   userImage?: string;
   userName?: string;
 }
 
-export interface IUserData {
+export interface UserProfiles {
   id: string;
-  email?: string;
-  user_metadata: {
-    avatar_url?: string;
-    full_name?: string;
-    provider?: string;
-    display_name?: string;
-    bio?: string;
-  };
+  display_name: string;
+  bio?: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface UserRoles {
+  id: string;
+  role_id: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface UserSettings {
   id: string;
-  user_id: string;
   theme: "light" | "dark" | "system";
   language: string;
   created_at: string;
-  updated_at: string;
-  subscription_status: "active" | "canceled" | "past_due" | "unpaid" | null;
-  subscription_id: string | null;
-  subscription_end_date: string | null;
-  stripe_customer_id: string | null;
+  updated_at?: string;
+}
+
+export interface SessionItem {
+  userSettings: UserSettings;
+  userProfiles: UserProfiles;
+  userRoles: UserRoles;
 }
 
 export interface AuthState {
-  user: IUserData | null;
-  isLoading: boolean;
-  setUser: (user: IUserData | null) => void;
+  user: User | null;
+  setUser: (user: User | null) => void;
   checkUser: () => Promise<void | (() => void)>;
   signOut: () => Promise<void>;
   userSettings: UserSettings | null;
+  userProfiles: UserProfiles | null;
+  userRoles: UserRoles | null;
   updateUserSettings: (settings: Partial<UserSettings>) => Promise<void>;
+  updateUserProfiles: (profiles: Partial<UserProfiles>) => Promise<void>;
+  updateUserRoles: (roles: Partial<UserRoles>) => Promise<void>;
 }
 
 // ============================================================================

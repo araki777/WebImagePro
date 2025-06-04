@@ -16,7 +16,7 @@ const Footer = dynamic(() =>
 
 export default function UploadPage() {
   const t = useTranslations("Upload");
-  const { user, isLoading, signOut, checkUser } = useAuthStore();
+  const { userProfiles, signOut, checkUser } = useAuthStore();
 
   const steps: Step[] = [
     {
@@ -43,7 +43,7 @@ export default function UploadPage() {
     checkUser();
   }, [checkUser]);
 
-  if (isLoading || !user) {
+  if (!userProfiles) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -56,8 +56,8 @@ export default function UploadPage() {
       <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
-        userImage={user.user_metadata.avatar_url}
-        userName={user.user_metadata.full_name || user.email}
+        userImage={userProfiles?.avatar_url || undefined}
+        userName={userProfiles?.display_name || "No Names"}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
         <ImageUpload />
