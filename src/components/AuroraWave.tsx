@@ -133,7 +133,7 @@ export function AuroraWave() {
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, -2]}>
-      <planeGeometry args={[30, 30, 128, 128]} /> {/* Increased resolution */}
+      <planeGeometry args={[30, 30, 64, 64]} /> {/* Increased resolution */}
       <shaderMaterial
         ref={materialRef}
         vertexShader={vertexShader}
