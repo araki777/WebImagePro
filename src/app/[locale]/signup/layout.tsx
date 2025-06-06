@@ -1,10 +1,9 @@
 "use client";
 
 import { AuroraWave } from "@/components/AuroraWave";
-import FloatingCrystals from "@/components/FloatingCrystals";
 import GlowingSpheres from "@/components/GlowingSpheres";
 import ParticleField from "@/components/ParticleField";
-import { PerspectiveCamera, Preload } from "@react-three/drei";
+import { PerspectiveCamera } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { motion } from "framer-motion";
 import React, { useRef } from "react";
@@ -25,15 +24,15 @@ function LoginContent() {
       <Canvas
         className="w-full h-full"
         camera={{ position: [0, 3, 10], fov: 75 }}
-        dpr={[1, 2]}
+        dpr={1}
+        shadows={false}
+        linear={false}
       >
         <color attach="background" args={["#040113"]} />
         <PerspectiveCamera makeDefault position={[0, 2, 10]} fov={75} />
         <AuroraWave />
-        <FloatingCrystals />
         <ParticleField />
         <GlowingSpheres />
-        <Preload all />
       </Canvas>
     </div>
   );
