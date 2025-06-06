@@ -33,7 +33,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session) throw new Error("セッションが存在しません");
+      if (!session) {
+        set({
+          user: null,
+          userSettings: null,
+          userProfiles: null,
+          userRoles: null,
+        });
+        window.location.href = "/login";
+        return;
+      }
 
       await fetchSessionData(session);
 
@@ -60,6 +69,14 @@ export const useAuthStore = create<AuthState>((set) => ({
               console.error("ユーザー設定取得エラー:", error);
               throw new Error("ユーザー設定取得エラー");
             }
+          } else {
+            set({
+              user: null,
+              userSettings: null,
+              userProfiles: null,
+              userRoles: null,
+            });
+            window.location.href = "/login";
           }
         }
       });
@@ -69,12 +86,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       console.error("認証エラー:", error);
       set({ user: null, userSettings: null });
-      if (
-        error instanceof Error &&
-        error.message.includes("Invalid Refresh Token")
-      ) {
-        window.location.href = "/login";
-      }
+      window.location.href = "/login";
     }
   },
   signOut: async () => {
@@ -110,7 +122,16 @@ export const useAuthStore = create<AuthState>((set) => ({
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (!session) throw new Error("セッションが存在しません");
+        if (!session) {
+          set({
+            user: null,
+            userSettings: null,
+            userProfiles: null,
+            userRoles: null,
+          });
+          window.location.href = "/login";
+          return;
+        }
 
         // 既存キャッシュを取得してマージ
         const currentCache = await getSessionCache(session.access_token);
@@ -141,7 +162,16 @@ export const useAuthStore = create<AuthState>((set) => ({
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (!session) throw new Error("セッションが存在しません");
+        if (!session) {
+          set({
+            user: null,
+            userSettings: null,
+            userProfiles: null,
+            userRoles: null,
+          });
+          window.location.href = "/login";
+          return;
+        }
 
         // 既存キャッシュを取得してマージ
         const currentCache = await getSessionCache(session.access_token);
@@ -172,7 +202,16 @@ export const useAuthStore = create<AuthState>((set) => ({
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (!session) throw new Error("セッションが存在しません");
+        if (!session) {
+          set({
+            user: null,
+            userSettings: null,
+            userProfiles: null,
+            userRoles: null,
+          });
+          window.location.href = "/login";
+          return;
+        }
 
         // 既存キャッシュを取得してマージ
         const currentCache = await getSessionCache(session.access_token);
@@ -190,10 +229,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 // セッションデータを取得する関数
 async function fetchSessionData(session: Session) {
   try {
-    if (!session) {
-      console.error("セッションが存在しません");
-      return;
-    }
     const cached = await getSessionCache(session.access_token);
     let userSettings = cached?.settings;
     let userProfiles = cached?.profiles;
