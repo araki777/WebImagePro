@@ -17,13 +17,13 @@ from app.models.user_role import UserRole
 from app.models.user_setting import UserSetting
 from app.models.user import User
 
-from lib.database import SQLALCHEMY_DATABASE_URL
+from app.connection import get_database_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
+config.set_main_option("sqlalchemy.url", get_database_url())
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
