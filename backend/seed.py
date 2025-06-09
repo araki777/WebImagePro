@@ -1,11 +1,9 @@
 import uuid
 from sqlalchemy import create_engine, text
 
-from lib.database import SQLALCHEMY_DATABASE_URL
+from app.connection import get_database_url
 
-print(SQLALCHEMY_DATABASE_URL)
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(get_database_url())
 
 def seed_roles():
     admin_id = str(uuid.uuid4())
