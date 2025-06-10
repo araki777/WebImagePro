@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.get("/roles", response_model=list[Role])
+@router.get("/", response_model=list[Role])
 async def get_roles(
   db: Session = Depends(get_db)
 ):
@@ -25,7 +25,7 @@ async def get_roles(
     logger.error(f"Error: {str(e)}")
     raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/roles", response_model=Role)
+@router.post("/", response_model=Role)
 async def create_role(
   role_create: RoleCreate,
   _current_user = Depends(get_current_user),
@@ -46,7 +46,7 @@ async def create_role(
     db.rollback()
     raise HTTPException(status_code=400, detail=str(e))
 
-@router.put("/roles/{role_id}", response_model=Role)
+@router.put("/{role_id}", response_model=Role)
 async def update_role(
   role_id: UUID,
   role_update: RoleUpdate,

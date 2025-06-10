@@ -27,6 +27,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   userSettings: null,
   userProfiles: null,
   userRoles: null,
+  accessToken: null,
   setUser: (user) => set({ user }),
   checkUser: async () => {
     try {
@@ -35,6 +36,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       } = await supabase.auth.getSession();
       if (!session) {
         set({
+          accessToken: null,
           user: null,
           userSettings: null,
           userProfiles: null,
@@ -55,6 +57,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             await deleteSessionCache(session.access_token);
           }
           set({
+            accessToken: null,
             user: null,
             userSettings: null,
             userProfiles: null,
@@ -71,6 +74,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             }
           } else {
             set({
+              accessToken: null,
               user: null,
               userSettings: null,
               userProfiles: null,
@@ -85,7 +89,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       };
     } catch (error) {
       console.error("認証エラー:", error);
-      set({ user: null, userSettings: null });
+      set({ user: null, userSettings: null, accessToken: null });
       window.location.href = "/login";
     }
   },
@@ -98,7 +102,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         await deleteSessionCache(session.access_token);
       }
       await supabase.auth.signOut();
-      set({ user: null, userSettings: null });
+      set({ user: null, userSettings: null, accessToken: null });
       window.location.href = "/login";
     } catch (error) {
       console.error("ログアウトエラー:", error);
@@ -124,6 +128,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         } = await supabase.auth.getSession();
         if (!session) {
           set({
+            accessToken: null,
             user: null,
             userSettings: null,
             userProfiles: null,
@@ -164,6 +169,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         } = await supabase.auth.getSession();
         if (!session) {
           set({
+            accessToken: null,
             user: null,
             userSettings: null,
             userProfiles: null,
@@ -204,6 +210,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         } = await supabase.auth.getSession();
         if (!session) {
           set({
+            accessToken: null,
             user: null,
             userSettings: null,
             userProfiles: null,
@@ -224,6 +231,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error("ユーザー権限更新エラー:", error);
     }
   },
+  setAccessToken: (accessToken: string) => set({ accessToken }),
 }));
 
 // セッションデータを取得する関数
@@ -254,6 +262,7 @@ async function fetchSessionData(session: Session) {
     // 全て揃っていればstoreとキャッシュを更新
     if (userSettings && userProfiles && userRoles) {
       useAuthStore.setState({
+        accessToken: session.access_token,
         user: session.user,
         userSettings,
         userProfiles,

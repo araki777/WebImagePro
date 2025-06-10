@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/lib/api";
+import { contactsApi } from "@/lib/api/contacts";
 import { useAuthStore } from "@/store/useAuthStore";
 import { IContactForm } from "@/types/types";
 import { useTranslations } from "next-intl";
@@ -21,7 +21,7 @@ const Footer = dynamic(() =>
 
 export default function ContactPage() {
   const t = useTranslations("Contact");
-  const { user, checkUser } = useAuthStore();
+  const { user, checkUser, accessToken } = useAuthStore();
   const [formData, setFormData] = useState<IContactForm>({
     name: "",
     email: "",
@@ -37,7 +37,6 @@ export default function ContactPage() {
 
   // ユーザー情報が変更されたときにフォームデータを更新
   useEffect(() => {
-    // ユーザー情報のロードが完了し、ユーザーが存在する場合
     if (user) {
       setFormData((prev) => ({
         ...prev,
@@ -51,7 +50,6 @@ export default function ContactPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    // ログインユーザーの場合、nameとemailフィールドは変更不可
     if (user && (name === "name" || name === "email")) {
       return;
     }
@@ -67,30 +65,22 @@ export default function ContactPage() {
     setIsSubmitting(true);
 
     try {
-      // APIを使用してお問い合わせデータを保存
-      await api.create("contacts", {
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
-      });
-
-      // メール送信
-      await api.send({
-        to: process.env.NEXT_PUBLIC_RESEND_EMAIL_TO || "",
-        subject: formData.subject,
-        message: formData.message,
-        from: process.env.NEXT_PUBLIC_RESEND_EMAIL_FROM || "",
-        name: formData.name,
-        email: formData.email,
-      });
+      await contactsApi.create(
+        {
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        },
+        accessToken || ""
+      );
 
       // トースト通知を表示
       toast.success(t("success"), {
         duration: 5000,
       });
 
-      // フォームをリセット（ログインユーザーの場合は名前とメールはそのまま）
+      // フォームをリセット
       setFormData({
         name:
           user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
