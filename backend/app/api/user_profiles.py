@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
@@ -19,18 +19,14 @@ async def get_current_user_profile(
     db: Session = Depends(get_db)
 ):
     try:
-        logger.info("get_current_user_profile")
-        logger.info(f"Current user: {current_user}")
-        logger.info(f"Current user.user: {current_user.user}")
-        
         # ユーザーIDを使用してプロファイルを取得
         profile = db.query(UserProfileModel).filter(
             UserProfileModel.id == current_user.user.id
         ).first()
-        
+
         if not profile:
             raise HTTPException(status_code=404, detail="Profile not found")
-        
+
         return profile
     except Exception as e:
         logger.error(f"Error: {str(e)}")
@@ -47,13 +43,13 @@ async def update_current_user_profile(
         profile = db.query(UserProfileModel).filter(
             UserProfileModel.id == current_user.user.id
         ).first()
-        
+
         if not profile:
             # プロファイルが存在しない場合は新規作成
             profile = UserProfileModel(
                 id=current_user.user.id,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC),
                 **profile_update.dict(exclude_unset=True)
             )
             db.add(profile)
@@ -61,8 +57,8 @@ async def update_current_user_profile(
             # 既存のプロファイルを更新
             for key, value in profile_update.dict(exclude_unset=True).items():
                 setattr(profile, key, value)
-            profile.updated_at = datetime.utcnow()
-        
+            profile.updated_at = datetime.now(UTC)
+
         db.commit()
         db.refresh(profile)
         return profile
