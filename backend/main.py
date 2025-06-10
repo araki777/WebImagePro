@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, user_profiles, user_roles, user_settings, images, roles
+from app.api import auth, user_profiles, user_roles, user_settings, images, roles, contacts
 import os
 from dotenv import load_dotenv
 import logging
@@ -44,3 +44,4 @@ app.include_router(user_roles.router, prefix="/users", tags=["user_roles"])
 app.include_router(user_settings.router, prefix="/users", tags=["user_settings"])
 app.include_router(roles.router, prefix="/roles", tags=["roles"])
 app.include_router(images.router, prefix="/images", tags=["images"])
+app.include_router(contacts.router, prefix="/contacts", tags=["contacts"])
