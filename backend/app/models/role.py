@@ -8,5 +8,6 @@ class Role(Base):
   __tablename__ = "roles"
   id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
   created_at = Column(DateTime(timezone=True), server_default=func.now())
+  updated_at = Column(DateTime(timezone=True))
   name = Column(Text)
   description = Column(Text)
