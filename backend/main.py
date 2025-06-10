@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, user_profiles
+from app.api import auth, user_profiles, user_roles, user_settings, images, roles
 import os
 from dotenv import load_dotenv
 import logging
@@ -39,4 +39,8 @@ async def health_check():
     }
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(user_profiles.router, prefix="/users", tags=["users"])
+app.include_router(user_profiles.router, prefix="/users", tags=["user_profiles"])
+app.include_router(user_roles.router, prefix="/users", tags=["user_roles"])
+app.include_router(user_settings.router, prefix="/users", tags=["user_settings"])
+app.include_router(roles.router, prefix="/roles", tags=["roles"])
+app.include_router(images.router, prefix="/images", tags=["images"])
