@@ -97,7 +97,7 @@ def save_image_logic(image_create: ImageCreate, db: Session):
     db.refresh(image)
     return image
 
-@router.post("/images/upload", response_model=Image)
+@router.post("/upload", response_model=Image)
 async def upload_image(
   file: UploadFile = File(...),
   is_shared: bool = False,
@@ -109,7 +109,7 @@ async def upload_image(
   except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/images/vision-tags", response_model=VisionResponse)
+@router.post("/vision-tags", response_model=VisionResponse)
 async def get_vision_tags(req: VisionRequest, _current_user = Depends(get_current_user)):
   try:
     tags = get_vision_tags_logic(req.blob_url)
@@ -117,7 +117,7 @@ async def get_vision_tags(req: VisionRequest, _current_user = Depends(get_curren
   except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/images/translate", response_model=TranslateResponse)
+@router.post("/translate", response_model=TranslateResponse)
 async def translate_tags(
   req: TranslateRequest,
   _current_user = Depends(get_current_user)
@@ -128,7 +128,7 @@ async def translate_tags(
   except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/images/save", response_model=Image)
+@router.post("/save", response_model=Image)
 async def save_image(
   image_create: ImageCreate,
   db: Session = Depends(get_db),
@@ -141,7 +141,7 @@ async def save_image(
     db.rollback()
     raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/images/full-upload", response_model=Image)
+@router.post("/full-upload", response_model=Image)
 async def full_upload_image(
     file: UploadFile = File(...),
     is_shared: bool = False,

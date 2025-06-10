@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.get("/contacts", response_model=list[Contact])
+@router.get("/", response_model=list[Contact])
 async def get_current_user_contacts(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
@@ -35,7 +35,7 @@ async def get_current_user_contacts(
         logger.error(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/contacts", response_model=Contact)
+@router.post("/", response_model=Contact)
 async def create_contact(
     contact_create: ContactCreate,
     db: Session = Depends(get_db),
