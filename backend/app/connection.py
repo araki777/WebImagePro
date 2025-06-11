@@ -1,13 +1,14 @@
-from typing import Optional, Generator
 import os
+from typing import Generator, Optional
+
 from dotenv import load_dotenv
-from supabase import create_client, Client
-from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
+from supabase import Client, create_client
 
 # .envファイルの読み込み
 load_dotenv()
+
 
 def get_database_url() -> str:
     """
@@ -28,6 +29,7 @@ def get_database_url() -> str:
 
     return database_url
 
+
 def get_supabase_client() -> Client:
     """
     Supabaseクライアントを生成する
@@ -39,13 +41,17 @@ def get_supabase_client() -> Client:
     supabase_key = os.getenv("SUPABASE_ANON_KEY")
 
     if not supabase_url or not supabase_key:
-        raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment variables")
-    
+        raise ValueError(
+            "SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment variables"
+        )
+
     return create_client(supabase_url, supabase_key)
+
 
 # データベース接続の設定
 engine = create_engine(get_database_url())
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_db() -> Generator[Session, None, None]:
     """
@@ -59,6 +65,7 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
 
 def get_frontend_url() -> str:
     """
