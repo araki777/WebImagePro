@@ -10,10 +10,10 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiClient<T>(
+export async function apiClient(
   endpoint: string,
   options: RequestInit = {}
-): Promise<T> {
+): Promise<Response> {
   const url = `${API_BASE_URL}${endpoint}`;
 
   const response = await fetch(url, {

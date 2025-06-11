@@ -65,7 +65,7 @@ export default function ContactPage() {
     setIsSubmitting(true);
 
     try {
-      await contactsApi.create(
+      const contact = await contactsApi.create(
         {
           name: formData.name,
           email: formData.email,
@@ -75,19 +75,25 @@ export default function ContactPage() {
         accessToken || ""
       );
 
-      // トースト通知を表示
-      toast.success(t("success"), {
-        duration: 5000,
-      });
+      if (contact) {
+        // トースト通知を表示
+        toast.success(t("success"), {
+          duration: 5000,
+        });
 
-      // フォームをリセット
-      setFormData({
-        name:
-          user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
-        email: user?.email || "",
-        subject: "",
-        message: "",
-      });
+        // フォームをリセット
+        setFormData({
+          name:
+            user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
+          email: user?.email || "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        toast.error(t("error"), {
+          duration: 5000,
+        });
+      }
     } catch (error) {
       console.error("お問い合わせ送信エラー:", error);
       toast.error(error instanceof Error ? error.message : t("error"), {
