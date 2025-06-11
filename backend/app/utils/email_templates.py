@@ -17,7 +17,7 @@ def generate_contact_email_html(contact) -> str:
 
       <p style="font-weight: bold;">💬 メッセージ:</p>
       <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
-        {contact.message.replace(chr(10), '<br />')}
+        {contact.message.replace(chr(10), "<br />")}
       </div>
 
       <hr style="margin: 30px 0;" />
@@ -26,4 +26,4 @@ def generate_contact_email_html(contact) -> str:
         このメールは自動送信されています。返信する場合は上記のメールアドレスをご利用ください。
       </p>
     </div>
-    """ 
+    """

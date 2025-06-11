@@ -11,5 +11,12 @@
   },
   "[typescriptreactnext]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "python.linting.enabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.mypyArgs": [
+    "--config-file=backend/mypy.ini"
+  ],
+  "ruff.enable": true,
+  "ruff.config": "backend/.ruff.toml"
 }

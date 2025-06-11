@@ -1,13 +1,18 @@
 from datetime import datetime, timedelta
 from typing import Optional
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from app.connection import get_supabase_client
 
 security = HTTPBearer()
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
     """
     現在のユーザー情報を取得する
 
@@ -28,4 +33,3 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-

@@ -1,6 +1,8 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
 from uuid import UUID
+
+from pydantic import BaseModel, EmailStr
+
 
 class ContactBase(BaseModel):
     name: str
@@ -8,11 +10,14 @@ class ContactBase(BaseModel):
     message: str
     subject: str
 
+
 class ContactCreate(ContactBase):
     pass
 
+
 class ContactUpdate(ContactBase):
     pass
+
 
 class Contact(ContactBase):
     id: UUID
