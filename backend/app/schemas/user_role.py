@@ -20,7 +20,7 @@ class UserRoleUpdate(UserRoleBase):
 class UserRole(UserRoleBase):
     id: UUID
     created_at: datetime
-    updated_at: Optional[datetime] = Field(default=None, nullable=True)
+    updated_at: Optional[datetime] = Field(default=None)
 
     class Config:
         from_attributes = True
