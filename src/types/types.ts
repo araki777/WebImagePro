@@ -42,15 +42,17 @@ export interface SessionItem {
 
 export interface AuthState {
   user: User | null;
-  setUser: (user: User | null) => void;
-  checkUser: () => Promise<void | (() => void)>;
-  signOut: () => Promise<void>;
   userSettings: UserSettings | null;
   userProfiles: UserProfiles | null;
   userRoles: UserRoles | null;
+  accessToken: string | null;
+  setUser: (user: User | null) => void;
+  checkUser: () => Promise<void | (() => void)>;
+  signOut: () => Promise<void>;
   updateUserSettings: (settings: Partial<UserSettings>) => Promise<void>;
   updateUserProfiles: (profiles: Partial<UserProfiles>) => Promise<void>;
   updateUserRoles: (roles: Partial<UserRoles>) => Promise<void>;
+  setAccessToken: (accessToken: string) => void;
 }
 
 // ============================================================================
