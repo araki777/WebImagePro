@@ -1,25 +1,28 @@
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
+from pydantic import BaseModel, Field
+
+
 class UserSettingBase(BaseModel):
-  theme: str
-  language: str
+    theme: str
+    language: str
+
 
 class UserSettingCreate(UserSettingBase):
-  pass
+    pass
+
 
 class UserSettingUpdate(UserSettingBase):
-  pass
+    pass
+
 
 class UserSetting(UserSettingBase):
-  id: UUID
-  created_at: datetime
-  updated_at: Optional[datetime] = Field(default=None, nullable=True)
+    id: UUID
+    created_at: datetime
+    updated_at: Optional[datetime] = Field(default=None)
 
-  class Config:
-    from_attributes = True
-    json_encoders = {
-      datetime: lambda v: v.isoformat() if v else None
-    }
+    class Config:
+        from_attributes = True
+        json_encoders = {datetime: lambda v: v.isoformat() if v else None}

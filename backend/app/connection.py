@@ -1,13 +1,11 @@
-from typing import Optional, Generator
-import os
-from dotenv import load_dotenv
-from supabase import create_client, Client
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from typing import Generator
 
-# .envファイルの読み込み
-load_dotenv()
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from supabase import Client, create_client
+
+from app.core.config import settings
+
 
 def get_database_url() -> str:
     """
@@ -17,16 +15,17 @@ def get_database_url() -> str:
         str: データベース接続文字列
     """
     # 環境変数から必要な情報を取得（デフォルト値を設定）
-    db_user = os.getenv("DB_USER", "postgres")
-    db_password = os.getenv("DB_PASSWORD", "postgres")
-    db_host = os.getenv("DB_HOST", "localhost")
-    db_port = os.getenv("DB_PORT", "5432")  # デフォルトのPostgreSQLポート
-    db_name = os.getenv("DB_NAME", "postgres")
+    db_user = settings.DB_USER
+    db_password = settings.DB_PASSWORD
+    db_host = settings.DB_HOST
+    db_port = settings.DB_PORT
+    db_name = settings.DB_NAME
 
     # 接続文字列を生成
     database_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
     return database_url
+
 
 def get_supabase_client() -> Client:
     """
@@ -35,17 +34,21 @@ def get_supabase_client() -> Client:
     Returns:
         Client: Supabaseクライアント
     """
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_ANON_KEY")
+    supabase_url = settings.SUPABASE_URL
+    supabase_key = settings.SUPABASE_ANON_KEY
 
     if not supabase_url or not supabase_key:
-        raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment variables")
-    
+        raise ValueError(
+            "SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment variables"
+        )
+
     return create_client(supabase_url, supabase_key)
+
 
 # データベース接続の設定
 engine = create_engine(get_database_url())
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_db() -> Generator[Session, None, None]:
     """
@@ -60,6 +63,7 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
+
 def get_frontend_url() -> str:
     """
     フロントエンドのURLを取得する
@@ -67,5 +71,5 @@ def get_frontend_url() -> str:
     Returns:
         str: フロントエンドのURL
     """
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = settings.FRONTEND_URL
     return frontend_url

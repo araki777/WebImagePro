@@ -1,19 +1,24 @@
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
+from pydantic import BaseModel, Field
+
+
 class RoleBase(BaseModel):
-  name: str
-  description: Optional[str] = None
+    name: str
+    description: Optional[str] = None
+
 
 class RoleCreate(RoleBase):
-  pass
+    pass
+
 
 class RoleUpdate(RoleBase):
-  pass
+    pass
+
 
 class Role(RoleBase):
-  id: UUID
-  created_at: datetime
-  updated_at: Optional[datetime] = Field(default=None, nullable=True)
+    id: UUID
+    created_at: datetime
+    updated_at: Optional[datetime] = Field(default=None, nullable=True)
