@@ -1,13 +1,5 @@
 import { api } from "@/lib/api";
 import {
-  createUserProfiles,
-  createUserRoles,
-  createUserSettings,
-  fetchUserProfiles,
-  fetchUserRoles,
-  fetchUserSettings,
-} from "@/lib/api/user";
-import {
   deleteSessionCache,
   getSessionCache,
   setSessionCache,
