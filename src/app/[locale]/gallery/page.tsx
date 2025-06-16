@@ -16,7 +16,7 @@ const Footer = dynamic(() =>
 export default function GalleryPage() {
   const t = useTranslations("Gallery");
   const router = useRouter();
-  const { signOut, checkUser, userProfiles } = useAuthStore();
+  const { checkUser, userProfiles, signOut } = useAuthStore();
 
   useEffect(() => {
     checkUser();

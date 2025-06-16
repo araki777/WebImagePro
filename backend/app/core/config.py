@@ -1,5 +1,3 @@
-import os
-
 from dotenv import load_dotenv
 
 from app.utils.get_env_or_raise import get_env_or_raise
@@ -9,10 +7,11 @@ load_dotenv(".env")
 
 class Settings:
     # 基本設定
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    ENVIRONMENT: str = get_env_or_raise("ENVIRONMENT")
     IS_DEVELOPMENT: bool = ENVIRONMENT == "development"
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    FRONTEND_URL: str = get_env_or_raise("FRONTEND_URL")
+    LOG_LEVEL: str = get_env_or_raise("LOG_LEVEL")
+    COOKIE_DOMAIN: str = get_env_or_raise("COOKIE_DOMAIN")
 
     # Azure Storage設定
     AZURE_STORAGE_CONNECTION_STRING: str = get_env_or_raise(
@@ -33,11 +32,11 @@ class Settings:
     AZURE_TRANSLATION_REGION: str = get_env_or_raise("AZURE_TRANSLATION_REGION")
 
     # PostgreSQL設定
-    DB_USER: str = os.getenv("DB_USER", "postgres")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "postgres")
-    DB_HOST: str = os.getenv("DB_HOST", "localhost")
-    DB_PORT: str = os.getenv("DB_PORT", "5432")
-    DB_NAME: str = os.getenv("DB_NAME", "postgres")
+    DB_USER: str = get_env_or_raise("DB_USER")
+    DB_PASSWORD: str = get_env_or_raise("DB_PASSWORD")
+    DB_HOST: str = get_env_or_raise("DB_HOST")
+    DB_PORT: str = get_env_or_raise("DB_PORT")
+    DB_NAME: str = get_env_or_raise("DB_NAME")
 
     # Supabase設定
     SUPABASE_URL: str = get_env_or_raise("SUPABASE_URL")

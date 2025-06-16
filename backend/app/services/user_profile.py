@@ -26,7 +26,7 @@ class UserProfileService:
         user_profile = UserProfileModel(
             id=user_id,
             created_at=datetime.now(UTC),
-            **user_profile_create.dict(exclude_unset=True),
+            **user_profile_create.model_dump(exclude_unset=True),
         )
         self.db.add(user_profile)
         self.db.commit()
@@ -38,7 +38,7 @@ class UserProfileService:
     ):
         """ユーザープロファイルを更新"""
         user_profile = self.get_user_profile(user_id)
-        for key, value in user_profile_update.dict(exclude_unset=True).items():
+        for key, value in user_profile_update.model_dump(exclude_unset=True).items():
             setattr(user_profile, key, value)
         user_profile.updated_at = datetime.now(UTC)
         self.db.commit()

@@ -11,21 +11,24 @@ import {
 } from "@/components/ui/card";
 import { SearchBar } from "@/components/ui/searchBar";
 import { useRouter } from "@/i18n/routing";
+import { imagesApi } from "@/lib/api/images";
 import { useAuthStore } from "@/store/useAuthStore";
-import { IApiImage } from "@/types/types";
+import { components } from "@/types/api";
 import { Image as ImageIcon, Loader2, User, Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Step } from "react-joyride";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 
 export function ImageGallery() {
-  const { user } = useAuthStore();
+  const { userId } = useAuthStore();
   const locale = useLocale();
   const t = useTranslations("ImageGallery");
   const router = useRouter();
-  const [images, setImages] = useState<IApiImage[]>([]); // 画像データの状態
+  const [images, setImages] = useState<
+    components["schemas"]["ImageWithTags"][]
+  >([]); // 画像データの状態
   const [loading, setLoading] = useState(true); // ローディング状態
   const [searchQuery, setSearchQuery] = useState(""); // 検索クエリ
   const [viewMode, setViewMode] = useState<"personal" | "shared">("personal");
@@ -85,26 +88,19 @@ export function ImageGallery() {
     return baseSteps;
   };
 
-  // コンポーネントがマウントされた時に画像データを取得
-  useEffect(() => {
-    fetchImages();
-  }, [viewMode]);
-
   // 画像データを取得する関数
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `/api/images?isShared=${viewMode === "shared"}&userId=${user?.id}&lang=${locale}`
-      );
-      if (!response.ok) throw new Error(t("error.fetchFailed"));
-      const data = await response.json();
-      setImages(
-        data.map((img: IApiImage) => ({
-          ...img,
-          uploadedAt: new Date(img.uploadedAt),
-        }))
-      );
+      const response = await imagesApi.get_images({
+        is_shared: viewMode === "shared",
+        user_id: userId || "0",
+        lang: locale,
+      });
+      if ("detail" in response) {
+        throw new Error(response.detail?.[0]?.msg || t("error.fetchFailed"));
+      }
+      setImages(response as components["schemas"]["ImageWithTags"][]);
     } catch (error: unknown) {
       console.error("画像一覧の取得エラー:", error);
       toast.error(t("error.fetchFailed"), {
@@ -113,26 +109,45 @@ export function ImageGallery() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [viewMode, userId, locale, t]);
+
+  // コンポーネントがマウントされた時に画像データを取得
+  useEffect(() => {
+    fetchImages();
+  }, [fetchImages]);
 
   const filteredImages = images.filter((image) => {
     return image.tags.some((tag: string) => tag.includes(searchQuery));
   });
 
   // 編集中の画像を設定する関数
-  const handleEditImage = (image: IApiImage) => {
-    router.push(`/editor?url=${encodeURIComponent(image.url)}`);
+  const handleEditImage = (image: components["schemas"]["ImageWithTags"]) => {
+    router.push(
+      `/editor?url=${encodeURIComponent(
+        `https://${image.container_name}.blob.core.windows.net/${image.blob_name}`
+      )}`
+    );
   };
 
   // 画像をダウンロードする関数
-  const handleDownload = async (image: IApiImage) => {
+  const handleDownload = async (
+    image: components["schemas"]["ImageWithTags"]
+  ) => {
     try {
-      const response = await fetch(image.url);
-      const blob = await response.blob();
+      const blob = await imagesApi.get_image({
+        blob_name: image.blob_name,
+        is_shared: viewMode === "shared",
+        user_id: userId || "0",
+      });
+
+      if (!(blob instanceof Blob)) {
+        throw new Error(t("error.downloadFailed"));
+      }
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = image.name;
+      a.download = image.file_name;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -144,15 +159,14 @@ export function ImageGallery() {
   };
 
   // 画像を削除する関数
-  const handleDelete = async (image: IApiImage) => {
+  const handleDelete = async (
+    image: components["schemas"]["ImageWithTags"]
+  ) => {
     try {
-      const encodedUrl = encodeURIComponent(
-        Buffer.from(image.url).toString("base64")
-      );
-      const response = await fetch(`/api/images/${encodedUrl}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error(t("error.deleteFailed"));
+      const response = await imagesApi.delete(image.id);
+      if ("detail" in response) {
+        throw new Error(response.detail?.[0]?.msg || t("error.deleteFailed"));
+      }
       await fetchImages();
       toast.success(t("success.delete"));
     } catch (error) {

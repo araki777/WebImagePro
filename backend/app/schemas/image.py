@@ -8,6 +8,8 @@ class ImageBaseModel(BaseModel):
     file_name: str
     container_name: str
     blob_name: str
+    size: int
+    content_type: str
     ja_tags: list[str]
     en_tags: list[str]
 
@@ -26,3 +28,7 @@ class Image(ImageBaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ImageWithTags(Image):
+    tags: list[str]

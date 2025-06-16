@@ -4,7 +4,6 @@ import { LoginForm } from "@/components/form/LoginForm";
 import { useRouter } from "@/i18n/routing";
 import { authApi } from "@/lib/api/auth";
 import { OAUTH_PROVIDERS } from "@/lib/constants";
-import { supabase } from "@/lib/supabase";
 import { loginSchema } from "@/lib/validation/loginSchema";
 import { useTranslations } from "next-intl";
 import { Suspense, useState } from "react";
@@ -24,16 +23,12 @@ export default function LoginPage() {
     setIsLoading((prev) => ({ ...prev, [provider]: true }));
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider,
-        options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
-        },
-      });
-
-      if (error) {
-        console.error("OAuth login error:", error);
-        setIsLoading((prev) => ({ ...prev, [provider]: false }));
+      if (provider === "github") {
+        const response = await authApi.github();
+        window.location.href = response.url;
+      } else if (provider === "google") {
+        const response = await authApi.google();
+        window.location.href = response.url;
       }
     } catch (error) {
       console.error("OAuth login error:", error);

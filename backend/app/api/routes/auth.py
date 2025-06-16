@@ -43,8 +43,8 @@ async def get_me(
     return await auth_service.get_me(request)
 
 
-@router.post("/signup", response_model=Token)
-@handle_api_errors("auth")
+@router.post("/signup", response_model=dict)
+@handle_api_errors("auth", "signup")
 async def signup(
     user_data: UserSignUp,
     auth_service: AuthService = Depends(get_auth_service),
@@ -57,7 +57,7 @@ async def signup(
         auth_service: 認証サービス
 
     Returns:
-        Token: 認証トークン情報
+        dict: 認証トークン情報
 
     Raises:
         HTTPException: 認証エラーまたはサーバーエラー
@@ -106,6 +106,7 @@ async def signin(
 @router.post("/signout", response_model=Dict[str, str])
 @handle_api_errors("auth", "signout")
 async def signout(
+    response: Response,
     auth_service: AuthService = Depends(get_auth_service),
 ):
     """
@@ -114,13 +115,12 @@ async def signout(
     Args:
         auth_service: 認証サービス
 
-    Returns:
-        Dict[str, str]: ログアウト結果のメッセージ
-
     Raises:
         HTTPException: 認証エラーまたはサーバーエラー
     """
-    return await auth_service.signout()
+    await auth_service.signout()
+    response.delete_cookie("access_token")
+    return {"message": "ログアウトしました"}
 
 
 @router.get("/github", response_model=OAuthResponse)
@@ -167,3 +167,41 @@ async def google_auth(
     if not frontend_url:
         raise ValueError("FRONTEND_URLが設定されていません")
     return await auth_service.get_oauth_url(OAUTH_PROVIDER["google"], frontend_url)
+
+
+@router.post("/reset-password", response_model=Dict[str, str])
+@handle_api_errors("auth", "reset_password")
+async def reset_password(
+    password: str,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    """
+    パスワード再設定
+
+    Args:
+        password: 新しいパスワード
+        auth_service: 認証サービス
+
+    Returns:
+        Dict[str, str]: パスワード再設定結果のメッセージ
+    """
+    return await auth_service.reset_password(password)
+
+
+@router.post("/send-email", response_model=Dict[str, str])
+@handle_api_errors("auth", "send_email")
+async def send_email(
+    email: str,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    """
+    メール送信
+
+    Args:
+        email: メールアドレス
+        auth_service: 認証サービス
+
+    Returns:
+        Dict[str, str]: メール送信結果のメッセージ
+    """
+    return await auth_service.send_email(email)

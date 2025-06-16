@@ -8,7 +8,7 @@ import { Footer } from "@/components/ui/footer";
 import { Header } from "@/components/ui/header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { userProfilesApi } from "@/lib/api/user_profiles";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -19,8 +19,7 @@ import { toast } from "sonner";
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
-  const { user, userProfiles, signOut, checkUser, updateUserProfiles } =
-    useAuthStore();
+  const { userProfiles, signOut, checkUser, userEmail } = useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
     display_name: userProfiles?.display_name || "",
@@ -93,14 +92,14 @@ export default function ProfilePage() {
 
     try {
       // APIを使用してユーザープロフィールデータを更新
-      await api.update("user_profiles", userProfiles.id, {
+      await userProfilesApi.update({
         display_name: formData.display_name,
         bio: formData.bio,
         avatar_url: formData.avatar_url,
       });
 
       // ユーザー情報を更新
-      await updateUserProfiles({
+      await userProfilesApi.update({
         ...userProfiles,
         display_name: formData.display_name,
         bio: formData.bio,
@@ -121,7 +120,7 @@ export default function ProfilePage() {
       <TourGuid steps={steps} />
       <Header
         onLogout={signOut}
-        userImage={userProfiles.avatar_url}
+        userImage={userProfiles.avatar_url || undefined}
         userName={userProfiles.display_name || ""}
       />
       <main className="container mx-auto px-4 py-8 flex-grow">
@@ -152,12 +151,7 @@ export default function ProfilePage() {
                 <h2 className="text-2xl font-bold">
                   {userProfiles.display_name || t("noName")}
                 </h2>
-                {user?.user_metadata?.full_name && (
-                  <p className=" text-gray-500">
-                    {user.user_metadata.full_name}
-                  </p>
-                )}
-                <p className="text-gray-500">{user?.email}</p>
+                <p className="text-gray-500">{userEmail || ""}</p>
               </div>
             </div>
 

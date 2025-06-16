@@ -26,7 +26,7 @@ class UserSettingService:
         user_setting = UserSettingModel(
             id=user_id,
             created_at=datetime.now(UTC),
-            **user_setting_create.dict(exclude_unset=True),
+            **user_setting_create.model_dump(exclude_unset=True),
         )
         self.db.add(user_setting)
         self.db.commit()
@@ -38,7 +38,7 @@ class UserSettingService:
     ):
         """ユーザー設定を更新"""
         user_setting = self.get_user_setting(user_id)
-        for key, value in user_setting_update.dict(exclude_unset=True).items():
+        for key, value in user_setting_update.model_dump(exclude_unset=True).items():
             setattr(user_setting, key, value)
         user_setting.updated_at = datetime.now(UTC)
         self.db.commit()

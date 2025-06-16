@@ -24,7 +24,7 @@ class UserRoleService:
         user_role = UserRoleModel(
             id=user_id,
             created_at=datetime.now(UTC),
-            **user_role_create.dict(exclude_unset=True),
+            **user_role_create.model_dump(exclude_unset=True),
         )
         self.db.add(user_role)
         self.db.commit()
@@ -34,7 +34,7 @@ class UserRoleService:
     def update_user_role(self, user_id: UUID, user_role_update: UserRoleUpdate):
         """ユーザーロールを更新"""
         user_role = self.get_user_role(user_id)
-        for key, value in user_role_update.dict(exclude_unset=True).items():
+        for key, value in user_role_update.model_dump(exclude_unset=True).items():
             setattr(user_role, key, value)
         user_role.updated_at = datetime.now(UTC)
         self.db.commit()

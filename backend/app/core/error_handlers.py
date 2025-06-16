@@ -5,12 +5,13 @@ from fastapi import HTTPException, status
 from app.core.error_messages import ERROR_MESSAGES
 
 
-def handle_api_errors(module: str, error_key: str = "error"):
+def handle_api_errors(module: str, action: str = "common"):
     """
     APIエラーを処理するデコレーター
 
     Args:
       module: モジュール名
+      action: アクション名
       error_key: エラーメッセージのキー
 
     Returns:
@@ -25,12 +26,12 @@ def handle_api_errors(module: str, error_key: str = "error"):
             except ValueError as e:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"{ERROR_MESSAGES[module][error_key]}: {str(e)}",
+                    detail=f"{ERROR_MESSAGES[module][action]}: {str(e)}",
                 )
             except Exception as e:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"{ERROR_MESSAGES[module][error_key]}: {str(e)}",
+                    detail=f"{ERROR_MESSAGES[module][action]}: {str(e)}",
                 )
 
         return wrapper

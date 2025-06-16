@@ -25,7 +25,7 @@ class LoggingRoute(APIRoute):
             if request.method in ["POST", "PUT", "PATCH"]:
                 try:
                     request_info["body"] = await request.json()
-                except:
+                except (json.JSONDecodeError, ValueError):
                     request_info["body"] = None
 
             # レスポンスの取得
@@ -39,7 +39,7 @@ class LoggingRoute(APIRoute):
 
             try:
                 response_info["body"] = json.loads(response.body)
-            except:
+            except (json.JSONDecodeError, ValueError):
                 response_info["body"] = None
 
             # ログ出力

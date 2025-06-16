@@ -60,9 +60,10 @@
     "toSignup": "新規登録はこちら",
     "toSendEmail": "パスワードを忘れた方はこちら",
     "loggingIn": "ログイン中...",
-    "signup": "新規登録",
     "passwordPlaceholder": "パスワードを入力してください",
-    "confirmPasswordPlaceholder": "もう一度パスワードを入力してください"
+    "confirmPasswordPlaceholder": "もう一度パスワードを入力してください",
+    "loginError": "ログインに失敗しました。メールアドレスとパスワードを確認してください。",
+    "oauthError": "ソーシャルログインに失敗しました。もう一度お試しください。"
   },
   "Home": {
     "tourUpload": "画像をアップロードしてみましょう！",
@@ -119,7 +120,8 @@
       "fetchFailed": "画像一覧の取得に失敗しました。",
       "tryAgain": "再度お試しください。",
       "downloadFailed": "画像のダウンロードに失敗しました。",
-      "deleteFailed": "画像の削除に失敗しました。"
+      "deleteFailed": "画像の削除に失敗しました。",
+      "notAuthenticated": "ログインが必要です。"
     },
     "success": {
       "delete": "画像を削除しました。"

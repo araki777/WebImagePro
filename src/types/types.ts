@@ -2,6 +2,8 @@
 // 認証関連の型定義
 // ============================================================================
 
+import { components } from "./api";
+
 export interface HeaderProps {
   onLogout: () => Promise<void>;
   userImage?: string;
@@ -40,9 +42,12 @@ export interface SessionItem {
 
 export interface AuthState {
   userId: string | null;
+  userEmail: string | null;
   userSettings?: UserSettings | null;
   userProfiles?: UserProfiles | null;
   userRoles?: UserRoles | null;
+  checkUser: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 // ============================================================================
@@ -106,10 +111,10 @@ export interface IImagePreview {
 // ============================================================================
 
 export interface IImageListProps {
-  images: IApiImage[];
-  onEditImage: (image: IApiImage) => void;
-  onDownload: (image: IApiImage) => void;
-  onDelete: (image: IApiImage) => void;
+  images: components["schemas"]["ImageWithTags"][];
+  onEditImage: (image: components["schemas"]["ImageWithTags"]) => void;
+  onDownload: (image: components["schemas"]["ImageWithTags"]) => void;
+  onDelete: (image: components["schemas"]["ImageWithTags"]) => void;
   className?: string;
 }
 
@@ -133,7 +138,7 @@ export interface IImageUploadFormProps {
 export interface IImageUploadActionsProps {
   images: IImagePreview[];
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
-  userId: string | undefined;
+  userId: string | null;
 }
 
 // ============================================================================
