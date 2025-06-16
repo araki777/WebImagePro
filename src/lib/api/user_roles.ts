@@ -6,10 +6,13 @@ export const userRolesApi = {
     | components["schemas"]["UserProfile"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/user/me/roles", {
+    const response = await apiClient<
+      | components["schemas"]["UserProfile"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/user/me/roles", {
       method: "GET",
     });
-    return response.json();
+    return response;
   },
   update: async (
     data: components["schemas"]["UserRoleUpdate"]
@@ -17,10 +20,13 @@ export const userRolesApi = {
     | components["schemas"]["UserRole"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/users/me/role", {
+    const response = await apiClient<
+      | components["schemas"]["UserRole"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/users/me/role", {
       method: "PUT",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
 };

@@ -19,7 +19,7 @@ def get_role_service():
 
 
 @router.get("/", response_model=List[Role])
-@handle_api_errors("role")
+@handle_api_errors("role", "get")
 async def get_roles(role_service: RoleService = Depends(get_role_service)):
     """
     ロールの一覧を取得する
@@ -38,7 +38,7 @@ async def get_roles(role_service: RoleService = Depends(get_role_service)):
 
 
 @router.post("/", response_model=Role)
-@handle_api_errors("role")
+@handle_api_errors("role", "create")
 async def create_role(
     role_create: RoleCreate,
     _current_user=Depends(get_current_user),
@@ -64,7 +64,7 @@ async def create_role(
 
 
 @router.put("/{role_id}", response_model=Role)
-@handle_api_errors("role")
+@handle_api_errors("role", "update")
 async def update_role(
     role_id: UUID,
     role_update: RoleUpdate,

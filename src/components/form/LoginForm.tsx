@@ -11,24 +11,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/routing";
 import { OAUTH_PROVIDERS } from "@/lib/constants";
-import { supabase } from "@/lib/supabase";
 import { loginSchema } from "@/lib/validation/loginSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Chrome, Github } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-export const LoginForm = () => {
+export const LoginForm = ({
+  isLoading,
+  handleOAuthLogin,
+  handleEmailLogin,
+}: {
+  isLoading: Record<string, boolean>;
+  handleOAuthLogin: (
+    provider: (typeof OAUTH_PROVIDERS)[number]
+  ) => Promise<void>;
+  handleEmailLogin: (data: z.infer<typeof loginSchema>) => void;
+}) => {
   const t = useTranslations("Login");
-  const [isLoading, setIsLoading] = useState<Record<string, boolean>>({
-    google: false,
-    github: false,
-  });
-  const router = useRouter();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -37,41 +39,6 @@ export const LoginForm = () => {
       password: "",
     },
   });
-
-  const handleOAuthLogin = async (
-    provider: (typeof OAUTH_PROVIDERS)[number]
-  ) => {
-    setIsLoading((prev) => ({ ...prev, [provider]: true }));
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider,
-        options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
-        },
-      });
-
-      if (error) {
-        console.error("OAuth login error:", error);
-        setIsLoading((prev) => ({ ...prev, [provider]: false }));
-      }
-    } catch (error) {
-      console.error("OAuth login error:", error);
-      setIsLoading((prev) => ({ ...prev, [provider]: false }));
-    }
-  };
-
-  const handleEmailLogin = async (data: z.infer<typeof loginSchema>) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    });
-    if (error) {
-      console.error("Email login error:", error);
-    } else {
-      router.push("/");
-    }
-  };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },

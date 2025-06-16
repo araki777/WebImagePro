@@ -6,10 +6,13 @@ export const userProfilesApi = {
     | components["schemas"]["UserProfile"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/users/me/profile", {
+    const response = await apiClient<
+      | components["schemas"]["UserProfile"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/users/me/profile", {
       method: "GET",
     });
-    return response.json();
+    return response;
   },
   update: async (
     data: components["schemas"]["UserProfileUpdate"]
@@ -17,10 +20,13 @@ export const userProfilesApi = {
     | components["schemas"]["UserProfile"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/users/me/profile", {
+    const response = await apiClient<
+      | components["schemas"]["UserProfile"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/users/me/profile", {
       method: "PUT",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
 };

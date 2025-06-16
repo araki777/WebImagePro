@@ -6,10 +6,13 @@ export const contactsApi = {
     | components["schemas"]["Contact"][]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/contacts", {
+    const response = await apiClient<
+      | components["schemas"]["Contact"][]
+      | components["schemas"]["HTTPValidationError"]
+    >("/contacts", {
       method: "GET",
     });
-    return response.json();
+    return response;
   },
   create: async (
     data: components["schemas"]["ContactCreate"]
@@ -17,10 +20,13 @@ export const contactsApi = {
     | components["schemas"]["Contact"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/contacts", {
+    const response = await apiClient<
+      | components["schemas"]["Contact"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/contacts", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
 };

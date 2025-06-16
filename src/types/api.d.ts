@@ -9,6 +9,23 @@ export interface paths {
     /** Health Check */
     get: operations["health_check__get"];
   };
+  "/auth/me": {
+    /**
+     * Get Me
+     * @description ログイン中のユーザー情報を取得
+     *
+     * Args:
+     *     request: リクエスト
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     UserResponse: ユーザー情報
+     *
+     * Raises:
+     *     HTTPException: 認証エラーまたはサーバーエラー
+     */
+    get: operations["get_me_auth_me_get"];
+  };
   "/auth/signup": {
     /**
      * Signup
@@ -582,6 +599,22 @@ export interface components {
       /** Avatar Url */
       avatar_url?: string | null;
     };
+    /** UserResponse */
+    UserResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      user_profile?: components["schemas"]["UserProfile"] | null;
+      user_setting?: components["schemas"]["UserSetting"] | null;
+      user_role?: components["schemas"]["UserRole"] | null;
+    };
     /** UserRole */
     UserRole: {
       /**
@@ -696,6 +729,30 @@ export interface operations {
       200: {
         content: {
           "application/json": unknown;
+        };
+      };
+    };
+  };
+  /**
+   * Get Me
+   * @description ログイン中のユーザー情報を取得
+   *
+   * Args:
+   *     request: リクエスト
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     UserResponse: ユーザー情報
+   *
+   * Raises:
+   *     HTTPException: 認証エラーまたはサーバーエラー
+   */
+  get_me_auth_me_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
         };
       };
     };

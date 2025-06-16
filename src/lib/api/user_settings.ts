@@ -6,10 +6,13 @@ export const userSettingsApi = {
     | components["schemas"]["UserSetting"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/user/me/setting", {
+    const response = await apiClient<
+      | components["schemas"]["UserSetting"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/user/me/setting", {
       method: "GET",
     });
-    return response.json();
+    return response;
   },
   update: async (
     data: components["schemas"]["UserSettingUpdate"]
@@ -17,10 +20,13 @@ export const userSettingsApi = {
     | components["schemas"]["UserSetting"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/users/me/setting", {
+    const response = await apiClient<
+      | components["schemas"]["UserSetting"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/users/me/setting", {
       method: "PUT",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
 };
