@@ -96,7 +96,9 @@ export const LoginForm = ({
         <FormProvider {...form}>
           <form
             className="flex flex-col gap-5 mt-6"
-            onSubmit={form.handleSubmit(handleEmailLogin)}
+            onSubmit={form.handleSubmit((data) =>
+              handleEmailLogin(data.email, data.password)
+            )}
           >
             <FormField
               control={form.control}

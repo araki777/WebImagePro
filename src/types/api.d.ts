@@ -36,7 +36,7 @@ export interface paths {
      *     auth_service: 認証サービス
      *
      * Returns:
-     *     Token: 認証トークン情報
+     *     dict: 認証トークン情報
      *
      * Raises:
      *     HTTPException: 認証エラーまたはサーバーエラー
@@ -67,9 +67,6 @@ export interface paths {
      *
      * Args:
      *     auth_service: 認証サービス
-     *
-     * Returns:
-     *     Dict[str, str]: ログアウト結果のメッセージ
      *
      * Raises:
      *     HTTPException: 認証エラーまたはサーバーエラー
@@ -107,6 +104,34 @@ export interface paths {
      *     HTTPException: 認証エラーまたはサーバーエラー
      */
     get: operations["google_auth_auth_google_get"];
+  };
+  "/auth/reset-password": {
+    /**
+     * Reset Password
+     * @description パスワード再設定
+     *
+     * Args:
+     *     password: 新しいパスワード
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     Dict[str, str]: パスワード再設定結果のメッセージ
+     */
+    post: operations["reset_password_auth_reset_password_post"];
+  };
+  "/auth/send-email": {
+    /**
+     * Send Email
+     * @description メール送信
+     *
+     * Args:
+     *     email: メールアドレス
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     Dict[str, str]: メール送信結果のメッセージ
+     */
+    post: operations["send_email_auth_send_email_post"];
   };
   "/users/me/profile": {
     /**
@@ -149,6 +174,7 @@ export interface paths {
      * Args:
      *     current_user: 現在のユーザー
      *     user_role_service: ユーザーロールサービス
+     *     role_service: ロールサービス
      *
      * Returns:
      *     UserRole: 現在のユーザーのロール
@@ -257,24 +283,46 @@ export interface paths {
      *     HTTPException: ロールの更新に失敗した場合
      */
     put: operations["update_role_roles__role_id__put"];
+    /**
+     * Delete Role
+     * @description ロールを削除する
+     *
+     * Args:
+     *     role_id: ロールのID
+     *     _current_user: 現在のユーザー
+     *     role_service: ロールサービス
+     *
+     * Returns:
+     *     Role: 削除されたロール
+     *
+     * Raises:
+     *     HTTPException: ロールの削除に失敗した場合
+     */
+    delete: operations["delete_role_roles__role_id__delete"];
+  };
+  "/images/": {
+    /**
+     * Get Images
+     * @description 画像を取得する
+     *
+     * Args:
+     *     is_shared: 共有モードかどうか
+     *     user_id: ユーザーID
+     *     lang: 言語
+     *     storage_service: ストレージサービス
+     *
+     * Returns:
+     *     images: 画像
+     *
+     * Raises:
+     *     HTTPException: 画像の取得に失敗した場合
+     */
+    get: operations["get_images_images__get"];
   };
   "/images/upload": {
     /**
      * Upload Image
-     * @description 画像をアップロードする
-     *
-     * Args:
-     *     file: アップロードする画像ファイル
-     *     is_shared: 共有モードかどうか
-     *     current_user: 現在のユーザー
-     *     storage_service: ストレージサービス
-     *
-     * Returns:
-     *     blob_name: ブロブ名
-     *     blob_url: ブロブURL
-     *
-     * Raises:
-     *     HTTPException: アップロードに失敗した場合
+     * @description 画像をアップロード
      */
     post: operations["upload_image_images_upload_post"];
   };
@@ -354,6 +402,30 @@ export interface paths {
      *     HTTPException: アップロードに失敗した場合
      */
     post: operations["full_upload_image_images_full_upload_post"];
+  };
+  "/images/delete": {
+    /**
+     * Delete Image
+     * @description 画像を削除する
+     *
+     * Args:
+     *     image_id: 削除する画像のID
+     *     image_service: 画像サービス
+     *
+     * Returns:
+     *     message: 削除成功メッセージ
+     *
+     * Raises:
+     *     HTTPException: 削除に失敗した場合
+     */
+    delete: operations["delete_image_images_delete_delete"];
+  };
+  "/images/{blob_name}": {
+    /**
+     * Get Image
+     * @description 画像データを取得
+     */
+    get: operations["get_image_images__blob_name__get"];
   };
   "/contacts/": {
     /**
@@ -474,6 +546,10 @@ export interface components {
       container_name: string;
       /** Blob Name */
       blob_name: string;
+      /** Size */
+      size: number;
+      /** Content Type */
+      content_type: string;
       /** Ja Tags */
       ja_tags: string[];
       /** En Tags */
@@ -497,10 +573,43 @@ export interface components {
       container_name: string;
       /** Blob Name */
       blob_name: string;
+      /** Size */
+      size: number;
+      /** Content Type */
+      content_type: string;
       /** Ja Tags */
       ja_tags: string[];
       /** En Tags */
       en_tags: string[];
+    };
+    /** ImageWithTags */
+    ImageWithTags: {
+      /** File Name */
+      file_name: string;
+      /** Container Name */
+      container_name: string;
+      /** Blob Name */
+      blob_name: string;
+      /** Size */
+      size: number;
+      /** Content Type */
+      content_type: string;
+      /** Ja Tags */
+      ja_tags: string[];
+      /** En Tags */
+      en_tags: string[];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Tags */
+      tags: string[];
     };
     /** OAuthResponse */
     OAuthResponse: {
@@ -554,6 +663,11 @@ export interface components {
        * @default bearer
        */
       token_type?: string;
+      /**
+       * Expires In
+       * @default 3600
+       */
+      expires_in?: number;
     };
     /** TranslateRequest */
     TranslateRequest: {
@@ -766,7 +880,7 @@ export interface operations {
    *     auth_service: 認証サービス
    *
    * Returns:
-   *     Token: 認証トークン情報
+   *     dict: 認証トークン情報
    *
    * Raises:
    *     HTTPException: 認証エラーまたはサーバーエラー
@@ -781,7 +895,9 @@ export interface operations {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["Token"];
+          "application/json": {
+            [key: string]: unknown;
+          };
         };
       };
       /** @description Validation Error */
@@ -833,9 +949,6 @@ export interface operations {
    *
    * Args:
    *     auth_service: 認証サービス
-   *
-   * Returns:
-   *     Dict[str, str]: ログアウト結果のメッセージ
    *
    * Raises:
    *     HTTPException: 認証エラーまたはサーバーエラー
@@ -894,6 +1007,74 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["OAuthResponse"];
+        };
+      };
+    };
+  };
+  /**
+   * Reset Password
+   * @description パスワード再設定
+   *
+   * Args:
+   *     password: 新しいパスワード
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     Dict[str, str]: パスワード再設定結果のメッセージ
+   */
+  reset_password_auth_reset_password_post: {
+    parameters: {
+      query: {
+        password: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Send Email
+   * @description メール送信
+   *
+   * Args:
+   *     email: メールアドレス
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     Dict[str, str]: メール送信結果のメッセージ
+   */
+  send_email_auth_send_email_post: {
+    parameters: {
+      query: {
+        email: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -965,6 +1146,7 @@ export interface operations {
    * Args:
    *     current_user: 現在のユーザー
    *     user_role_service: ユーザーロールサービス
+   *     role_service: ロールサービス
    *
    * Returns:
    *     UserRole: 現在のユーザーのロール
@@ -1180,21 +1362,83 @@ export interface operations {
     };
   };
   /**
-   * Upload Image
-   * @description 画像をアップロードする
+   * Delete Role
+   * @description ロールを削除する
    *
    * Args:
-   *     file: アップロードする画像ファイル
+   *     role_id: ロールのID
+   *     _current_user: 現在のユーザー
+   *     role_service: ロールサービス
+   *
+   * Returns:
+   *     Role: 削除されたロール
+   *
+   * Raises:
+   *     HTTPException: ロールの削除に失敗した場合
+   */
+  delete_role_roles__role_id__delete: {
+    parameters: {
+      path: {
+        role_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Role"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Images
+   * @description 画像を取得する
+   *
+   * Args:
    *     is_shared: 共有モードかどうか
-   *     current_user: 現在のユーザー
+   *     user_id: ユーザーID
+   *     lang: 言語
    *     storage_service: ストレージサービス
    *
    * Returns:
-   *     blob_name: ブロブ名
-   *     blob_url: ブロブURL
+   *     images: 画像
    *
    * Raises:
-   *     HTTPException: アップロードに失敗した場合
+   *     HTTPException: 画像の取得に失敗した場合
+   */
+  get_images_images__get: {
+    parameters: {
+      query?: {
+        is_shared?: boolean;
+        user_id?: number;
+        lang?: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ImageWithTags"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Upload Image
+   * @description 画像をアップロード
    */
   upload_image_images_upload_post: {
     parameters: {
@@ -1366,6 +1610,72 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["Image"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Delete Image
+   * @description 画像を削除する
+   *
+   * Args:
+   *     image_id: 削除する画像のID
+   *     image_service: 画像サービス
+   *
+   * Returns:
+   *     message: 削除成功メッセージ
+   *
+   * Raises:
+   *     HTTPException: 削除に失敗した場合
+   */
+  delete_image_images_delete_delete: {
+    parameters: {
+      query: {
+        image_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Image
+   * @description 画像データを取得
+   */
+  get_image_images__blob_name__get: {
+    parameters: {
+      query: {
+        is_shared: boolean;
+        user_id: number;
+      };
+      path: {
+        blob_name: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
         };
       };
       /** @description Validation Error */

@@ -3,11 +3,11 @@ import { apiClient } from "../api-client";
 
 export const userRolesApi = {
   get: async (): Promise<
-    | components["schemas"]["UserProfile"]
+    | components["schemas"]["UserRole"]
     | components["schemas"]["HTTPValidationError"]
   > => {
     const response = await apiClient<
-      | components["schemas"]["UserProfile"]
+      | components["schemas"]["UserRole"]
       | components["schemas"]["HTTPValidationError"]
     >("/user/me/roles", {
       method: "GET",

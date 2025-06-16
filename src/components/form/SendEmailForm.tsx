@@ -7,7 +7,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
+import { authApi } from "@/lib/api/auth";
 import { sendEmailSchema } from "@/lib/validation/loginSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
@@ -30,14 +30,9 @@ const SendEmailForm = () => {
   const router = useRouter();
 
   const onSubmit = async (data: { email: string }) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/login/resetPassword`,
-    });
-    if (error) {
-      form.setError("root", { message: error.message });
-    } else {
-      setSent(true);
-    }
+    const response = await authApi.sendEmail(data.email);
+    console.log(response);
+    setSent(true);
   };
 
   const itemVariants = {

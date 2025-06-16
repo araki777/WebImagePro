@@ -25,14 +25,5 @@ export async function apiClient<T>(
     credentials: "include",
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      data.detail || "APIリクエストに失敗しました"
-    );
-  }
-
-  return data;
+  return response.json();
 }

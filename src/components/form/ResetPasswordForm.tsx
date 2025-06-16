@@ -7,7 +7,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
+import { authApi } from "@/lib/api/auth";
 import { resetPasswordSchema } from "@/lib/validation/loginSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
@@ -31,14 +31,9 @@ const ResetPasswordForm = () => {
   const [done, setDone] = useState(false);
 
   const onSubmit = async (data: { password: string }) => {
-    const { error } = await supabase.auth.updateUser({
-      password: data.password,
-    });
-    if (error) {
-      form.setError("root", { message: error.message });
-    } else {
-      setDone(true);
-    }
+    const response = await authApi.resetPassword(data.password);
+    console.log(response);
+    setDone(true);
   };
 
   const itemVariants = {

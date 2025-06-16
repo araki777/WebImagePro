@@ -58,29 +58,29 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
             )
 
-    async def signup(self, user_data: UserSignUp) -> Token:
+    async def signup(self, user_data: UserSignUp) -> dict:
         """
         新規ユーザー登録
+        
+        Returns:
+            dict: 登録結果
+                - success: bool - 登録成功したかどうか
+                - message: str - ユーザーへのメッセージ
         """
         response = self.supabase.auth.sign_up(
             {"email": user_data.email, "password": user_data.password}
         )
 
         if response.session is None:
-            return Token(access_token="", token_type="bearer")
+            return {
+                "success": True,
+                "message": "確認メールを送信しました。メール内のリンクをクリックして認証を完了してください。"
+            }
 
-        sign_in_response = self.supabase.auth.sign_in_with_password(
-            {"email": user_data.email, "password": user_data.password}
-        )
-
-        if sign_in_response.session is None:
-            raise ValueError(
-                "認証に失敗しました。メールアドレスとパスワードを確認してください。"
-            )
-
-        return Token(
-            access_token=sign_in_response.session.access_token, token_type="bearer"
-        )
+        return {
+            "success": True,
+            "message": "登録が完了しました。"
+        }
 
     async def signin(self, user_data: UserSignIn) -> Token:
         """
@@ -115,3 +115,19 @@ class AuthService:
             }
         )
         return response
+    
+    async def reset_password(self, password: str) -> Dict:
+        """
+        パスワード再設定
+        """
+        self.supabase.auth.update_user({
+            "password": password
+        })
+        return {"message": "パスワードを再設定しました"}
+
+    async def send_email(self, email: str) -> Dict:
+        """
+        メール送信
+        """
+        self.supabase.auth.reset_password_for_email(email)
+        return {"message": "パスワード再設定メールを送信しました"}

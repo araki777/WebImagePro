@@ -88,3 +88,27 @@ async def update_role(
     """
 
     return role_service.update_role(role_id, role_update)
+
+
+@router.delete("/{role_id}", response_model=Role)
+@handle_api_errors("role", "delete")
+async def delete_role(
+    role_id: UUID,
+    _current_user=Depends(get_current_user),
+    role_service: RoleService = Depends(get_role_service),
+):
+    """
+    ロールを削除する
+
+    Args:
+        role_id: ロールのID
+        _current_user: 現在のユーザー
+        role_service: ロールサービス
+
+    Returns:
+        Role: 削除されたロール
+
+    Raises:
+        HTTPException: ロールの削除に失敗した場合
+    """
+    return role_service.delete_role(role_id)
