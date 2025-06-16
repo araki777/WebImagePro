@@ -48,5 +48,8 @@ class Settings:
     RESEND_EMAIL_FROM: str = get_env_or_raise("RESEND_EMAIL_FROM")
     RESEND_EMAIL_TO: str = get_env_or_raise("RESEND_EMAIL_TO")
 
+    # 認証系
+    SUPABASE_JWT_SECRET: str = get_env_or_raise("SUPABASE_JWT_SECRET")
+
 
 settings = Settings()

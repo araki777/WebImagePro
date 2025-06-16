@@ -10,10 +10,10 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiClient(
+export async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {}
-): Promise<Response> {
+): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
   const response = await fetch(url, {
@@ -22,6 +22,7 @@ export async function apiClient(
       "Content-Type": "application/json",
       ...options.headers,
     },
+    credentials: "include",
   });
 
   const data = await response.json();

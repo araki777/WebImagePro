@@ -17,7 +17,7 @@ def get_user_profile_service():
 
 
 @router.get("/me/profile", response_model=UserProfile)
-@handle_api_errors("user_profile")
+@handle_api_errors("user_profile", "get")
 async def get_current_user_profile(
     current_user=Depends(get_current_user),
     user_profile_service: UserProfileService = Depends(get_user_profile_service),
@@ -49,7 +49,7 @@ async def get_current_user_profile(
 
 
 @router.put("/me/profile", response_model=UserProfile)
-@handle_api_errors("user_profile")
+@handle_api_errors("user_profile", "update")
 async def update_current_user_profile(
     profile_update: UserProfileUpdate,
     current_user=Depends(get_current_user),

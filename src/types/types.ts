@@ -2,8 +2,6 @@
 // 認証関連の型定義
 // ============================================================================
 
-import { User } from "@supabase/supabase-js";
-
 export interface HeaderProps {
   onLogout: () => Promise<void>;
   userImage?: string;
@@ -12,26 +10,26 @@ export interface HeaderProps {
 
 export interface UserProfiles {
   id: string;
-  display_name: string;
-  bio?: string;
-  avatar_url?: string;
+  display_name?: string | null;
+  bio?: string | null;
+  avatar_url?: string | null;
   created_at: string;
-  updated_at?: string;
+  updated_at?: string | null;
 }
 
 export interface UserRoles {
   id: string;
   role_id: string;
   created_at: string;
-  updated_at?: string;
+  updated_at?: string | null;
 }
 
 export interface UserSettings {
   id: string;
-  theme: "light" | "dark" | "system";
+  theme: string;
   language: string;
   created_at: string;
-  updated_at?: string;
+  updated_at?: string | null;
 }
 
 export interface SessionItem {
@@ -41,18 +39,10 @@ export interface SessionItem {
 }
 
 export interface AuthState {
-  user: User | null;
-  userSettings: UserSettings | null;
-  userProfiles: UserProfiles | null;
-  userRoles: UserRoles | null;
-  accessToken: string | null;
-  setUser: (user: User | null) => void;
-  checkUser: () => Promise<void | (() => void)>;
-  signOut: () => Promise<void>;
-  updateUserSettings: (settings: Partial<UserSettings>) => Promise<void>;
-  updateUserProfiles: (profiles: Partial<UserProfiles>) => Promise<void>;
-  updateUserRoles: (roles: Partial<UserRoles>) => Promise<void>;
-  setAccessToken: (accessToken: string) => void;
+  userId: string | null;
+  userSettings?: UserSettings | null;
+  userProfiles?: UserProfiles | null;
+  userRoles?: UserRoles | null;
 }
 
 // ============================================================================

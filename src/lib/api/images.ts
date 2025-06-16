@@ -8,20 +8,26 @@ export const imagesApi = {
     | components["schemas"]["Image"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/images/upload", {
+    const response = await apiClient<
+      | components["schemas"]["Image"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/images/upload", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
   vision_tags: async (
     data: components["schemas"]["VisionRequest"]
   ): Promise<components["schemas"]["VisionResponse"]> => {
-    const response = await apiClient("/images/vision-tags", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-    return response.json();
+    const response = await apiClient<components["schemas"]["VisionResponse"]>(
+      "/images/vision-tags",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
+    return response;
   },
   translate: async (
     data: components["schemas"]["TranslateRequest"]
@@ -29,11 +35,14 @@ export const imagesApi = {
     | components["schemas"]["TranslateResponse"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/images/translate", {
+    const response = await apiClient<
+      | components["schemas"]["TranslateResponse"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/images/translate", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
   save: async (
     data: components["schemas"]["ImageCreate"]
@@ -41,11 +50,14 @@ export const imagesApi = {
     | components["schemas"]["Image"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/images", {
+    const response = await apiClient<
+      | components["schemas"]["Image"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/images", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
   full_upload: async (
     data: components["schemas"]["Body_full_upload_image_images_full_upload_post"]
@@ -53,10 +65,13 @@ export const imagesApi = {
     | components["schemas"]["Image"]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/images/full-upload", {
+    const response = await apiClient<
+      | components["schemas"]["Image"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/images/full-upload", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
 };

@@ -17,7 +17,7 @@ def get_user_setting_service():
 
 
 @router.get("/me/setting", response_model=UserSetting)
-@handle_api_errors("user_setting")
+@handle_api_errors("user_setting", "get")
 async def get_current_user_setting(
     current_user=Depends(get_current_user),
     user_setting_service: UserSettingService = Depends(get_user_setting_service),
@@ -49,7 +49,7 @@ async def get_current_user_setting(
 
 
 @router.put("/me/setting", response_model=UserSetting)
-@handle_api_errors("user_setting")
+@handle_api_errors("user_setting", "update")
 async def update_current_user_setting(
     setting_update: UserSettingUpdate,
     current_user=Depends(get_current_user),

@@ -6,31 +6,40 @@ export const rolesApi = {
     | components["schemas"]["Role"][]
     | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/roles", {
+    const response = await apiClient<
+      | components["schemas"]["Role"][]
+      | components["schemas"]["HTTPValidationError"]
+    >("/roles", {
       method: "GET",
     });
-    return response.json();
+    return response;
   },
   create: async (
     data: components["schemas"]["RoleCreate"]
   ): Promise<
     components["schemas"]["Role"] | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/roles", {
+    const response = await apiClient<
+      | components["schemas"]["Role"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/roles", {
       method: "POST",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
   update: async (
     data: components["schemas"]["RoleUpdate"]
   ): Promise<
     components["schemas"]["Role"] | components["schemas"]["HTTPValidationError"]
   > => {
-    const response = await apiClient("/roles", {
+    const response = await apiClient<
+      | components["schemas"]["Role"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/roles", {
       method: "PATCH",
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
 };

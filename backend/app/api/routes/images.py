@@ -23,7 +23,7 @@ def get_image_service():
 
 
 @router.post("/upload", response_model=Image)
-@handle_api_errors("image")
+@handle_api_errors("image", "upload")
 async def upload_image(
     file: UploadFile = File(...),
     is_shared: bool = False,
@@ -52,7 +52,7 @@ async def upload_image(
 
 
 @router.post("/vision-tags", response_model=VisionResponse)
-@handle_api_errors("image")
+@handle_api_errors("image", "vision-tags")
 async def get_vision_tags(
     req: VisionRequest,
     _current_user=Depends(get_current_user),
@@ -78,7 +78,7 @@ async def get_vision_tags(
 
 
 @router.post("/translate", response_model=TranslateResponse)
-@handle_api_errors("image")
+@handle_api_errors("image", "translate")
 async def translate_tags(
     req: TranslateRequest,
     _current_user=Depends(get_current_user),
@@ -104,7 +104,7 @@ async def translate_tags(
 
 
 @router.post("/save", response_model=Image)
-@handle_api_errors("image")
+@handle_api_errors("image", "save")
 async def save_image(
     image_create: ImageCreate,
     _current_user=Depends(get_current_user),
@@ -130,7 +130,7 @@ async def save_image(
 
 
 @router.post("/full-upload", response_model=Image)
-@handle_api_errors("image")
+@handle_api_errors("image", "full-upload")
 async def full_upload_image(
     file: UploadFile = File(...),
     is_shared: bool = False,

@@ -18,7 +18,7 @@ def get_user_role_service():
 
 
 @router.get("/me/role", response_model=UserRole)
-@handle_api_errors("user_role")
+@handle_api_errors("user_role", "get")
 async def get_current_user_role(
     current_user=Depends(get_current_user),
     user_role_service: UserRoleService = Depends(get_user_role_service),
@@ -50,7 +50,7 @@ async def get_current_user_role(
 
 
 @router.put("/me/role", response_model=UserRole)
-@handle_api_errors("user_role")
+@handle_api_errors("user_role", "update")
 async def update_current_user_role(
     role_update: UserRoleUpdate,
     current_user=Depends(get_current_user),
