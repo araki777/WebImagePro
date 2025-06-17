@@ -46,6 +46,7 @@ let wasmInitialized = false;
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { imagesApi } from "@/lib/api/images";
+import { LANGUAGES } from "@/lib/constants";
 import { Loader } from "lucide-react";
 
 export default function ImageEditor2() {
@@ -1069,19 +1070,13 @@ export default function ImageEditor2() {
       // Fileを作成
       const file = new File([blob], fileName, { type: blob.type });
 
-      // アップロード処理
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("isShared", isShared.toString());
-      formData.append("userId", userProfiles?.id || "");
+      const uploadResponse = await imagesApi.full_upload({
+        file: file.name,
+        target_langs: [...LANGUAGES],
+        is_shared: isShared,
+        user_id: userProfiles?.id || "",
+      });
 
-      const uploadResponse = await imagesApi.full_upload(
-        {
-          file: file.name,
-          target_langs: ["ja", "en"],
-        },
-        isShared
-      );
       if (!uploadResponse) {
         toast.error("アップロードに失敗しました");
         return;
