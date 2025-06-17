@@ -134,6 +134,6 @@ class AuthService:
         """
         self.supabase.auth.reset_password_for_email(
             email,
-            options={"redirect_to": f"{settings.FRONTEND_URL}/reset-password"},
+            options={"redirect_to": f"{settings.FRONTEND_URL}/resetPassword"},
         )
         return {"message": "パスワード再設定メールを送信しました"}
