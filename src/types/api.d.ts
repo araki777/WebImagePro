@@ -466,29 +466,20 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
-    /** Body_full_upload_image_images_full_upload_post */
-    Body_full_upload_image_images_full_upload_post: {
-      /**
-       * File
-       * Format: binary
-       */
-      file: string;
-      /**
-       * Target Langs
-       * @default [
-       *   "ja",
-       *   "en"
-       * ]
-       */
-      target_langs?: string[];
-    };
-    /** Body_upload_image_images_upload_post */
-    Body_upload_image_images_upload_post: {
-      /**
-       * File
-       * Format: binary
-       */
-      file: string;
+    /** BlobUploadResult */
+    BlobUploadResult: {
+      /** Blob Name */
+      blob_name: string;
+      /** Blob Url */
+      blob_url: string;
+      /** Container Name */
+      container_name: string;
+      /** File Name */
+      file_name: string;
+      /** Size */
+      size: number;
+      /** Content Type */
+      content_type: string;
     };
     /** Contact */
     Contact: {
@@ -532,6 +523,23 @@ export interface components {
       message: string;
       /** Subject */
       subject: string;
+    };
+    /** FullUploadImageRequest */
+    FullUploadImageRequest: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+      /** Target Langs */
+      target_langs: string[];
+      /** Is Shared */
+      is_shared: boolean;
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -621,6 +629,13 @@ export interface components {
       /** Provider */
       provider: string;
     };
+    /** ResetPasswordRequest */
+    ResetPasswordRequest: {
+      /** Password */
+      password: string;
+      /** Token */
+      token: string;
+    };
     /** Role */
     Role: {
       /** Name */
@@ -654,6 +669,14 @@ export interface components {
       /** Description */
       description?: string | null;
     };
+    /** SendEmailRequest */
+    SendEmailRequest: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+    };
     /** Token */
     Token: {
       /** Access Token */
@@ -682,6 +705,21 @@ export interface components {
       translations: {
         [key: string]: unknown;
       };
+    };
+    /** UploadImageRequest */
+    UploadImageRequest: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+      /** Is Shared */
+      is_shared: boolean;
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string;
     };
     /** UserProfile */
     UserProfile: {
@@ -1023,9 +1061,9 @@ export interface operations {
    *     Dict[str, str]: パスワード再設定結果のメッセージ
    */
   reset_password_auth_reset_password_post: {
-    parameters: {
-      query: {
-        password: string;
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ResetPasswordRequest"];
       };
     };
     responses: {
@@ -1057,9 +1095,9 @@ export interface operations {
    *     Dict[str, str]: メール送信結果のメッセージ
    */
   send_email_auth_send_email_post: {
-    parameters: {
-      query: {
-        email: string;
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SendEmailRequest"];
       };
     };
     responses: {
@@ -1415,9 +1453,9 @@ export interface operations {
    */
   get_images_images__get: {
     parameters: {
-      query?: {
+      query: {
+        user_id: string;
         is_shared?: boolean;
-        user_id?: number;
         lang?: string;
       };
     };
@@ -1441,21 +1479,16 @@ export interface operations {
    * @description 画像をアップロード
    */
   upload_image_images_upload_post: {
-    parameters: {
-      query?: {
-        is_shared?: boolean;
-      };
-    };
     requestBody: {
       content: {
-        "multipart/form-data": components["schemas"]["Body_upload_image_images_upload_post"];
+        "application/json": components["schemas"]["UploadImageRequest"];
       };
     };
     responses: {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["Image"];
+          "application/json": components["schemas"]["BlobUploadResult"];
         };
       };
       /** @description Validation Error */
@@ -1595,14 +1628,9 @@ export interface operations {
    *     HTTPException: アップロードに失敗した場合
    */
   full_upload_image_images_full_upload_post: {
-    parameters: {
-      query?: {
-        is_shared?: boolean;
-      };
-    };
     requestBody: {
       content: {
-        "multipart/form-data": components["schemas"]["Body_full_upload_image_images_full_upload_post"];
+        "application/json": components["schemas"]["FullUploadImageRequest"];
       };
     };
     responses: {
@@ -1638,6 +1666,8 @@ export interface operations {
     parameters: {
       query: {
         image_id: string;
+        is_shared: boolean;
+        user_id: string;
       };
     };
     responses: {
@@ -1665,7 +1695,7 @@ export interface operations {
     parameters: {
       query: {
         is_shared: boolean;
-        user_id: number;
+        user_id: string;
       };
       path: {
         blob_name: string;

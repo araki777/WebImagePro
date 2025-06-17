@@ -2,7 +2,7 @@ import io
 from typing import Dict, List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -11,7 +11,8 @@ from app.auth.utils import get_current_user
 from app.connection import get_db
 from app.core.error_handlers import handle_api_errors
 from app.schemas.ai_vision import VisionRequest, VisionResponse
-from app.schemas.image import Image, ImageCreate, ImageWithTags
+from app.schemas.image import FullUploadImageRequest, Image, ImageCreate, ImageWithTags
+from app.schemas.storage import BlobUploadResult, UploadImageRequest
 from app.schemas.translate import TranslateRequest, TranslateResponse
 from app.services.ai_vision import VisionService
 from app.services.image import ImageService
@@ -24,14 +25,16 @@ router = APIRouter(route_class=LoggingRoute)
 def get_storage_service() -> StorageService:
     return StorageService()
 
+
 def get_image_service(db: Session = Depends(get_db)) -> ImageService:
     return ImageService(db)
+
 
 @router.get("/", response_model=List[ImageWithTags])
 @handle_api_errors("image", "get_images")
 async def get_images(
+    user_id: UUID,
     is_shared: bool = False,
-    user_id: int = None,
     lang: str = "ja",
     storage_service: StorageService = Depends(),
     image_service: ImageService = Depends(get_image_service),
@@ -51,21 +54,21 @@ async def get_images(
     Raises:
         HTTPException: 画像の取得に失敗した場合
     """
-    images = await storage_service.get_list_images(is_shared, user_id)
+    images = await storage_service.get_blob_list(is_shared, user_id)
     images_with_tags = await image_service.get_images_with_tags(images, lang)
     return images_with_tags
 
 
-@router.post("/upload", response_model=Image)
+@router.post("/upload", response_model=BlobUploadResult)
 @handle_api_errors("image", "upload")
 async def upload_image(
-    file: UploadFile,
+    req: UploadImageRequest,
     _current_user=Depends(get_current_user),
-    is_shared: bool = False,
     storage_service: StorageService = Depends(get_storage_service),
-) -> Image:
+) -> BlobUploadResult:
     """画像をアップロード"""
-    return await storage_service.upload_image(file, is_shared, _current_user.id)
+    return await storage_service.upload_image(req.file, req.is_shared, req.user_id)
+
 
 @router.post("/vision-tags", response_model=VisionResponse)
 @handle_api_errors("image", "vision-tags")
@@ -148,9 +151,7 @@ async def save_image(
 @router.post("/full-upload", response_model=Image)
 @handle_api_errors("image", "full_upload")
 async def full_upload_image(
-    file: UploadFile = File(...),
-    is_shared: bool = False,
-    target_langs: List[str] = ["ja", "en"],
+    req: FullUploadImageRequest,
     current_user=Depends(get_current_user),
     storage_service: StorageService = Depends(),
     vision_service: VisionService = Depends(),
@@ -178,27 +179,25 @@ async def full_upload_image(
     """
 
     # 1. 画像アップロード
-    result = await storage_service.upload_image(file, is_shared, current_user)
-    file_name = result["file_name"]
-    blob_name = result["blob_name"]
-    blob_url = result["blob_url"]
-    container_name = result["container_name"]
+    result = await storage_service.upload_image(req.file, req.is_shared, req.user_id)
 
     # 2. Vision APIでタグ抽出
-    tags = vision_service.get_tags(blob_url)
+    tags = vision_service.get_tags(result.blob_url)
 
     # 3. 翻訳APIでタグ翻訳
-    translations = translate_service.translate(tags, target_langs)
+    translations = translate_service.translate(tags, req.target_langs)
     ja_tags = translations.get("ja", [])
     en_tags = translations.get("en", [])
 
     # 4. DB保存
     image_create = ImageCreate(
-        file_name=file_name,
-        blob_name=blob_name,
-        container_name=container_name,
+        file_name=result.file_name,
+        blob_name=result.blob_name,
+        container_name=result.container_name,
         ja_tags=ja_tags,
         en_tags=en_tags,
+        size=result.size,
+        content_type=result.content_type,
     )
     image = image_service.save_image(image_create)
     return image
@@ -207,7 +206,9 @@ async def full_upload_image(
 @router.delete("/delete", response_model=Dict[str, str])
 @handle_api_errors("image", "delete")
 async def delete_image(
-    image_id: UUID,
+    image_id: str,
+    is_shared: bool,
+    user_id: UUID,
     _current_user=Depends(get_current_user),
     image_service: ImageService = Depends(get_image_service),
     storage_service: StorageService = Depends(),
@@ -226,7 +227,7 @@ async def delete_image(
         HTTPException: 削除に失敗した場合
     """
     await image_service.delete_image(image_id)
-    await storage_service.delete_image(image_id)
+    await storage_service.delete_image(image_id, is_shared, user_id)
     return {"message": "Image deleted successfully"}
 
 
@@ -235,11 +236,11 @@ async def delete_image(
 async def get_image(
     blob_name: str,
     is_shared: bool,
-    user_id: int,
+    user_id: UUID,
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """画像データを取得"""
-    image_data = await storage_service.get_image_url(blob_name, is_shared, user_id)
+    image_data = await storage_service.get_image(blob_name, is_shared, user_id)
     return StreamingResponse(
         io.BytesIO(image_data),
         media_type="image/jpeg",
