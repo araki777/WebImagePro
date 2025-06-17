@@ -7,7 +7,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
+import { authApi } from "@/lib/api/auth";
 import { signupSchema } from "@/lib/validation/loginSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
@@ -39,18 +39,14 @@ export const SignupForm = () => {
   const router = useRouter();
 
   const onSubmit = async (data: z.infer<typeof signupSchema>) => {
-    const { error } = await supabase.auth.signUp({
+    const response = await authApi.signup({
       email: data.email,
       password: data.password,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
-      },
     });
-    if (error) {
-      form.setError("root", { message: error.message });
-    } else {
-      setDone(true);
+    if ("detail" in response) {
+      throw new Error("Signup failed");
     }
+    setDone(true);
   };
 
   return (

@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 
 from app.api.base import LoggingRoute
 from app.auth.utils import get_current_user
 from app.connection import get_db
 from app.core.error_handlers import handle_api_errors
-from app.core.error_messages import ERROR_MESSAGES
 from app.schemas.user_setting import UserSetting, UserSettingCreate, UserSettingUpdate
 from app.services.user_setting import UserSettingService
 
@@ -17,7 +16,7 @@ def get_user_setting_service():
 
 
 @router.get("/me/setting", response_model=UserSetting)
-@handle_api_errors("user_setting")
+@handle_api_errors("user_setting", "get")
 async def get_current_user_setting(
     current_user=Depends(get_current_user),
     user_setting_service: UserSettingService = Depends(get_user_setting_service),
@@ -37,19 +36,13 @@ async def get_current_user_setting(
     """
 
     # ユーザーIDを使用して設定を取得
-    setting = user_setting_service.get_user_setting(current_user.user.id)
-
-    if not setting:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=ERROR_MESSAGES["user_setting"]["get"],
-        )
+    setting = user_setting_service.get_or_create_user_setting(current_user.user.id)
 
     return setting
 
 
 @router.put("/me/setting", response_model=UserSetting)
-@handle_api_errors("user_setting")
+@handle_api_errors("user_setting", "update")
 async def update_current_user_setting(
     setting_update: UserSettingUpdate,
     current_user=Depends(get_current_user),

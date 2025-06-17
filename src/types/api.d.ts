@@ -9,10 +9,37 @@ export interface paths {
     /** Health Check */
     get: operations["health_check__get"];
   };
+  "/auth/me": {
+    /**
+     * Get Me
+     * @description ログイン中のユーザー情報を取得
+     *
+     * Args:
+     *     request: リクエスト
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     UserResponse: ユーザー情報
+     *
+     * Raises:
+     *     HTTPException: 認証エラーまたはサーバーエラー
+     */
+    get: operations["get_me_auth_me_get"];
+  };
   "/auth/signup": {
     /**
      * Signup
      * @description 新規ユーザー登録
+     *
+     * Args:
+     *     user_data: ユーザー登録情報
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     dict: 認証トークン情報
+     *
+     * Raises:
+     *     HTTPException: 認証エラーまたはサーバーエラー
      */
     post: operations["signup_auth_signup_post"];
   };
@@ -20,6 +47,16 @@ export interface paths {
     /**
      * Signin
      * @description ユーザーログイン
+     *
+     * Args:
+     *     user_data: ユーザーログイン情報
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     Token: 認証トークン情報
+     *
+     * Raises:
+     *     HTTPException: 認証エラーまたはサーバーエラー
      */
     post: operations["signin_auth_signin_post"];
   };
@@ -27,6 +64,12 @@ export interface paths {
     /**
      * Signout
      * @description ユーザーログアウト
+     *
+     * Args:
+     *     auth_service: 認証サービス
+     *
+     * Raises:
+     *     HTTPException: 認証エラーまたはサーバーエラー
      */
     post: operations["signout_auth_signout_post"];
   };
@@ -34,6 +77,15 @@ export interface paths {
     /**
      * Github Auth
      * @description GitHub認証
+     *
+     * Args:
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     OAuthResponse: 認証URL情報
+     *
+     * Raises:
+     *     HTTPException: 認証エラーまたはサーバーエラー
      */
     get: operations["github_auth_auth_github_get"];
   };
@@ -41,61 +93,371 @@ export interface paths {
     /**
      * Google Auth
      * @description Google認証のURLを取得
+     *
+     * Args:
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     OAuthResponse: 認証URL情報
+     *
+     * Raises:
+     *     HTTPException: 認証エラーまたはサーバーエラー
      */
     get: operations["google_auth_auth_google_get"];
   };
+  "/auth/reset-password": {
+    /**
+     * Reset Password
+     * @description パスワード再設定
+     *
+     * Args:
+     *     password: 新しいパスワード
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     Dict[str, str]: パスワード再設定結果のメッセージ
+     */
+    post: operations["reset_password_auth_reset_password_post"];
+  };
+  "/auth/send-email": {
+    /**
+     * Send Email
+     * @description メール送信
+     *
+     * Args:
+     *     email: メールアドレス
+     *     auth_service: 認証サービス
+     *
+     * Returns:
+     *     Dict[str, str]: メール送信結果のメッセージ
+     */
+    post: operations["send_email_auth_send_email_post"];
+  };
   "/users/me/profile": {
-    /** Get Current User Profile */
+    /**
+     * Get Current User Profile
+     * @description 現在のユーザーのプロファイルを取得
+     *
+     * Args:
+     *     current_user: 現在のユーザー
+     *     user_profile_service: ユーザープロファイルサービス
+     *
+     * Returns:
+     *     UserProfile: 現在のユーザーのプロファイル
+     *
+     * Raises:
+     *     HTTPException: プロファイルの取得に失敗した場合
+     */
     get: operations["get_current_user_profile_users_me_profile_get"];
-    /** Update Current User Profile */
+    /**
+     * Update Current User Profile
+     * @description 現在のユーザーのプロファイルを更新
+     *
+     * Args:
+     *     profile_update: プロファイルの更新情報
+     *     current_user: 現在のユーザー
+     *     user_profile_service: ユーザープロファイルサービス
+     *
+     * Returns:
+     *     UserProfile: 更新されたプロファイル
+     *
+     * Raises:
+     *     HTTPException: プロファイルの更新に失敗した場合
+     */
     put: operations["update_current_user_profile_users_me_profile_put"];
   };
   "/users/me/role": {
-    /** Get Current User Role */
+    /**
+     * Get Current User Role
+     * @description 現在のユーザーのロールを取得
+     *
+     * Args:
+     *     current_user: 現在のユーザー
+     *     user_role_service: ユーザーロールサービス
+     *     role_service: ロールサービス
+     *
+     * Returns:
+     *     UserRole: 現在のユーザーのロール
+     *
+     * Raises:
+     *     HTTPException: ロールの取得に失敗した場合
+     */
     get: operations["get_current_user_role_users_me_role_get"];
-    /** Update Current User Role */
+    /**
+     * Update Current User Role
+     * @description 現在のユーザーのロールを更新
+     *
+     * Args:
+     *     role_update: ロールの更新情報
+     *     current_user: 現在のユーザー
+     *     user_role_service: ユーザーロールサービス
+     *
+     * Returns:
+     *     UserRole: 更新されたロール
+     *
+     * Raises:
+     *     HTTPException: ロールの更新に失敗した場合
+     */
     put: operations["update_current_user_role_users_me_role_put"];
   };
   "/users/me/setting": {
-    /** Get Current User Setting */
+    /**
+     * Get Current User Setting
+     * @description 現在のユーザーの設定を取得
+     *
+     * Args:
+     *     current_user: 現在のユーザー
+     *     user_setting_service: ユーザー設定サービス
+     *
+     * Returns:
+     *     UserSetting: 現在のユーザーの設定
+     *
+     * Raises:
+     *     HTTPException: 設定の取得に失敗した場合
+     */
     get: operations["get_current_user_setting_users_me_setting_get"];
-    /** Update Current User Setting */
+    /**
+     * Update Current User Setting
+     * @description 現在のユーザーの設定を更新
+     *
+     * Args:
+     *     setting_update: 設定の更新情報
+     *     current_user: 現在のユーザー
+     *     user_setting_service: ユーザー設定サービス
+     *
+     * Returns:
+     *     UserSetting: 更新された設定
+     *
+     * Raises:
+     *     HTTPException: 設定の更新に失敗した場合
+     */
     put: operations["update_current_user_setting_users_me_setting_put"];
   };
   "/roles/": {
-    /** Get Roles */
+    /**
+     * Get Roles
+     * @description ロールの一覧を取得する
+     *
+     * Args:
+     *     role_service: ロールサービス
+     *
+     * Returns:
+     *     List[Role]: ロールの一覧
+     *
+     * Raises:
+     *     HTTPException: ロールの取得に失敗した場合
+     */
     get: operations["get_roles_roles__get"];
-    /** Create Role */
+    /**
+     * Create Role
+     * @description ロールを作成する
+     *
+     * Args:
+     *     role_create: ロールの作成情報
+     *     _current_user: 現在のユーザー
+     *     role_service: ロールサービス
+     *
+     * Returns:
+     *     Role: 作成されたロール
+     *
+     * Raises:
+     *     HTTPException: ロールの作成に失敗した場合
+     */
     post: operations["create_role_roles__post"];
   };
   "/roles/{role_id}": {
-    /** Update Role */
+    /**
+     * Update Role
+     * @description ロールを更新する
+     *
+     * Args:
+     *     role_id: ロールのID
+     *     role_update: ロールの更新情報
+     *     _current_user: 現在のユーザー
+     *     role_service: ロールサービス
+     *
+     * Returns:
+     *     Role: 更新されたロール
+     *
+     * Raises:
+     *     HTTPException: ロールの更新に失敗した場合
+     */
     put: operations["update_role_roles__role_id__put"];
+    /**
+     * Delete Role
+     * @description ロールを削除する
+     *
+     * Args:
+     *     role_id: ロールのID
+     *     _current_user: 現在のユーザー
+     *     role_service: ロールサービス
+     *
+     * Returns:
+     *     Role: 削除されたロール
+     *
+     * Raises:
+     *     HTTPException: ロールの削除に失敗した場合
+     */
+    delete: operations["delete_role_roles__role_id__delete"];
+  };
+  "/images/": {
+    /**
+     * Get Images
+     * @description 画像を取得する
+     *
+     * Args:
+     *     is_shared: 共有モードかどうか
+     *     user_id: ユーザーID
+     *     lang: 言語
+     *     storage_service: ストレージサービス
+     *
+     * Returns:
+     *     images: 画像
+     *
+     * Raises:
+     *     HTTPException: 画像の取得に失敗した場合
+     */
+    get: operations["get_images_images__get"];
   };
   "/images/upload": {
-    /** Upload Image */
+    /**
+     * Upload Image
+     * @description 画像をアップロード
+     */
     post: operations["upload_image_images_upload_post"];
   };
   "/images/vision-tags": {
-    /** Get Vision Tags */
+    /**
+     * Get Vision Tags
+     * @description 画像のタグを抽出する
+     *
+     * Args:
+     *     req: タグ抽出リクエスト
+     *     _current_user: 現在のユーザー
+     *     vision_service: Visionサービス
+     *
+     * Returns:
+     *     tags: タグ
+     *
+     * Raises:
+     *     HTTPException: タグ抽出に失敗した場合
+     */
     post: operations["get_vision_tags_images_vision_tags_post"];
   };
   "/images/translate": {
-    /** Translate Tags */
+    /**
+     * Translate Tags
+     * @description タグを翻訳する
+     *
+     * Args:
+     *     req: 翻訳リクエスト
+     *     _current_user: 現在のユーザー
+     *     translate_service: 翻訳サービス
+     *
+     * Returns:
+     *     translations: 翻訳結果
+     *
+     * Raises:
+     *     HTTPException: 翻訳に失敗した場合
+     */
     post: operations["translate_tags_images_translate_post"];
   };
   "/images/save": {
-    /** Save Image */
+    /**
+     * Save Image
+     * @description 画像を保存する
+     *
+     * Args:
+     *     image_create: 画像作成リクエスト
+     *     _current_user: 現在のユーザー
+     *     image_service: 画像サービス
+     *
+     * Returns:
+     *     image: 画像
+     *
+     * Raises:
+     *     HTTPException: 保存に失敗した場合
+     */
     post: operations["save_image_images_save_post"];
   };
   "/images/full-upload": {
-    /** Full Upload Image */
+    /**
+     * Full Upload Image
+     * @description 画像をアップロードする
+     *
+     * Args:
+     *     file: アップロードする画像ファイル
+     *     is_shared: 共有モードかどうか
+     *     target_langs: 翻訳対象の言語
+     *     current_user: 現在のユーザー
+     *     storage_service: ストレージサービス
+     *     vision_service: Visionサービス
+     *     translate_service: 翻訳サービス
+     *     image_service: 画像サービス
+     *
+     * Returns:
+     *     image: 画像
+     *
+     * Raises:
+     *     HTTPException: アップロードに失敗した場合
+     */
     post: operations["full_upload_image_images_full_upload_post"];
   };
+  "/images/delete": {
+    /**
+     * Delete Image
+     * @description 画像を削除する
+     *
+     * Args:
+     *     image_id: 削除する画像のID
+     *     image_service: 画像サービス
+     *
+     * Returns:
+     *     message: 削除成功メッセージ
+     *
+     * Raises:
+     *     HTTPException: 削除に失敗した場合
+     */
+    delete: operations["delete_image_images_delete_delete"];
+  };
+  "/images/{blob_name}": {
+    /**
+     * Get Image
+     * @description 画像データを取得
+     */
+    get: operations["get_image_images__blob_name__get"];
+  };
   "/contacts/": {
-    /** Get Current User Contacts */
+    /**
+     * Get Current User Contacts
+     * @description ユーザーの問い合わせ一覧を取得
+     *
+     * Args:
+     *     current_user: 現在のユーザー
+     *     contact_service: 問い合わせサービス
+     *
+     * Returns:
+     *     list[Contact]: 問い合わせ一覧
+     *
+     * Raises:
+     *     HTTPException: 問い合わせ一覧の取得中にエラーが発生した場合
+     */
     get: operations["get_current_user_contacts_contacts__get"];
-    /** Create Contact */
+    /**
+     * Create Contact
+     * @description 問い合わせを作成
+     *
+     * Args:
+     *     contact_create: 問い合わせ作成情報
+     *     current_user: 現在のユーザー
+     *     contact_service: 問い合わせサービス
+     *
+     * Returns:
+     *     Contact: 作成された問い合わせ
+     *
+     * Raises:
+     *     HTTPException: 問い合わせの作成中にエラーが発生した場合
+     */
     post: operations["create_contact_contacts__post"];
   };
 }
@@ -184,6 +546,10 @@ export interface components {
       container_name: string;
       /** Blob Name */
       blob_name: string;
+      /** Size */
+      size: number;
+      /** Content Type */
+      content_type: string;
       /** Ja Tags */
       ja_tags: string[];
       /** En Tags */
@@ -207,10 +573,53 @@ export interface components {
       container_name: string;
       /** Blob Name */
       blob_name: string;
+      /** Size */
+      size: number;
+      /** Content Type */
+      content_type: string;
       /** Ja Tags */
       ja_tags: string[];
       /** En Tags */
       en_tags: string[];
+    };
+    /** ImageWithTags */
+    ImageWithTags: {
+      /** File Name */
+      file_name: string;
+      /** Container Name */
+      container_name: string;
+      /** Blob Name */
+      blob_name: string;
+      /** Size */
+      size: number;
+      /** Content Type */
+      content_type: string;
+      /** Ja Tags */
+      ja_tags: string[];
+      /** En Tags */
+      en_tags: string[];
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Tags */
+      tags: string[];
+    };
+    /** OAuthResponse */
+    OAuthResponse: {
+      /**
+       * Url
+       * Format: uri
+       */
+      url: string;
+      /** Provider */
+      provider: string;
     };
     /** Role */
     Role: {
@@ -254,6 +663,11 @@ export interface components {
        * @default bearer
        */
       token_type?: string;
+      /**
+       * Expires In
+       * @default 3600
+       */
+      expires_in?: number;
     };
     /** TranslateRequest */
     TranslateRequest: {
@@ -288,7 +702,7 @@ export interface components {
        */
       created_at: string;
       /** Updated At */
-      updated_at?: (string | null) | null;
+      updated_at?: string | null;
     };
     /** UserProfileUpdate */
     UserProfileUpdate: {
@@ -298,6 +712,22 @@ export interface components {
       bio?: string | null;
       /** Avatar Url */
       avatar_url?: string | null;
+    };
+    /** UserResponse */
+    UserResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      user_profile?: components["schemas"]["UserProfile"] | null;
+      user_setting?: components["schemas"]["UserSetting"] | null;
+      user_role?: components["schemas"]["UserRole"] | null;
     };
     /** UserRole */
     UserRole: {
@@ -317,7 +747,7 @@ export interface components {
        */
       created_at: string;
       /** Updated At */
-      updated_at?: (string | null) | null;
+      updated_at?: string | null;
     };
     /** UserRoleUpdate */
     UserRoleUpdate: {
@@ -344,7 +774,7 @@ export interface components {
        */
       created_at: string;
       /** Updated At */
-      updated_at?: (string | null) | null;
+      updated_at?: string | null;
     };
     /** UserSettingUpdate */
     UserSettingUpdate: {
@@ -418,8 +848,42 @@ export interface operations {
     };
   };
   /**
+   * Get Me
+   * @description ログイン中のユーザー情報を取得
+   *
+   * Args:
+   *     request: リクエスト
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     UserResponse: ユーザー情報
+   *
+   * Raises:
+   *     HTTPException: 認証エラーまたはサーバーエラー
+   */
+  get_me_auth_me_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["UserResponse"];
+        };
+      };
+    };
+  };
+  /**
    * Signup
    * @description 新規ユーザー登録
+   *
+   * Args:
+   *     user_data: ユーザー登録情報
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     dict: 認証トークン情報
+   *
+   * Raises:
+   *     HTTPException: 認証エラーまたはサーバーエラー
    */
   signup_auth_signup_post: {
     requestBody: {
@@ -431,7 +895,9 @@ export interface operations {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["Token"];
+          "application/json": {
+            [key: string]: unknown;
+          };
         };
       };
       /** @description Validation Error */
@@ -445,6 +911,16 @@ export interface operations {
   /**
    * Signin
    * @description ユーザーログイン
+   *
+   * Args:
+   *     user_data: ユーザーログイン情報
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     Token: 認証トークン情報
+   *
+   * Raises:
+   *     HTTPException: 認証エラーまたはサーバーエラー
    */
   signin_auth_signin_post: {
     requestBody: {
@@ -470,13 +946,21 @@ export interface operations {
   /**
    * Signout
    * @description ユーザーログアウト
+   *
+   * Args:
+   *     auth_service: 認証サービス
+   *
+   * Raises:
+   *     HTTPException: 認証エラーまたはサーバーエラー
    */
   signout_auth_signout_post: {
     responses: {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": unknown;
+          "application/json": {
+            [key: string]: string;
+          };
         };
       };
     };
@@ -484,13 +968,22 @@ export interface operations {
   /**
    * Github Auth
    * @description GitHub認証
+   *
+   * Args:
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     OAuthResponse: 認証URL情報
+   *
+   * Raises:
+   *     HTTPException: 認証エラーまたはサーバーエラー
    */
   github_auth_auth_github_get: {
     responses: {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": unknown;
+          "application/json": components["schemas"]["OAuthResponse"];
         };
       };
     };
@@ -498,18 +991,108 @@ export interface operations {
   /**
    * Google Auth
    * @description Google認証のURLを取得
+   *
+   * Args:
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     OAuthResponse: 認証URL情報
+   *
+   * Raises:
+   *     HTTPException: 認証エラーまたはサーバーエラー
    */
   google_auth_auth_google_get: {
     responses: {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": unknown;
+          "application/json": components["schemas"]["OAuthResponse"];
         };
       };
     };
   };
-  /** Get Current User Profile */
+  /**
+   * Reset Password
+   * @description パスワード再設定
+   *
+   * Args:
+   *     password: 新しいパスワード
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     Dict[str, str]: パスワード再設定結果のメッセージ
+   */
+  reset_password_auth_reset_password_post: {
+    parameters: {
+      query: {
+        password: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Send Email
+   * @description メール送信
+   *
+   * Args:
+   *     email: メールアドレス
+   *     auth_service: 認証サービス
+   *
+   * Returns:
+   *     Dict[str, str]: メール送信結果のメッセージ
+   */
+  send_email_auth_send_email_post: {
+    parameters: {
+      query: {
+        email: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Current User Profile
+   * @description 現在のユーザーのプロファイルを取得
+   *
+   * Args:
+   *     current_user: 現在のユーザー
+   *     user_profile_service: ユーザープロファイルサービス
+   *
+   * Returns:
+   *     UserProfile: 現在のユーザーのプロファイル
+   *
+   * Raises:
+   *     HTTPException: プロファイルの取得に失敗した場合
+   */
   get_current_user_profile_users_me_profile_get: {
     responses: {
       /** @description Successful Response */
@@ -520,7 +1103,21 @@ export interface operations {
       };
     };
   };
-  /** Update Current User Profile */
+  /**
+   * Update Current User Profile
+   * @description 現在のユーザーのプロファイルを更新
+   *
+   * Args:
+   *     profile_update: プロファイルの更新情報
+   *     current_user: 現在のユーザー
+   *     user_profile_service: ユーザープロファイルサービス
+   *
+   * Returns:
+   *     UserProfile: 更新されたプロファイル
+   *
+   * Raises:
+   *     HTTPException: プロファイルの更新に失敗した場合
+   */
   update_current_user_profile_users_me_profile_put: {
     requestBody: {
       content: {
@@ -542,7 +1139,21 @@ export interface operations {
       };
     };
   };
-  /** Get Current User Role */
+  /**
+   * Get Current User Role
+   * @description 現在のユーザーのロールを取得
+   *
+   * Args:
+   *     current_user: 現在のユーザー
+   *     user_role_service: ユーザーロールサービス
+   *     role_service: ロールサービス
+   *
+   * Returns:
+   *     UserRole: 現在のユーザーのロール
+   *
+   * Raises:
+   *     HTTPException: ロールの取得に失敗した場合
+   */
   get_current_user_role_users_me_role_get: {
     responses: {
       /** @description Successful Response */
@@ -553,7 +1164,21 @@ export interface operations {
       };
     };
   };
-  /** Update Current User Role */
+  /**
+   * Update Current User Role
+   * @description 現在のユーザーのロールを更新
+   *
+   * Args:
+   *     role_update: ロールの更新情報
+   *     current_user: 現在のユーザー
+   *     user_role_service: ユーザーロールサービス
+   *
+   * Returns:
+   *     UserRole: 更新されたロール
+   *
+   * Raises:
+   *     HTTPException: ロールの更新に失敗した場合
+   */
   update_current_user_role_users_me_role_put: {
     requestBody: {
       content: {
@@ -575,7 +1200,20 @@ export interface operations {
       };
     };
   };
-  /** Get Current User Setting */
+  /**
+   * Get Current User Setting
+   * @description 現在のユーザーの設定を取得
+   *
+   * Args:
+   *     current_user: 現在のユーザー
+   *     user_setting_service: ユーザー設定サービス
+   *
+   * Returns:
+   *     UserSetting: 現在のユーザーの設定
+   *
+   * Raises:
+   *     HTTPException: 設定の取得に失敗した場合
+   */
   get_current_user_setting_users_me_setting_get: {
     responses: {
       /** @description Successful Response */
@@ -586,7 +1224,21 @@ export interface operations {
       };
     };
   };
-  /** Update Current User Setting */
+  /**
+   * Update Current User Setting
+   * @description 現在のユーザーの設定を更新
+   *
+   * Args:
+   *     setting_update: 設定の更新情報
+   *     current_user: 現在のユーザー
+   *     user_setting_service: ユーザー設定サービス
+   *
+   * Returns:
+   *     UserSetting: 更新された設定
+   *
+   * Raises:
+   *     HTTPException: 設定の更新に失敗した場合
+   */
   update_current_user_setting_users_me_setting_put: {
     requestBody: {
       content: {
@@ -608,7 +1260,19 @@ export interface operations {
       };
     };
   };
-  /** Get Roles */
+  /**
+   * Get Roles
+   * @description ロールの一覧を取得する
+   *
+   * Args:
+   *     role_service: ロールサービス
+   *
+   * Returns:
+   *     List[Role]: ロールの一覧
+   *
+   * Raises:
+   *     HTTPException: ロールの取得に失敗した場合
+   */
   get_roles_roles__get: {
     responses: {
       /** @description Successful Response */
@@ -619,7 +1283,21 @@ export interface operations {
       };
     };
   };
-  /** Create Role */
+  /**
+   * Create Role
+   * @description ロールを作成する
+   *
+   * Args:
+   *     role_create: ロールの作成情報
+   *     _current_user: 現在のユーザー
+   *     role_service: ロールサービス
+   *
+   * Returns:
+   *     Role: 作成されたロール
+   *
+   * Raises:
+   *     HTTPException: ロールの作成に失敗した場合
+   */
   create_role_roles__post: {
     requestBody: {
       content: {
@@ -641,7 +1319,22 @@ export interface operations {
       };
     };
   };
-  /** Update Role */
+  /**
+   * Update Role
+   * @description ロールを更新する
+   *
+   * Args:
+   *     role_id: ロールのID
+   *     role_update: ロールの更新情報
+   *     _current_user: 現在のユーザー
+   *     role_service: ロールサービス
+   *
+   * Returns:
+   *     Role: 更新されたロール
+   *
+   * Raises:
+   *     HTTPException: ロールの更新に失敗した場合
+   */
   update_role_roles__role_id__put: {
     parameters: {
       path: {
@@ -668,7 +1361,85 @@ export interface operations {
       };
     };
   };
-  /** Upload Image */
+  /**
+   * Delete Role
+   * @description ロールを削除する
+   *
+   * Args:
+   *     role_id: ロールのID
+   *     _current_user: 現在のユーザー
+   *     role_service: ロールサービス
+   *
+   * Returns:
+   *     Role: 削除されたロール
+   *
+   * Raises:
+   *     HTTPException: ロールの削除に失敗した場合
+   */
+  delete_role_roles__role_id__delete: {
+    parameters: {
+      path: {
+        role_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Role"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Images
+   * @description 画像を取得する
+   *
+   * Args:
+   *     is_shared: 共有モードかどうか
+   *     user_id: ユーザーID
+   *     lang: 言語
+   *     storage_service: ストレージサービス
+   *
+   * Returns:
+   *     images: 画像
+   *
+   * Raises:
+   *     HTTPException: 画像の取得に失敗した場合
+   */
+  get_images_images__get: {
+    parameters: {
+      query?: {
+        is_shared?: boolean;
+        user_id?: number;
+        lang?: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ImageWithTags"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Upload Image
+   * @description 画像をアップロード
+   */
   upload_image_images_upload_post: {
     parameters: {
       query?: {
@@ -695,7 +1466,21 @@ export interface operations {
       };
     };
   };
-  /** Get Vision Tags */
+  /**
+   * Get Vision Tags
+   * @description 画像のタグを抽出する
+   *
+   * Args:
+   *     req: タグ抽出リクエスト
+   *     _current_user: 現在のユーザー
+   *     vision_service: Visionサービス
+   *
+   * Returns:
+   *     tags: タグ
+   *
+   * Raises:
+   *     HTTPException: タグ抽出に失敗した場合
+   */
   get_vision_tags_images_vision_tags_post: {
     requestBody: {
       content: {
@@ -717,7 +1502,21 @@ export interface operations {
       };
     };
   };
-  /** Translate Tags */
+  /**
+   * Translate Tags
+   * @description タグを翻訳する
+   *
+   * Args:
+   *     req: 翻訳リクエスト
+   *     _current_user: 現在のユーザー
+   *     translate_service: 翻訳サービス
+   *
+   * Returns:
+   *     translations: 翻訳結果
+   *
+   * Raises:
+   *     HTTPException: 翻訳に失敗した場合
+   */
   translate_tags_images_translate_post: {
     requestBody: {
       content: {
@@ -739,7 +1538,21 @@ export interface operations {
       };
     };
   };
-  /** Save Image */
+  /**
+   * Save Image
+   * @description 画像を保存する
+   *
+   * Args:
+   *     image_create: 画像作成リクエスト
+   *     _current_user: 現在のユーザー
+   *     image_service: 画像サービス
+   *
+   * Returns:
+   *     image: 画像
+   *
+   * Raises:
+   *     HTTPException: 保存に失敗した場合
+   */
   save_image_images_save_post: {
     requestBody: {
       content: {
@@ -761,7 +1574,26 @@ export interface operations {
       };
     };
   };
-  /** Full Upload Image */
+  /**
+   * Full Upload Image
+   * @description 画像をアップロードする
+   *
+   * Args:
+   *     file: アップロードする画像ファイル
+   *     is_shared: 共有モードかどうか
+   *     target_langs: 翻訳対象の言語
+   *     current_user: 現在のユーザー
+   *     storage_service: ストレージサービス
+   *     vision_service: Visionサービス
+   *     translate_service: 翻訳サービス
+   *     image_service: 画像サービス
+   *
+   * Returns:
+   *     image: 画像
+   *
+   * Raises:
+   *     HTTPException: アップロードに失敗した場合
+   */
   full_upload_image_images_full_upload_post: {
     parameters: {
       query?: {
@@ -788,7 +1620,86 @@ export interface operations {
       };
     };
   };
-  /** Get Current User Contacts */
+  /**
+   * Delete Image
+   * @description 画像を削除する
+   *
+   * Args:
+   *     image_id: 削除する画像のID
+   *     image_service: 画像サービス
+   *
+   * Returns:
+   *     message: 削除成功メッセージ
+   *
+   * Raises:
+   *     HTTPException: 削除に失敗した場合
+   */
+  delete_image_images_delete_delete: {
+    parameters: {
+      query: {
+        image_id: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Image
+   * @description 画像データを取得
+   */
+  get_image_images__blob_name__get: {
+    parameters: {
+      query: {
+        is_shared: boolean;
+        user_id: number;
+      };
+      path: {
+        blob_name: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Get Current User Contacts
+   * @description ユーザーの問い合わせ一覧を取得
+   *
+   * Args:
+   *     current_user: 現在のユーザー
+   *     contact_service: 問い合わせサービス
+   *
+   * Returns:
+   *     list[Contact]: 問い合わせ一覧
+   *
+   * Raises:
+   *     HTTPException: 問い合わせ一覧の取得中にエラーが発生した場合
+   */
   get_current_user_contacts_contacts__get: {
     responses: {
       /** @description Successful Response */
@@ -799,7 +1710,21 @@ export interface operations {
       };
     };
   };
-  /** Create Contact */
+  /**
+   * Create Contact
+   * @description 問い合わせを作成
+   *
+   * Args:
+   *     contact_create: 問い合わせ作成情報
+   *     current_user: 現在のユーザー
+   *     contact_service: 問い合わせサービス
+   *
+   * Returns:
+   *     Contact: 作成された問い合わせ
+   *
+   * Raises:
+   *     HTTPException: 問い合わせの作成中にエラーが発生した場合
+   */
   create_contact_contacts__post: {
     requestBody: {
       content: {

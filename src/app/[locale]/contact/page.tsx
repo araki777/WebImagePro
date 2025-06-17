@@ -21,7 +21,7 @@ const Footer = dynamic(() =>
 
 export default function ContactPage() {
   const t = useTranslations("Contact");
-  const { user, checkUser, accessToken } = useAuthStore();
+  const { checkUser, userProfiles, userEmail } = useAuthStore();
   const [formData, setFormData] = useState<IContactForm>({
     name: "",
     email: "",
@@ -37,20 +37,20 @@ export default function ContactPage() {
 
   // ユーザー情報が変更されたときにフォームデータを更新
   useEffect(() => {
-    if (user) {
+    if (userProfiles && userEmail) {
       setFormData((prev) => ({
         ...prev,
-        name: user.user_metadata?.full_name || user.email?.split("@")[0] || "",
-        email: user.email || "",
+        name: userProfiles?.display_name || "",
+        email: userEmail || "",
       }));
     }
-  }, [user]);
+  }, [userProfiles, userEmail]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    if (user && (name === "name" || name === "email")) {
+    if (userProfiles && (name === "name" || name === "email")) {
       return;
     }
 
@@ -65,15 +65,12 @@ export default function ContactPage() {
     setIsSubmitting(true);
 
     try {
-      const contact = await contactsApi.create(
-        {
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          message: formData.message,
-        },
-        accessToken || ""
-      );
+      const contact = await contactsApi.create({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
 
       if (contact) {
         // トースト通知を表示
@@ -83,9 +80,8 @@ export default function ContactPage() {
 
         // フォームをリセット
         setFormData({
-          name:
-            user?.user_metadata?.full_name || user?.email?.split("@")[0] || "",
-          email: user?.email || "",
+          name: userProfiles?.display_name || "",
+          email: userEmail || "",
           subject: "",
           message: "",
         });
@@ -114,17 +110,21 @@ export default function ContactPage() {
           </div>
           <Separator />
 
-          {!user ? (
+          {!userProfiles ? (
             <div className="flex justify-center py-10">
               <div className="animate-pulse text-center">
                 <p className="text-gray-500">{t("loadingUser")}</p>
               </div>
             </div>
           ) : (
-            <div className={user ? "max-w-2xl mx-auto" : "max-w-md mx-auto"}>
+            <div
+              className={
+                userProfiles ? "max-w-2xl mx-auto" : "max-w-md mx-auto"
+              }
+            >
               <div>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {user ? (
+                  {userProfiles ? (
                     <div className="bg-gray-50 p-4 rounded-lg mb-6">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div className="mb-2 sm:mb-0">

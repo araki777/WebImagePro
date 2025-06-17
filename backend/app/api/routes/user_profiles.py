@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 
 from app.api.base import LoggingRoute
 from app.auth.utils import get_current_user
 from app.connection import get_db
 from app.core.error_handlers import handle_api_errors
-from app.core.error_messages import ERROR_MESSAGES
 from app.schemas.user_profile import UserProfile, UserProfileCreate, UserProfileUpdate
 from app.services.user_profile import UserProfileService
 
@@ -17,7 +16,7 @@ def get_user_profile_service():
 
 
 @router.get("/me/profile", response_model=UserProfile)
-@handle_api_errors("user_profile")
+@handle_api_errors("user_profile", "get")
 async def get_current_user_profile(
     current_user=Depends(get_current_user),
     user_profile_service: UserProfileService = Depends(get_user_profile_service),
@@ -37,19 +36,13 @@ async def get_current_user_profile(
     """
 
     # ユーザーIDを使用してプロファイルを取得
-    profile = user_profile_service.get_user_profile(current_user.user.id)
-
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=ERROR_MESSAGES["user_profile"]["get"],
-        )
+    profile = user_profile_service.get_or_create_user_profile(current_user.user.id)
 
     return profile
 
 
 @router.put("/me/profile", response_model=UserProfile)
-@handle_api_errors("user_profile")
+@handle_api_errors("user_profile", "update")
 async def update_current_user_profile(
     profile_update: UserProfileUpdate,
     current_user=Depends(get_current_user),
