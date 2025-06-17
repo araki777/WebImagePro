@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import ARRAY, Column, DateTime, Integer, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
@@ -16,5 +18,5 @@ class Image(Base):
     content_type = Column(Text)
     container_name = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    ja_tags = Column(ARRAY(Text))
-    en_tags = Column(ARRAY(Text))
+    ja_tags = Column(ARRAY(Text), nullable=True)
+    en_tags = Column(ARRAY(Text), nullable=True)
