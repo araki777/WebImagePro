@@ -19,7 +19,7 @@ def get_contact_service():
 
 
 @router.get("/", response_model=List[Contact])
-@handle_api_errors("contact")
+@handle_api_errors("contact", "get")
 async def get_current_user_contacts(
     current_user=Depends(get_current_user),
     contact_service: ContactService = Depends(get_contact_service),
@@ -42,7 +42,7 @@ async def get_current_user_contacts(
 
 
 @router.post("/", response_model=Contact)
-@handle_api_errors("contact")
+@handle_api_errors("contact", "create")
 async def create_contact(
     contact_create: ContactCreate,
     current_user=Depends(get_current_user),

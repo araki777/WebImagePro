@@ -45,6 +45,7 @@ let wasmInitError: Error | null = null;
 let wasmInitialized = false;
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { imagesApi } from "@/lib/api/images";
 import { Loader } from "lucide-react";
 
 export default function ImageEditor2() {
@@ -1074,16 +1075,26 @@ export default function ImageEditor2() {
       formData.append("isShared", isShared.toString());
       formData.append("userId", userProfiles?.id || "");
 
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (!uploadResponse.ok) throw new Error("アップロードに失敗しました");
+      const uploadResponse = await imagesApi.full_upload(
+        {
+          file: file.name,
+          target_langs: ["ja", "en"],
+        },
+        isShared
+      );
+      if (!uploadResponse) {
+        toast.error("アップロードに失敗しました");
+        return;
+      }
 
       // 上書き保存の場合は元画像を削除
       if (!isNewImage && editingImage?.url) {
         const encodedUrl = btoa(editingImage.url);
-        await fetch(`/api/images/${encodedUrl}`, { method: "DELETE" });
+        const deleteResponse = await imagesApi.delete(encodedUrl);
+        if (!deleteResponse) {
+          toast.error("削除に失敗しました");
+          return;
+        }
       }
       router.push("/gallery");
       toast.success(isNewImage ? "新規保存しました" : "上書き保存しました");

@@ -22,22 +22,25 @@ export function ImageList({
       )}
     >
       {images.map((image, index) => (
-        <div key={image.url} className="overflow-hidden">
+        <div key={image.id} className="overflow-hidden">
           <div className="p-4">
             <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
               <Image
-                src={image.url}
-                alt={t("previewAlt", { index: index + 1, name: image.name })}
+                src={`https://${image.container_name}.blob.core.windows.net/${image.blob_name}`}
+                alt={t("previewAlt", {
+                  index: index + 1,
+                  name: image.file_name,
+                })}
                 fill
                 className="object-cover"
               />
             </div>
             <div className="space-y-2">
-              <div className="font-medium truncate">{image.name}</div>
+              <div className="font-medium truncate">{image.file_name}</div>
               {/* タグ一覧表示（バッジ風） */}
               {image.tags && image.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-1">
-                  {image.tags.map((tag, i) => (
+                  {image.tags.map((tag: string, i: number) => (
                     <span
                       key={tag + i}
                       className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full border border-blue-200"

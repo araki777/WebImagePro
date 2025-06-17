@@ -8,10 +8,9 @@ import { Header } from "@/components/ui/header";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePathname, useRouter } from "@/i18n/routing";
+import { userSettingsApi } from "@/lib/api/user_settings";
 import { DEFAULT_LANGUAGE, LANGUAGES } from "@/lib/constants";
-import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
-import { loadStripe } from "@stripe/stripe-js";
 import { CreditCard, Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
@@ -21,14 +20,14 @@ import { Step } from "react-joyride";
 import { toast } from "sonner";
 
 // Stripeの公開キーを設定
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
-);
+// const stripePromise = loadStripe(
+//   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
+// );
 
 function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
-  const { updateUserSettings } = useAuthStore();
+  const { userSettings } = useAuthStore();
 
   const locales = LANGUAGES.map((lang) => ({
     code: lang,
@@ -36,7 +35,10 @@ function LanguageSwitcher() {
   }));
 
   const handleLanguageChange = async (code: string) => {
-    await updateUserSettings({ language: code });
+    await userSettingsApi.update({
+      theme: userSettings?.theme || "light",
+      language: code,
+    });
     // 言語切り替え後にページ遷移
     router.push(pathname, { locale: code });
   };
@@ -62,8 +64,7 @@ function LanguageSwitcher() {
 
 function SettingsContent() {
   const t = useTranslations("Settings");
-  const { userProfiles, userSettings, updateUserSettings, signOut, checkUser } =
-    useAuthStore();
+  const { userProfiles, userSettings, signOut, checkUser } = useAuthStore();
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
 
@@ -71,7 +72,10 @@ function SettingsContent() {
   const handleThemeChange = async (checked: boolean) => {
     const newTheme = checked ? "dark" : "light";
     setTheme(newTheme);
-    await updateUserSettings({ theme: newTheme });
+    await userSettingsApi.update({
+      theme: newTheme,
+      language: userSettings?.language || DEFAULT_LANGUAGE,
+    });
   };
 
   // 初期テーマの設定
@@ -94,46 +98,40 @@ function SettingsContent() {
 
   const handleSubscribe = async () => {
     try {
-      // セッションを取得
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error("認証が必要です");
-      }
-
-      const response = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        credentials: "include", // クッキーを含める
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || "決済セッションの作成に失敗しました"
-        );
-      }
-
-      const { sessionId } = await response.json();
-
-      // Stripeのチェックアウトページにリダイレクト
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error("Stripeの初期化に失敗しました");
-      }
-
-      const { error: stripeError } = await stripe.redirectToCheckout({
-        sessionId,
-      });
-
-      if (stripeError) {
-        throw new Error(stripeError.message);
-      }
+      // TODO: 今後復活させる
+      // // セッションを取得
+      // const {
+      //   data: { session },
+      // } = await supabase.auth.getSession();
+      // if (!session) {
+      //   throw new Error("認証が必要です");
+      // }
+      // const response = await fetch("/api/create-checkout-session", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     Authorization: `Bearer ${session.access_token}`,
+      //   },
+      //   credentials: "include", // クッキーを含める
+      // });
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(
+      //     errorData.error || "決済セッションの作成に失敗しました"
+      //   );
+      // }
+      // const { sessionId } = await response.json();
+      // // Stripeのチェックアウトページにリダイレクト
+      // const stripe = await stripePromise;
+      // if (!stripe) {
+      //   throw new Error("Stripeの初期化に失敗しました");
+      // }
+      // const { error: stripeError } = await stripe.redirectToCheckout({
+      //   sessionId,
+      // });
+      // if (stripeError) {
+      //   throw new Error(stripeError.message);
+      // }
     } catch (error) {
       console.error("決済エラー:", error);
       toast.error(

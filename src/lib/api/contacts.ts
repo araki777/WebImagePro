@@ -1,25 +1,32 @@
 import type { components } from "@/types/api";
 import { apiClient } from "../api-client";
 
-export interface ContactFormData {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}
-
 export const contactsApi = {
+  get: async (): Promise<
+    | components["schemas"]["Contact"][]
+    | components["schemas"]["HTTPValidationError"]
+  > => {
+    const response = await apiClient<
+      | components["schemas"]["Contact"][]
+      | components["schemas"]["HTTPValidationError"]
+    >("/contacts", {
+      method: "GET",
+    });
+    return response;
+  },
   create: async (
-    data: ContactFormData,
-    token: string
-  ): Promise<components["schemas"]["Contact"]> => {
-    const response = await apiClient("/contacts", {
+    data: components["schemas"]["ContactCreate"]
+  ): Promise<
+    | components["schemas"]["Contact"]
+    | components["schemas"]["HTTPValidationError"]
+  > => {
+    const response = await apiClient<
+      | components["schemas"]["Contact"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/contacts", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       body: JSON.stringify(data),
     });
-    return response.json();
+    return response;
   },
 };

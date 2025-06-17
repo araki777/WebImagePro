@@ -18,7 +18,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 export function ImageUpload() {
-  const { user } = useAuthStore();
+  const { userId } = useAuthStore();
   const t = useTranslations("ImageUpload");
   const [images, setImages] = useState<IImagePreview[]>([]);
 
@@ -63,7 +63,7 @@ export function ImageUpload() {
           <ImageUploadActions
             images={images}
             setImages={setImages}
-            userId={user?.id}
+            userId={userId}
           />
         </CardContent>
       </Card>

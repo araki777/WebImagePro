@@ -4,8 +4,8 @@ from app.api.base import LoggingRoute
 from app.auth.utils import get_current_user
 from app.connection import get_db
 from app.core.error_handlers import handle_api_errors
-from app.core.error_messages import ERROR_MESSAGES
 from app.schemas.user_role import UserRole, UserRoleCreate, UserRoleUpdate
+from app.services.role import RoleService
 from app.services.user_role import UserRoleService
 
 # 新しいルーターを作成
@@ -17,11 +17,17 @@ def get_user_role_service():
     return UserRoleService(db)
 
 
+def get_role_service():
+    db = next(get_db())
+    return RoleService(db)
+
+
 @router.get("/me/role", response_model=UserRole)
-@handle_api_errors("user_role")
+@handle_api_errors("user_role", "get")
 async def get_current_user_role(
     current_user=Depends(get_current_user),
     user_role_service: UserRoleService = Depends(get_user_role_service),
+    role_service: RoleService = Depends(get_role_service),
 ):
     """
     現在のユーザーのロールを取得
@@ -29,6 +35,7 @@ async def get_current_user_role(
     Args:
         current_user: 現在のユーザー
         user_role_service: ユーザーロールサービス
+        role_service: ロールサービス
 
     Returns:
         UserRole: 現在のユーザーのロール
@@ -38,19 +45,13 @@ async def get_current_user_role(
     """
 
     # ユーザーIDを使用してロールを取得
-    role = user_role_service.get_user_role(current_user.user.id)
-
-    if not role:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=ERROR_MESSAGES["user_role"]["get"],
-        )
+    role = user_role_service.get_or_create_user_role(current_user.user.id)
 
     return role
 
 
 @router.put("/me/role", response_model=UserRole)
-@handle_api_errors("user_role")
+@handle_api_errors("user_role", "update")
 async def update_current_user_role(
     role_update: UserRoleUpdate,
     current_user=Depends(get_current_user),
