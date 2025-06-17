@@ -45,22 +45,7 @@ async def get_current_user_role(
     """
 
     # ユーザーIDを使用してロールを取得
-    role = user_role_service.get_user_role(current_user.user.id)
-
-    if not role:
-        # 一般ユーザーロールを取得
-        default_role = role_service.get_role_by_name("User")
-        if not default_role:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="デフォルトロールが見つかりません",
-            )
-
-        # ロールが存在しない場合はデフォルトロール（一般ユーザー）を作成
-        role = user_role_service.create_user_role(
-            current_user.user.id,
-            UserRoleCreate(role_id=default_role.id),
-        )
+    role = user_role_service.get_or_create_user_role(current_user.user.id)
 
     return role
 

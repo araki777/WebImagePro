@@ -36,18 +36,7 @@ async def get_current_user_profile(
     """
 
     # ユーザーIDを使用してプロファイルを取得
-    profile = user_profile_service.get_user_profile(current_user.user.id)
-
-    if not profile:
-        # プロファイルが存在しない場合はデフォルトプロファイルを作成
-        profile = user_profile_service.create_user_profile(
-            current_user.user.id,
-            UserProfileCreate(
-                display_name=current_user.user.email.split("@")[0],
-                bio="",
-                avatar_url="",
-            ),
-        )
+    profile = user_profile_service.get_or_create_user_profile(current_user.user.id)
 
     return profile
 

@@ -6,6 +6,8 @@ ERROR_MESSAGES = {
         "signout": "ログアウトに失敗しました",
         "github": "GitHub認証に失敗しました",
         "google": "Google認証に失敗しました",
+        "reset_password": "パスワード再設定に失敗しました",
+        "send_email": "メール送信に失敗しました",
         "common": "認証エラーが発生しました",
     },
     "contact": {

@@ -36,17 +36,7 @@ async def get_current_user_setting(
     """
 
     # ユーザーIDを使用して設定を取得
-    setting = user_setting_service.get_user_setting(current_user.user.id)
-
-    if not setting:
-        # 設定が存在しない場合はデフォルト設定を作成
-        setting = user_setting_service.create_user_setting(
-            current_user.user.id,
-            UserSettingCreate(
-                theme="light",
-                language="ja",
-            ),
-        )
+    setting = user_setting_service.get_or_create_user_setting(current_user.user.id)
 
     return setting
 

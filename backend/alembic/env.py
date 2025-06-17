@@ -1,8 +1,6 @@
-import os
 from logging.config import fileConfig
 
 from alembic import context
-from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from app.connection import get_database_url
@@ -34,21 +32,24 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-
-
-# authスキーマなど外部管理テーブルを除外する関数
+# 外部キー制約を除外する関数
 def include_object(object, name, type_, reflected, compare_to):
-    if type == "table" and object.schema == "auth":
+    # authスキーマのテーブルを除外
+    if type_ == "table" and object.schema == "auth":
         return False
-    if type == "foreign_key_constraint":
+
+    # auth.usersを参照する外部キー制約を除外
+    if type_ == "foreign_key_constraint":
         if hasattr(object, "elements"):
             referred_table = object.elements[0].column.table
             if referred_table.schema == "auth":
                 return False
+
     return True
 
 

@@ -11,7 +11,6 @@ class Settings:
     IS_DEVELOPMENT: bool = ENVIRONMENT == "development"
     FRONTEND_URL: str = get_env_or_raise("FRONTEND_URL")
     LOG_LEVEL: str = get_env_or_raise("LOG_LEVEL")
-    COOKIE_DOMAIN: str = get_env_or_raise("COOKIE_DOMAIN")
 
     # Azure Storage設定
     AZURE_STORAGE_CONNECTION_STRING: str = get_env_or_raise(

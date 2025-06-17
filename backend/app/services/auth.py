@@ -42,9 +42,13 @@ class AuthService:
                     status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
                 )
 
-            user_profile = UserProfileService(self.db).get_user_profile(user_id)
-            user_setting = UserSettingService(self.db).get_user_setting(user_id)
-            user_role = UserRoleService(self.db).get_user_role(user_id)
+            user_profile = UserProfileService(self.db).get_or_create_user_profile(
+                user_id
+            )
+            user_setting = UserSettingService(self.db).get_or_create_user_setting(
+                user_id
+            )
+            user_role = UserRoleService(self.db).get_or_create_user_role(user_id)
 
             return UserResponse(
                 id=user_id,
@@ -61,7 +65,7 @@ class AuthService:
     async def signup(self, user_data: UserSignUp) -> dict:
         """
         新規ユーザー登録
-        
+
         Returns:
             dict: 登録結果
                 - success: bool - 登録成功したかどうか
@@ -74,13 +78,10 @@ class AuthService:
         if response.session is None:
             return {
                 "success": True,
-                "message": "確認メールを送信しました。メール内のリンクをクリックして認証を完了してください。"
+                "message": "確認メールを送信しました。メール内のリンクをクリックして認証を完了してください。",
             }
 
-        return {
-            "success": True,
-            "message": "登録が完了しました。"
-        }
+        return {"success": True, "message": "登録が完了しました。"}
 
     async def signin(self, user_data: UserSignIn) -> Token:
         """
@@ -111,23 +112,28 @@ class AuthService:
         response = self.supabase.auth.sign_in_with_oauth(
             {
                 "provider": provider,
-                "options": {"redirect_to": f"{frontend_url}/auth/callback"},
+                "options": {"redirect_to": f"{frontend_url}/api/auth/callback"},
             }
         )
         return response
-    
-    async def reset_password(self, password: str) -> Dict:
+
+    async def reset_password(self, password: str, token: str) -> Dict:
         """
         パスワード再設定
         """
-        self.supabase.auth.update_user({
-            "password": password
-        })
+        self.supabase.auth.update_user(
+            {"password": password},
+            token=token,
+            options={"redirect_to": f"{settings.FRONTEND_URL}/login"},
+        )
         return {"message": "パスワードを再設定しました"}
 
     async def send_email(self, email: str) -> Dict:
         """
         メール送信
         """
-        self.supabase.auth.reset_password_for_email(email)
+        self.supabase.auth.reset_password_for_email(
+            email,
+            options={"redirect_to": f"{settings.FRONTEND_URL}/reset-password"},
+        )
         return {"message": "パスワード再設定メールを送信しました"}

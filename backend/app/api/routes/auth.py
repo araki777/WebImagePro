@@ -7,7 +7,15 @@ from app.connection import get_db, get_supabase_client
 from app.core.config import settings
 from app.core.constants import OAUTH_PROVIDER
 from app.core.error_handlers import handle_api_errors
-from app.schemas.auth import OAuthResponse, Token, UserResponse, UserSignIn, UserSignUp
+from app.schemas.auth import (
+    OAuthResponse,
+    ResetPasswordRequest,
+    SendEmailRequest,
+    Token,
+    UserResponse,
+    UserSignIn,
+    UserSignUp,
+)
 from app.services.auth import AuthService
 
 # 新しいルーターを作成
@@ -172,7 +180,7 @@ async def google_auth(
 @router.post("/reset-password", response_model=Dict[str, str])
 @handle_api_errors("auth", "reset_password")
 async def reset_password(
-    password: str,
+    reset_data: ResetPasswordRequest,
     auth_service: AuthService = Depends(get_auth_service),
 ):
     """
@@ -185,13 +193,13 @@ async def reset_password(
     Returns:
         Dict[str, str]: パスワード再設定結果のメッセージ
     """
-    return await auth_service.reset_password(password)
+    return await auth_service.reset_password(reset_data.password, reset_data.token)
 
 
 @router.post("/send-email", response_model=Dict[str, str])
 @handle_api_errors("auth", "send_email")
 async def send_email(
-    email: str,
+    email_data: SendEmailRequest,
     auth_service: AuthService = Depends(get_auth_service),
 ):
     """
@@ -204,4 +212,4 @@ async def send_email(
     Returns:
         Dict[str, str]: メール送信結果のメッセージ
     """
-    return await auth_service.send_email(email)
+    return await auth_service.send_email(email_data.email)

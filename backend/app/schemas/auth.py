@@ -34,3 +34,12 @@ class Token(BaseModel):
 class OAuthResponse(BaseModel):
     url: HttpUrl
     provider: str
+
+
+class ResetPasswordRequest(BaseModel):
+    password: str
+    token: str
+
+
+class SendEmailRequest(BaseModel):
+    email: EmailStr
