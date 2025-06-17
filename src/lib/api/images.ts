@@ -48,13 +48,13 @@ export const imagesApi = {
     return response;
   },
   upload: async (
-    data: components["schemas"]["Body_upload_image_images_upload_post"]
+    data: components["schemas"]["UploadImageRequest"]
   ): Promise<
-    | components["schemas"]["Image"]
+    | components["schemas"]["BlobUploadResult"]
     | components["schemas"]["HTTPValidationError"]
   > => {
     const response = await apiClient<
-      | components["schemas"]["Image"]
+      | components["schemas"]["BlobUploadResult"]
       | components["schemas"]["HTTPValidationError"]
     >("/images/upload", {
       method: "POST",
@@ -105,7 +105,7 @@ export const imagesApi = {
     return response;
   },
   full_upload: async (
-    data: components["schemas"]["Body_full_upload_image_images_full_upload_post"]
+    data: components["schemas"]["FullUploadImageRequest"]
   ): Promise<
     | components["schemas"]["Image"]
     | components["schemas"]["HTTPValidationError"]
