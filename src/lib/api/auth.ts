@@ -52,7 +52,7 @@ export const authApi = {
     const response = await apiClient<components["schemas"]["OAuthResponse"]>(
       "/auth/github",
       {
-        method: "POST",
+        method: "GET",
       }
     );
     return response;
@@ -61,7 +61,7 @@ export const authApi = {
     const response = await apiClient<components["schemas"]["OAuthResponse"]>(
       "/auth/google",
       {
-        method: "POST",
+        method: "GET",
       }
     );
     return response;
