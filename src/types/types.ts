@@ -48,6 +48,13 @@ export interface AuthState {
   userRoles?: UserRoles | null;
   checkUser: () => Promise<void>;
   signOut: () => Promise<void>;
+  updateUserProfiles: (
+    userProfiles: components["schemas"]["UserProfile"]
+  ) => void;
+  updateUserSettings: (
+    userSettings: components["schemas"]["UserSetting"]
+  ) => void;
+  updateUserRoles: (userRoles: components["schemas"]["UserRole"]) => void;
 }
 
 // ============================================================================

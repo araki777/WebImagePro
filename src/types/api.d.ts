@@ -111,7 +111,7 @@ export interface paths {
      * @description パスワード再設定
      *
      * Args:
-     *     password: 新しいパスワード
+     *     reset_data: パスワード再設定情報
      *     auth_service: 認証サービス
      *
      * Returns:
@@ -125,7 +125,7 @@ export interface paths {
      * @description メール送信
      *
      * Args:
-     *     email: メールアドレス
+     *     email_data: メールアドレス
      *     auth_service: 認証サービス
      *
      * Returns:
@@ -631,10 +631,10 @@ export interface components {
     };
     /** ResetPasswordRequest */
     ResetPasswordRequest: {
-      /** Password */
-      password: string;
       /** Token */
       token: string;
+      /** Password */
+      password: string;
     };
     /** Role */
     Role: {
@@ -1054,7 +1054,7 @@ export interface operations {
    * @description パスワード再設定
    *
    * Args:
-   *     password: 新しいパスワード
+   *     reset_data: パスワード再設定情報
    *     auth_service: 認証サービス
    *
    * Returns:
@@ -1088,7 +1088,7 @@ export interface operations {
    * @description メール送信
    *
    * Args:
-   *     email: メールアドレス
+   *     email_data: メールアドレス
    *     auth_service: 認証サービス
    *
    * Returns:
