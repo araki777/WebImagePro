@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/form/LoginForm";
 import { useRouter } from "@/i18n/routing";
 import { authApi } from "@/lib/api/auth";
 import { OAUTH_PROVIDERS } from "@/lib/constants";
-import { loginSchema } from "@/lib/validation/loginSchema";
+import { loginSchema } from "@/lib/validation/auth";
 import { useTranslations } from "next-intl";
 import { Suspense, useState } from "react";
 import { z } from "zod";
