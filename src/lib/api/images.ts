@@ -1,4 +1,5 @@
 import { components } from "@/types/api";
+import { FullUploadImageRequest } from "@/types/api-overrides";
 import { apiClient } from "../api-client";
 
 export const imagesApi = {
@@ -53,12 +54,17 @@ export const imagesApi = {
     | components["schemas"]["BlobUploadResult"]
     | components["schemas"]["HTTPValidationError"]
   > => {
+    const formData = new FormData();
+    formData.append("file", data.file);
+    formData.append("is_shared", data.is_shared.toString());
+    formData.append("user_id", data.user_id);
+
     const response = await apiClient<
       | components["schemas"]["BlobUploadResult"]
       | components["schemas"]["HTTPValidationError"]
     >("/images/upload", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: formData,
     });
     return response;
   },
@@ -92,11 +98,11 @@ export const imagesApi = {
   save: async (
     data: components["schemas"]["ImageCreate"]
   ): Promise<
-    | components["schemas"]["Image"]
+    | components["schemas"]["ImageResponse"]
     | components["schemas"]["HTTPValidationError"]
   > => {
     const response = await apiClient<
-      | components["schemas"]["Image"]
+      | components["schemas"]["ImageResponse"]
       | components["schemas"]["HTTPValidationError"]
     >("/images", {
       method: "POST",
@@ -105,17 +111,23 @@ export const imagesApi = {
     return response;
   },
   full_upload: async (
-    data: components["schemas"]["FullUploadImageRequest"]
+    data: FullUploadImageRequest
   ): Promise<
-    | components["schemas"]["Image"]
+    | components["schemas"]["ImageResponse"]
     | components["schemas"]["HTTPValidationError"]
   > => {
+    const formData = new FormData();
+    formData.append("file", data.file);
+    formData.append("is_shared", data.is_shared.toString());
+    formData.append("user_id", data.user_id);
+    formData.append("target_langs", JSON.stringify(data.target_langs));
+
     const response = await apiClient<
-      | components["schemas"]["Image"]
+      | components["schemas"]["ImageResponse"]
       | components["schemas"]["HTTPValidationError"]
     >("/images/full-upload", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: formData,
     });
     return response;
   },

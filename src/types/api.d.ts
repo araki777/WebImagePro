@@ -546,8 +546,25 @@ export interface components {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
     };
-    /** Image */
-    Image: {
+    /** ImageCreate */
+    ImageCreate: {
+      /** File Name */
+      file_name: string;
+      /** Container Name */
+      container_name: string;
+      /** Blob Name */
+      blob_name: string;
+      /** Size */
+      size: number;
+      /** Content Type */
+      content_type: string;
+      /** Ja Tags */
+      ja_tags: string[];
+      /** En Tags */
+      en_tags: string[];
+    };
+    /** ImageResponse */
+    ImageResponse: {
       /** File Name */
       file_name: string;
       /** Container Name */
@@ -572,23 +589,8 @@ export interface components {
        * Format: date-time
        */
       created_at: string;
-    };
-    /** ImageCreate */
-    ImageCreate: {
-      /** File Name */
-      file_name: string;
-      /** Container Name */
-      container_name: string;
-      /** Blob Name */
-      blob_name: string;
-      /** Size */
-      size: number;
-      /** Content Type */
-      content_type: string;
-      /** Ja Tags */
-      ja_tags: string[];
-      /** En Tags */
-      en_tags: string[];
+      /** Url */
+      url: string;
     };
     /** ImageWithTags */
     ImageWithTags: {
@@ -1596,7 +1598,7 @@ export interface operations {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["Image"];
+          "application/json": components["schemas"]["ImageResponse"];
         };
       };
       /** @description Validation Error */
@@ -1637,7 +1639,7 @@ export interface operations {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["Image"];
+          "application/json": components["schemas"]["ImageResponse"];
         };
       };
       /** @description Validation Error */

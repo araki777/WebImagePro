@@ -1071,7 +1071,7 @@ export default function ImageEditor2() {
       const file = new File([blob], fileName, { type: blob.type });
 
       const uploadResponse = await imagesApi.full_upload({
-        file: file.name,
+        file: file,
         target_langs: [...LANGUAGES],
         is_shared: isShared,
         user_id: userProfiles?.id || "",

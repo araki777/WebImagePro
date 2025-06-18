@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from app.models.image import Image as ImageModel
-from app.schemas.image import Image, ImageCreate, ImageWithTags
+from app.schemas.image import Image, ImageCreate, ImageResponse, ImageWithTags
 from app.schemas.storage import BlobInfo
 from app.services.ai_vision import VisionService
 from app.services.storage import StorageService
@@ -61,7 +61,7 @@ class ImageService:
             for image in images
         ]
 
-    def save_image(self, image_create: ImageCreate) -> Image:
+    def save_image(self, image_create: ImageCreate) -> ImageResponse:
         """画像情報をデータベースに保存"""
         image = ImageModel(
             file_name=image_create.file_name,
@@ -76,7 +76,10 @@ class ImageService:
         self.db.add(image)
         self.db.commit()
         self.db.refresh(image)
-        return Image.model_validate(image)
+        return ImageResponse(
+            **Image.model_validate(image).model_dump(),
+            url=f"https://{image.container_name}.blob.core.windows.net/{image.blob_name}",
+        )
 
     async def full_upload_image(
         self, file: UploadFile, is_shared: bool, user_id: UUID, target_langs: List[str]
