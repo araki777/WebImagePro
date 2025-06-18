@@ -16,10 +16,16 @@ export async function apiClient<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
+  const headres: HeadersInit = {};
+
+  if (!(options.body instanceof FormData)) {
+    headres["Content-Type"] = "application/json";
+  }
+
   const response = await fetch(url, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...headres,
       ...options.headers,
     },
     credentials: "include",

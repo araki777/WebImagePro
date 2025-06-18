@@ -1,7 +1,6 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import UploadFile
 from pydantic import BaseModel
 
 
@@ -35,8 +34,5 @@ class ImageWithTags(Image):
     tags: list[str]
 
 
-class FullUploadImageRequest(BaseModel):
-    file: UploadFile
-    target_langs: list[str]
-    is_shared: bool
-    user_id: UUID
+class ImageResponse(Image):
+    url: str

@@ -11,8 +11,15 @@ from app.auth.utils import get_current_user
 from app.connection import get_db
 from app.core.error_handlers import handle_api_errors
 from app.schemas.ai_vision import VisionRequest, VisionResponse
-from app.schemas.image import FullUploadImageRequest, Image, ImageCreate, ImageWithTags
-from app.schemas.storage import BlobUploadResult, UploadImageRequest
+from app.schemas.image import (
+    ImageCreate,
+    ImageResponse,
+    ImageWithTags,
+)
+from app.schemas.storage import (
+    BlobUploadResult,
+    UploadImageForm,
+)
 from app.schemas.translate import TranslateRequest, TranslateResponse
 from app.services.ai_vision import VisionService
 from app.services.image import ImageService
@@ -62,12 +69,12 @@ async def get_images(
 @router.post("/upload", response_model=BlobUploadResult)
 @handle_api_errors("image", "upload")
 async def upload_image(
-    req: UploadImageRequest,
+    form: UploadImageForm = Depends(),
     _current_user=Depends(get_current_user),
     storage_service: StorageService = Depends(get_storage_service),
 ) -> BlobUploadResult:
     """画像をアップロード"""
-    return await storage_service.upload_image(req.file, req.is_shared, req.user_id)
+    return await storage_service.upload_image(form.file, form.is_shared, form.user_id)
 
 
 @router.post("/vision-tags", response_model=VisionResponse)
@@ -122,7 +129,7 @@ async def translate_tags(
     return {"translations": translations}
 
 
-@router.post("/save", response_model=Image)
+@router.post("/save", response_model=ImageResponse)
 @handle_api_errors("image", "save")
 async def save_image(
     image_create: ImageCreate,
@@ -148,10 +155,10 @@ async def save_image(
     return image
 
 
-@router.post("/full-upload", response_model=Image)
+@router.post("/full-upload", response_model=ImageResponse)
 @handle_api_errors("image", "full_upload")
 async def full_upload_image(
-    req: FullUploadImageRequest,
+    form: UploadImageForm = Depends(),
     current_user=Depends(get_current_user),
     storage_service: StorageService = Depends(),
     vision_service: VisionService = Depends(),
@@ -179,13 +186,13 @@ async def full_upload_image(
     """
 
     # 1. 画像アップロード
-    result = await storage_service.upload_image(req.file, req.is_shared, req.user_id)
+    result = await storage_service.upload_image(form.file, form.is_shared, form.user_id)
 
     # 2. Vision APIでタグ抽出
     tags = vision_service.get_tags(result.blob_url)
 
     # 3. 翻訳APIでタグ翻訳
-    translations = translate_service.translate(tags, req.target_langs)
+    translations = translate_service.translate(tags, form.target_langs)
     ja_tags = translations.get("ja", [])
     en_tags = translations.get("en", [])
 
