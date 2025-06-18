@@ -1,4 +1,5 @@
 import { authApi } from "@/lib/api/auth";
+import { components } from "@/types/api";
 import { AuthState } from "@/types/types";
 import { create } from "zustand";
 
@@ -57,5 +58,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       userRoles: null,
     });
     window.location.href = "/login";
+  },
+  updateUserProfiles: (userProfiles: components["schemas"]["UserProfile"]) => {
+    set({ userProfiles });
+  },
+  updateUserSettings: (userSettings: components["schemas"]["UserSetting"]) => {
+    set({ userSettings });
+  },
+  updateUserRoles: (userRoles: components["schemas"]["UserRole"]) => {
+    set({ userRoles });
   },
 }));
