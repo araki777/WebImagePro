@@ -37,8 +37,8 @@ class OAuthResponse(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    password: str
     token: str
+    password: str
 
 
 class SendEmailRequest(BaseModel):

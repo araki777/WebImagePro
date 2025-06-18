@@ -30,7 +30,7 @@ const SendEmailForm = () => {
   const router = useRouter();
 
   const onSubmit = async (data: { email: string }) => {
-    const response = await authApi.sendEmail(data.email);
+    const response = await authApi.sendEmail({ email: data.email });
     console.log(response);
     setSent(true);
   };
@@ -45,7 +45,7 @@ const SendEmailForm = () => {
       <button
         type="button"
         className="absolute left-4 top-4 flex items-center gap-1 text-white hover:text-blue-400 transition z-10"
-        onClick={() => router.back()}
+        onClick={() => router.push("/login")}
         aria-label="戻る"
       >
         <ArrowLeft className="w-5 h-5" />
