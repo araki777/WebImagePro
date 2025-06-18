@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useHashParams } from "@/hooks/useHashParams";
 import { authApi } from "@/lib/api/auth";
-import { resetPasswordSchema } from "@/lib/validation/loginSchema";
+import { resetPasswordSchema } from "@/lib/validation/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
@@ -19,12 +19,13 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
 
 const ResetPasswordForm = () => {
   const t = useTranslations("Login");
   const tCommon = useTranslations("Common");
   const router = useRouter();
-  const form = useForm<{ password: string; confirmPassword: string }>({
+  const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       password: "",
