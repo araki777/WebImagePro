@@ -117,16 +117,52 @@ class AuthService:
         )
         return response
 
-    async def reset_password(self, password: str, token: str) -> Dict:
+    async def reset_password(self, token: str, password: str) -> Dict:
         """
         パスワード再設定
         """
-        self.supabase.auth.update_user(
-            {"password": password},
-            token=token,
-            options={"redirect_to": f"{settings.FRONTEND_URL}/login"},
-        )
-        return {"message": "パスワードを再設定しました"}
+        try:
+            # JWTトークンからユーザーIDを取得
+            payload = jwt.decode(
+                token,
+                settings.SUPABASE_JWT_SECRET,
+                algorithms=["HS256"],
+                options={"verify_aud": False},
+            )
+            user_id = payload.get("sub")
+
+            if not user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="無効なトークンです",
+                )
+
+            # Admin APIを使用してパスワードを更新
+            response = self.supabase.auth.admin.update_user_by_id(
+                user_id, {"password": password}
+            )
+
+            # レスポンスを確認
+            if hasattr(response, "user") and response.user:
+                return {"message": "パスワードを再設定しました"}
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="パスワード再設定に失敗しました",
+                )
+        except jwt.PyJWTError as e:
+            print(f"JWT decode error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="無効なトークンです",
+            )
+        except Exception as e:
+            # より詳細なエラーログを出力
+            print(f"Password reset error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"パスワード再設定に失敗しました: {str(e)}",
+            )
 
     async def send_email(self, email: str) -> Dict:
         """
