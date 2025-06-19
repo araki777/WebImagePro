@@ -26,6 +26,7 @@ class BlobInfo(BaseModel):
     size: int
     content_type: str
     container_name: str
+    url: str
 
 
 class UploadImageForm:

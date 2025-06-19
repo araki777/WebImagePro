@@ -481,6 +481,28 @@ export interface components {
       /** Content Type */
       content_type: string;
     };
+    /** Body_full_upload_image_images_full_upload_post */
+    Body_full_upload_image_images_full_upload_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+      /** Is Shared */
+      is_shared: boolean;
+      /** Target Langs */
+      target_langs: string[];
+    };
+    /** Body_upload_image_images_upload_post */
+    Body_upload_image_images_upload_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+      /** Is Shared */
+      is_shared: boolean;
+    };
     /** Contact */
     Contact: {
       /** Name */
@@ -523,23 +545,6 @@ export interface components {
       message: string;
       /** Subject */
       subject: string;
-    };
-    /** FullUploadImageRequest */
-    FullUploadImageRequest: {
-      /**
-       * File
-       * Format: binary
-       */
-      file: string;
-      /** Target Langs */
-      target_langs: string[];
-      /** Is Shared */
-      is_shared: boolean;
-      /**
-       * User Id
-       * Format: uuid
-       */
-      user_id: string;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -707,21 +712,6 @@ export interface components {
       translations: {
         [key: string]: unknown;
       };
-    };
-    /** UploadImageRequest */
-    UploadImageRequest: {
-      /**
-       * File
-       * Format: binary
-       */
-      file: string;
-      /** Is Shared */
-      is_shared: boolean;
-      /**
-       * User Id
-       * Format: uuid
-       */
-      user_id: string;
     };
     /** UserProfile */
     UserProfile: {
@@ -1455,8 +1445,7 @@ export interface operations {
    */
   get_images_images__get: {
     parameters: {
-      query: {
-        user_id: string;
+      query?: {
         is_shared?: boolean;
         lang?: string;
       };
@@ -1483,7 +1472,7 @@ export interface operations {
   upload_image_images_upload_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UploadImageRequest"];
+        "multipart/form-data": components["schemas"]["Body_upload_image_images_upload_post"];
       };
     };
     responses: {
@@ -1632,7 +1621,7 @@ export interface operations {
   full_upload_image_images_full_upload_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["FullUploadImageRequest"];
+        "multipart/form-data": components["schemas"]["Body_full_upload_image_images_full_upload_post"];
       };
     };
     responses: {
@@ -1697,7 +1686,6 @@ export interface operations {
     parameters: {
       query: {
         is_shared: boolean;
-        user_id: string;
       };
       path: {
         blob_name: string;

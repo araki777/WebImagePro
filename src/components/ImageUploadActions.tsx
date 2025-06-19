@@ -11,7 +11,6 @@ import { toast } from "sonner";
 export function ImageUploadActions({
   images,
   setImages,
-  userId,
 }: IImageUploadActionsProps) {
   const t = useTranslations("ImageUploadActions");
   const [isUploading, setIsUploading] = useState(false);
@@ -43,7 +42,6 @@ export function ImageUploadActions({
           file: image.file,
           target_langs: [...LANGUAGES],
           is_shared: image.compressionSettings.isShared || false,
-          user_id: userId || "",
         });
 
         if (

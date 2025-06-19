@@ -15,34 +15,58 @@ class TranslateService:
         self, texts: List[str], target_langs: List[str]
     ) -> Dict[str, List[str]]:
         """テキストを翻訳"""
+        try:
+            # 言語指定が1つの場合、カンマ区切りで指定されている場合があるので分割
+            if (
+                len(target_langs) == 1
+                and isinstance(target_langs[0], str)
+                and "," in target_langs[0]
+            ):
+                target_langs = target_langs[0].split(",")
 
-        # 言語指定が1つの場合、カンマ区切りで指定されている場合があるので分割
-        if (
-            len(target_langs) == 1
-            and isinstance(target_langs[0], str)
-            and "," in target_langs[0]
-        ):
-            target_langs = target_langs[0].split(",")
+            # 翻訳対象の言語をフィルタリング（英語は翻訳しない）
+            translate_langs = [lang for lang in target_langs if lang != "en"]
 
-        path = "/translate?api-version=3.0"
-        for lang in target_langs:
-            path += f"&to={lang}"
+            # 英語のタグはそのまま保持
+            translations: Dict[str, List[str]] = {lang: [] for lang in target_langs}
+            if "en" in target_langs:
+                translations["en"] = texts  # 英語のタグはそのまま
 
-        url = self.translation_url + path
-        headers = {
-            "Ocp-Apim-Subscription-Key": self.translation_key,
-            "Ocp-Apim-Subscription-Region": self.translation_region,
-            "Content-Type": "application/json",
-        }
-        body = [{"text": text} for text in texts]
-        response = requests.post(url, headers=headers, json=body)
+            # 翻訳対象の言語がない場合は早期リターン
+            if not translate_langs:
+                return translations
 
-        if not response.ok:
-            raise ValueError(f"Translation API request failed: {response.text}")
+            # 翻訳APIを呼び出し
+            path = "/translate?api-version=3.0&from=en"
+            for lang in translate_langs:
+                path += f"&to={lang}"
 
-        data = response.json()
-        translations: Dict[str, List[str]] = {lang: [] for lang in target_langs}
-        for text_result in data:
-            for trans in text_result["translations"]:
-                translations[trans["to"]].append(trans["text"])
-        return translations
+            url = self.translation_url + path
+            headers = {
+                "Ocp-Apim-Subscription-Key": self.translation_key,
+                "Ocp-Apim-Subscription-Region": self.translation_region,
+                "Content-Type": "application/json",
+            }
+            body = [{"text": text} for text in texts]
+
+            response = requests.post(url, headers=headers, json=body, timeout=30)
+
+            if not response.ok:
+                # エラーが発生した場合は英語のタグのみを返す
+                return translations
+
+            data = response.json()
+            for text_result in data:
+                for trans in text_result["translations"]:
+                    target_lang = trans["to"]
+                    translations[target_lang].append(trans["text"])
+
+            return translations
+
+        except Exception as e:
+            print(f"Unexpected error in Translation API request: {e}")
+            # エラーが発生した場合は英語のタグのみを返す
+            translations = {lang: [] for lang in target_langs}
+            if "en" in target_langs:
+                translations["en"] = texts
+            return translations

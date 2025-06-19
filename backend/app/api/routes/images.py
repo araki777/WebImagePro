@@ -2,7 +2,7 @@ import io
 from typing import Dict, List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -40,9 +40,9 @@ def get_image_service(db: Session = Depends(get_db)) -> ImageService:
 @router.get("/", response_model=List[ImageWithTags])
 @handle_api_errors("image", "get_images")
 async def get_images(
-    user_id: UUID,
     is_shared: bool = False,
     lang: str = "ja",
+    current_user=Depends(get_current_user),
     storage_service: StorageService = Depends(),
     image_service: ImageService = Depends(get_image_service),
 ):
@@ -61,7 +61,7 @@ async def get_images(
     Raises:
         HTTPException: 画像の取得に失敗した場合
     """
-    images = await storage_service.get_blob_list(is_shared, user_id)
+    images = await storage_service.get_blob_list(is_shared, current_user.user.id)
     images_with_tags = await image_service.get_images_with_tags(images, lang)
     return images_with_tags
 
@@ -69,12 +69,13 @@ async def get_images(
 @router.post("/upload", response_model=BlobUploadResult)
 @handle_api_errors("image", "upload")
 async def upload_image(
-    form: UploadImageForm = Depends(),
-    _current_user=Depends(get_current_user),
+    file: UploadFile = File(...),
+    is_shared: bool = Form(...),
+    current_user=Depends(get_current_user),
     storage_service: StorageService = Depends(get_storage_service),
 ) -> BlobUploadResult:
     """画像をアップロード"""
-    return await storage_service.upload_image(form.file, form.is_shared, form.user_id)
+    return await storage_service.upload_image(file, is_shared, current_user.user.id)
 
 
 @router.post("/vision-tags", response_model=VisionResponse)
@@ -158,7 +159,9 @@ async def save_image(
 @router.post("/full-upload", response_model=ImageResponse)
 @handle_api_errors("image", "full_upload")
 async def full_upload_image(
-    form: UploadImageForm = Depends(),
+    file: UploadFile = File(...),
+    is_shared: bool = Form(...),
+    target_langs: List[str] = Form(...),
     current_user=Depends(get_current_user),
     storage_service: StorageService = Depends(),
     vision_service: VisionService = Depends(),
@@ -186,13 +189,13 @@ async def full_upload_image(
     """
 
     # 1. 画像アップロード
-    result = await storage_service.upload_image(form.file, form.is_shared, form.user_id)
+    result = await storage_service.upload_image(file, is_shared, current_user.user.id)
 
     # 2. Vision APIでタグ抽出
     tags = vision_service.get_tags(result.blob_url)
 
     # 3. 翻訳APIでタグ翻訳
-    translations = translate_service.translate(tags, form.target_langs)
+    translations = translate_service.translate(tags, target_langs)
     ja_tags = translations.get("ja", [])
     en_tags = translations.get("en", [])
 
@@ -243,11 +246,13 @@ async def delete_image(
 async def get_image(
     blob_name: str,
     is_shared: bool,
-    user_id: UUID,
+    current_user=Depends(get_current_user),
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """画像データを取得"""
-    image_data = await storage_service.get_image(blob_name, is_shared, user_id)
+    image_data = await storage_service.get_image(
+        blob_name, is_shared, current_user.user.id
+    )
     return StreamingResponse(
         io.BytesIO(image_data),
         media_type="image/jpeg",

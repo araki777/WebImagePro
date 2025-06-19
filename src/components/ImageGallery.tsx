@@ -94,7 +94,6 @@ export function ImageGallery() {
       setLoading(true);
       const response = await imagesApi.get_images({
         is_shared: viewMode === "shared",
-        user_id: userId || "0",
         lang: locale,
       });
       if ("detail" in response) {
@@ -137,7 +136,6 @@ export function ImageGallery() {
       const blob = await imagesApi.get_image({
         blob_name: image.blob_name,
         is_shared: viewMode === "shared",
-        user_id: userId || "0",
       });
 
       if (!(blob instanceof Blob)) {

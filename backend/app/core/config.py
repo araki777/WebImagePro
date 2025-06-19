@@ -20,6 +20,7 @@ class Settings:
         "AZURE_STORAGE_SHARED_CONTAINER_NAME"
     )
     AZURE_STORAGE_ACCOUNT_NAME: str = get_env_or_raise("AZURE_STORAGE_ACCOUNT_NAME")
+    AZURE_STORAGE_ACCOUNT_KEY: str = get_env_or_raise("AZURE_STORAGE_ACCOUNT_KEY")
 
     # Azure Vision API設定
     AZURE_COMPUTE_VISION_URL: str = get_env_or_raise("AZURE_COMPUTE_VISION_URL")
