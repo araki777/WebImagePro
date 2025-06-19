@@ -24,7 +24,7 @@ async def get_current_user(
         supabase = get_supabase_client()
         # まずCookieからアクセストークンを取得
         access_token = request.cookies.get("access_token")
-        
+
         # Cookieにトークンがない場合は、Bearerトークンを試す
         if not access_token and credentials:
             access_token = credentials.credentials

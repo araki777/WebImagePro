@@ -1074,7 +1074,6 @@ export default function ImageEditor2() {
         file: file,
         target_langs: [...LANGUAGES],
         is_shared: isShared,
-        user_id: userProfiles?.id || "",
       });
 
       if (!uploadResponse) {

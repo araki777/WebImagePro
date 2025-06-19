@@ -145,7 +145,6 @@ export interface IImageUploadFormProps {
 export interface IImageUploadActionsProps {
   images: IImagePreview[];
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
-  userId: string | null;
 }
 
 // ============================================================================

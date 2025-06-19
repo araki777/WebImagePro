@@ -1,20 +1,20 @@
 import { components } from "@/types/api";
-import { FullUploadImageRequest } from "@/types/api-overrides";
+import {
+  FullUploadImageRequest,
+  UploadImageRequest,
+} from "@/types/api-overrides";
 import { apiClient } from "../api-client";
 
 export const imagesApi = {
   get_image: async ({
     blob_name,
     is_shared,
-    user_id,
   }: {
     blob_name: string;
     is_shared: boolean;
-    user_id: string;
   }): Promise<Blob | components["schemas"]["HTTPValidationError"]> => {
     const searchParams = new URLSearchParams({
       is_shared: is_shared.toString(),
-      user_id,
     });
     const response = await apiClient<
       Blob | components["schemas"]["HTTPValidationError"]
@@ -25,11 +25,9 @@ export const imagesApi = {
   },
   get_images: async ({
     is_shared,
-    user_id,
     lang,
   }: {
     is_shared: boolean;
-    user_id: string;
     lang: string;
   }): Promise<
     | components["schemas"]["ImageWithTags"][]
@@ -37,7 +35,6 @@ export const imagesApi = {
   > => {
     const queryParams = new URLSearchParams({
       is_shared: is_shared.toString(),
-      user_id,
       lang,
     });
     const response = await apiClient<
@@ -49,7 +46,7 @@ export const imagesApi = {
     return response;
   },
   upload: async (
-    data: components["schemas"]["UploadImageRequest"]
+    data: UploadImageRequest
   ): Promise<
     | components["schemas"]["BlobUploadResult"]
     | components["schemas"]["HTTPValidationError"]
@@ -57,7 +54,6 @@ export const imagesApi = {
     const formData = new FormData();
     formData.append("file", data.file);
     formData.append("is_shared", data.is_shared.toString());
-    formData.append("user_id", data.user_id);
 
     const response = await apiClient<
       | components["schemas"]["BlobUploadResult"]
@@ -119,7 +115,6 @@ export const imagesApi = {
     const formData = new FormData();
     formData.append("file", data.file);
     formData.append("is_shared", data.is_shared.toString());
-    formData.append("user_id", data.user_id);
     formData.append("target_langs", JSON.stringify(data.target_langs));
 
     const response = await apiClient<

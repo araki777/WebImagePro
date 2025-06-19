@@ -92,7 +92,9 @@ class ImageService:
         tags = self.vision_service.get_tags(result.blob_url)
 
         # 3. タグを翻訳
-        translations = self.translate_service.translate(tags, target_langs)
+        translations = self.translate_service.translate(
+            tags, target_langs, source_lang="en"
+        )
 
         # 4.DBに保存
         image_create = ImageCreate(

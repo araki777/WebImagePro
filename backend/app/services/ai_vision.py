@@ -12,7 +12,7 @@ class VisionService:
 
     def get_tags(self, blob_url: str) -> List[str]:
         """画像のタグを取得"""
-        vision_url = f"{self.vision_url}/vision/v3.2/tags"
+        vision_url = f"{self.vision_url}/vision/v3.2/tag"
         headers = {
             "Ocp-Apim-Subscription-Key": self.vision_key,
             "Content-Type": "application/json",
