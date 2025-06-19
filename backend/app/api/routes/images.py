@@ -14,12 +14,8 @@ from app.schemas.ai_vision import VisionRequest, VisionResponse
 from app.schemas.image import (
     ImageCreate,
     ImageResponse,
-    ImageWithTags,
 )
-from app.schemas.storage import (
-    BlobUploadResult,
-    UploadImageForm,
-)
+from app.schemas.storage import BlobUploadResult
 from app.schemas.translate import TranslateRequest, TranslateResponse
 from app.services.ai_vision import VisionService
 from app.services.image import ImageService
@@ -37,7 +33,7 @@ def get_image_service(db: Session = Depends(get_db)) -> ImageService:
     return ImageService(db)
 
 
-@router.get("/", response_model=List[ImageWithTags])
+@router.get("/", response_model=List[ImageResponse])
 @handle_api_errors("image", "get_images")
 async def get_images(
     is_shared: bool = False,
@@ -208,6 +204,7 @@ async def full_upload_image(
         en_tags=en_tags,
         size=result.size,
         content_type=result.content_type,
+        account_name=result.account_name,
     )
     image = image_service.save_image(image_create)
     return image

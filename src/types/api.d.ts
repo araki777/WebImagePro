@@ -480,6 +480,8 @@ export interface components {
       size: number;
       /** Content Type */
       content_type: string;
+      /** Account Name */
+      account_name: string;
     };
     /** Body_full_upload_image_images_full_upload_post */
     Body_full_upload_image_images_full_upload_post: {
@@ -567,6 +569,8 @@ export interface components {
       ja_tags: string[];
       /** En Tags */
       en_tags: string[];
+      /** Account Name */
+      account_name: string;
     };
     /** ImageResponse */
     ImageResponse: {
@@ -584,35 +588,8 @@ export interface components {
       ja_tags: string[];
       /** En Tags */
       en_tags: string[];
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Url */
-      url: string;
-    };
-    /** ImageWithTags */
-    ImageWithTags: {
-      /** File Name */
-      file_name: string;
-      /** Container Name */
-      container_name: string;
-      /** Blob Name */
-      blob_name: string;
-      /** Size */
-      size: number;
-      /** Content Type */
-      content_type: string;
-      /** Ja Tags */
-      ja_tags: string[];
-      /** En Tags */
-      en_tags: string[];
+      /** Account Name */
+      account_name: string;
       /**
        * Id
        * Format: uuid
@@ -625,6 +602,8 @@ export interface components {
       created_at: string;
       /** Tags */
       tags: string[];
+      /** Url */
+      url: string;
     };
     /** OAuthResponse */
     OAuthResponse: {
@@ -1454,7 +1433,7 @@ export interface operations {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["ImageWithTags"][];
+          "application/json": components["schemas"]["ImageResponse"][];
         };
       };
       /** @description Validation Error */

@@ -110,6 +110,7 @@ class StorageService:
                         content_type=blob.content_settings.content_type or "",
                         container_name=container_name,
                         url=blob_url_with_sas,
+                        account_name=self.account_name,
                     )
                 )
             return blobs
@@ -151,6 +152,7 @@ class StorageService:
             file_name=file.filename or "",
             size=file.size or 0,
             content_type=file.content_type or "",
+            account_name=self.account_name,
         )
 
     async def delete_image(

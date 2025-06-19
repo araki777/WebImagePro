@@ -18,5 +18,6 @@ class Image(Base):
     content_type = Column(Text)
     container_name = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    ja_tags = Column(ARRAY(Text), nullable=True, default=list)
-    en_tags = Column(ARRAY(Text), nullable=True, default=list)
+    ja_tags: List[str] = Column(ARRAY(Text), nullable=True, default=list)
+    en_tags: List[str] = Column(ARRAY(Text), nullable=True, default=list)
+    account_name = Column(Text)

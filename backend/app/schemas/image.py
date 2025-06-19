@@ -12,6 +12,7 @@ class ImageBaseModel(BaseModel):
     content_type: str
     ja_tags: list[str]
     en_tags: list[str]
+    account_name: str
 
 
 class ImageCreate(ImageBaseModel):
@@ -35,4 +36,5 @@ class ImageWithTags(Image):
 
 
 class ImageResponse(Image):
+    tags: list[str]
     url: str

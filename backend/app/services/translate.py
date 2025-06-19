@@ -1,3 +1,4 @@
+import json
 from typing import Dict, List
 
 import requests
@@ -16,8 +17,15 @@ class TranslateService:
     ) -> Dict[str, List[str]]:
         """テキストを翻訳"""
         try:
-            # 言語指定が1つの場合、カンマ区切りで指定されている場合があるので分割
+            # JSON文字列の場合はパースする
             if (
+                len(target_langs) == 1
+                and isinstance(target_langs[0], str)
+                and target_langs[0].startswith("[")
+            ):
+                target_langs = json.loads(target_langs[0])
+            # カンマ区切りの場合は分割
+            elif (
                 len(target_langs) == 1
                 and isinstance(target_langs[0], str)
                 and "," in target_langs[0]
