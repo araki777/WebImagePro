@@ -26,7 +26,7 @@ const Footer = dynamic(() =>
 
 export default function Home() {
   const t = useTranslations("Home");
-  const { signOut, checkUser, userProfiles } = useAuthStore();
+  const { signOut, checkUser, userProfiles, isAuthenticated } = useAuthStore();
 
   // トップページのツアーステップを定義
   const steps: Step[] = [
@@ -47,8 +47,10 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
   if (!userProfiles) {
     return null;

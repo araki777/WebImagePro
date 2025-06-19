@@ -21,7 +21,8 @@ const Footer = dynamic(() =>
 
 export default function ContactPage() {
   const t = useTranslations("Contact");
-  const { checkUser, userProfiles, userEmail } = useAuthStore();
+  const { checkUser, userProfiles, userEmail, isAuthenticated } =
+    useAuthStore();
   const [formData, setFormData] = useState<IContactForm>({
     name: "",
     email: "",
@@ -32,8 +33,10 @@ export default function ContactPage() {
 
   // ページロード時に認証状態を確認
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
   // ユーザー情報が変更されたときにフォームデータを更新
   useEffect(() => {
