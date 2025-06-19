@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api/auth";
-import { sendEmailSchema } from "@/lib/validation/loginSchema";
+import { sendEmailSchema } from "@/lib/validation/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
@@ -16,11 +16,12 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
 
 const SendEmailForm = () => {
   const t = useTranslations("Login");
   const tCommon = useTranslations("Common");
-  const form = useForm<{ email: string }>({
+  const form = useForm<z.infer<typeof sendEmailSchema>>({
     resolver: zodResolver(sendEmailSchema),
     defaultValues: {
       email: "",
@@ -30,7 +31,7 @@ const SendEmailForm = () => {
   const router = useRouter();
 
   const onSubmit = async (data: { email: string }) => {
-    const response = await authApi.sendEmail(data.email);
+    const response = await authApi.sendEmail({ email: data.email });
     console.log(response);
     setSent(true);
   };
@@ -45,7 +46,7 @@ const SendEmailForm = () => {
       <button
         type="button"
         className="absolute left-4 top-4 flex items-center gap-1 text-white hover:text-blue-400 transition z-10"
-        onClick={() => router.back()}
+        onClick={() => router.push("/login")}
         aria-label="戻る"
       >
         <ArrowLeft className="w-5 h-5" />

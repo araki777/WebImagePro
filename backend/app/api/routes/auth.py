@@ -3,7 +3,7 @@ from typing import Dict
 from fastapi import APIRouter, Depends, Request, Response
 
 from app.api.base import LoggingRoute
-from app.connection import get_db, get_supabase_client
+from app.connection import get_db, get_supabase_admin_client, get_supabase_client
 from app.core.config import settings
 from app.core.constants import OAUTH_PROVIDER
 from app.core.error_handlers import handle_api_errors
@@ -25,6 +25,12 @@ router = APIRouter(route_class=LoggingRoute)
 def get_auth_service():
     db = next(get_db())
     supabase = get_supabase_client()
+    return AuthService(supabase, db)
+
+
+def get_admin_auth_service():
+    db = next(get_db())
+    supabase = get_supabase_admin_client()
     return AuthService(supabase, db)
 
 
@@ -181,19 +187,19 @@ async def google_auth(
 @handle_api_errors("auth", "reset_password")
 async def reset_password(
     reset_data: ResetPasswordRequest,
-    auth_service: AuthService = Depends(get_auth_service),
+    auth_service: AuthService = Depends(get_admin_auth_service),
 ):
     """
     パスワード再設定
 
     Args:
-        password: 新しいパスワード
+        reset_data: パスワード再設定情報
         auth_service: 認証サービス
 
     Returns:
         Dict[str, str]: パスワード再設定結果のメッセージ
     """
-    return await auth_service.reset_password(reset_data.password, reset_data.token)
+    return await auth_service.reset_password(reset_data.token, reset_data.password)
 
 
 @router.post("/send-email", response_model=Dict[str, str])
@@ -206,7 +212,7 @@ async def send_email(
     メール送信
 
     Args:
-        email: メールアドレス
+        email_data: メールアドレス
         auth_service: 認証サービス
 
     Returns:

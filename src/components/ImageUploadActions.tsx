@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { imagesApi } from "@/lib/api/images";
+import { LANGUAGES } from "@/lib/constants";
 import { compressImageWithFFmpeg } from "@/lib/ffmpegCompress";
 import { IImageUploadActionsProps } from "@/types/types";
 import { Upload } from "lucide-react";
@@ -9,7 +11,6 @@ import { toast } from "sonner";
 export function ImageUploadActions({
   images,
   setImages,
-  userId,
 }: IImageUploadActionsProps) {
   const t = useTranslations("ImageUploadActions");
   const [isUploading, setIsUploading] = useState(false);
@@ -37,27 +38,21 @@ export function ImageUploadActions({
     // 画像ごとにアップロード処理を行う
     const uploadPromises = processedImages.map(async (image) => {
       try {
-        const formData = new FormData();
-        formData.append("file", image.file);
-        formData.append(
-          "isShared",
-          image.compressionSettings.isShared?.toString() || "false"
-        );
-        formData.append("userId", userId || "");
-
-        // APIへ画像ファイルをPOSTリクエストで送信
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+        const uploadResponse = await imagesApi.full_upload({
+          file: image.file,
+          target_langs: [...LANGUAGES],
+          is_shared: image.compressionSettings.isShared || false,
         });
 
-        if (!response.ok) {
-          throw new Error(t("uploadFailed"));
+        if (
+          uploadResponse &&
+          !("detail" in uploadResponse) &&
+          "id" in uploadResponse
+        ) {
+          return uploadResponse.url;
         }
 
-        // レスポンスからURLを取得
-        const data = await response.json();
-        return data.url;
+        throw new Error(t("uploadFailed"));
       } catch (error) {
         console.error("アップロードエラー:", error);
         throw error;

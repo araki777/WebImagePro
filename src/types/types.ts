@@ -46,8 +46,16 @@ export interface AuthState {
   userSettings?: UserSettings | null;
   userProfiles?: UserProfiles | null;
   userRoles?: UserRoles | null;
+  isAuthenticated: boolean;
   checkUser: () => Promise<void>;
   signOut: () => Promise<void>;
+  updateUserProfiles: (
+    userProfiles: components["schemas"]["UserProfile"]
+  ) => void;
+  updateUserSettings: (
+    userSettings: components["schemas"]["UserSetting"]
+  ) => void;
+  updateUserRoles: (userRoles: components["schemas"]["UserRole"]) => void;
 }
 
 // ============================================================================
@@ -111,10 +119,10 @@ export interface IImagePreview {
 // ============================================================================
 
 export interface IImageListProps {
-  images: components["schemas"]["ImageWithTags"][];
-  onEditImage: (image: components["schemas"]["ImageWithTags"]) => void;
-  onDownload: (image: components["schemas"]["ImageWithTags"]) => void;
-  onDelete: (image: components["schemas"]["ImageWithTags"]) => void;
+  images: components["schemas"]["ImageResponse"][];
+  onEditImage: (image: components["schemas"]["ImageResponse"]) => void;
+  onDownload: (image: components["schemas"]["ImageResponse"]) => void;
+  onDelete: (image: components["schemas"]["ImageResponse"]) => void;
   className?: string;
 }
 
@@ -138,7 +146,6 @@ export interface IImageUploadFormProps {
 export interface IImageUploadActionsProps {
   images: IImagePreview[];
   setImages: React.Dispatch<React.SetStateAction<IImagePreview[]>>;
-  userId: string | null;
 }
 
 // ============================================================================

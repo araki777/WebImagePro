@@ -45,6 +45,19 @@ def get_supabase_client() -> Client:
     return create_client(supabase_url, supabase_key)
 
 
+def get_supabase_admin_client() -> Client:
+    """
+    Supabase管理クライアントを生成する
+
+    Returns:
+        Client: Supabase管理クライアント
+    """
+    supabase_url = settings.SUPABASE_URL
+    supabase_key = settings.SUPABASE_SERVICE_ROLE_KEY
+
+    return create_client(supabase_url, supabase_key)
+
+
 # データベース接続の設定
 engine = create_engine(get_database_url())
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -16,11 +16,13 @@ const Footer = dynamic(() =>
 export default function GalleryPage() {
   const t = useTranslations("Gallery");
   const router = useRouter();
-  const { checkUser, userProfiles, signOut } = useAuthStore();
+  const { checkUser, userProfiles, signOut, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
   useEffect(() => {
     // ユーザーの読み込みが終わり、未ログインの場合はログインページへリダイレクト

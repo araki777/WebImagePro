@@ -19,7 +19,14 @@ import { toast } from "sonner";
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
-  const { userProfiles, signOut, checkUser, userEmail } = useAuthStore();
+  const {
+    userProfiles,
+    signOut,
+    checkUser,
+    userEmail,
+    updateUserProfiles,
+    isAuthenticated,
+  } = useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
     display_name: userProfiles?.display_name || "",
@@ -28,8 +35,10 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
   useEffect(() => {
     if (userProfiles) {
@@ -91,20 +100,18 @@ export default function ProfilePage() {
     setIsUpdating(true);
 
     try {
-      // APIを使用してユーザープロフィールデータを更新
-      await userProfilesApi.update({
-        display_name: formData.display_name,
-        bio: formData.bio,
-        avatar_url: formData.avatar_url,
-      });
-
       // ユーザー情報を更新
-      await userProfilesApi.update({
+      const updateResponse = await userProfilesApi.update({
         ...userProfiles,
         display_name: formData.display_name,
         bio: formData.bio,
         avatar_url: formData.avatar_url,
       });
+
+      // 型ガードでUserProfilesかどうかを確認
+      if (updateResponse && "id" in updateResponse) {
+        updateUserProfiles(updateResponse);
+      }
 
       toast.success(t("updateSuccess"));
     } catch (error) {

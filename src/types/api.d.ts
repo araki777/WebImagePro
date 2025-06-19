@@ -111,7 +111,7 @@ export interface paths {
      * @description パスワード再設定
      *
      * Args:
-     *     password: 新しいパスワード
+     *     reset_data: パスワード再設定情報
      *     auth_service: 認証サービス
      *
      * Returns:
@@ -125,7 +125,7 @@ export interface paths {
      * @description メール送信
      *
      * Args:
-     *     email: メールアドレス
+     *     email_data: メールアドレス
      *     auth_service: 認証サービス
      *
      * Returns:
@@ -480,6 +480,30 @@ export interface components {
       size: number;
       /** Content Type */
       content_type: string;
+      /** Account Name */
+      account_name: string;
+    };
+    /** Body_full_upload_image_images_full_upload_post */
+    Body_full_upload_image_images_full_upload_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+      /** Is Shared */
+      is_shared: boolean;
+      /** Target Langs */
+      target_langs: string[];
+    };
+    /** Body_upload_image_images_upload_post */
+    Body_upload_image_images_upload_post: {
+      /**
+       * File
+       * Format: binary
+       */
+      file: string;
+      /** Is Shared */
+      is_shared: boolean;
     };
     /** Contact */
     Contact: {
@@ -524,54 +548,10 @@ export interface components {
       /** Subject */
       subject: string;
     };
-    /** FullUploadImageRequest */
-    FullUploadImageRequest: {
-      /**
-       * File
-       * Format: binary
-       */
-      file: string;
-      /** Target Langs */
-      target_langs: string[];
-      /** Is Shared */
-      is_shared: boolean;
-      /**
-       * User Id
-       * Format: uuid
-       */
-      user_id: string;
-    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
-    };
-    /** Image */
-    Image: {
-      /** File Name */
-      file_name: string;
-      /** Container Name */
-      container_name: string;
-      /** Blob Name */
-      blob_name: string;
-      /** Size */
-      size: number;
-      /** Content Type */
-      content_type: string;
-      /** Ja Tags */
-      ja_tags: string[];
-      /** En Tags */
-      en_tags: string[];
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
     };
     /** ImageCreate */
     ImageCreate: {
@@ -589,9 +569,11 @@ export interface components {
       ja_tags: string[];
       /** En Tags */
       en_tags: string[];
+      /** Account Name */
+      account_name: string;
     };
-    /** ImageWithTags */
-    ImageWithTags: {
+    /** ImageResponse */
+    ImageResponse: {
       /** File Name */
       file_name: string;
       /** Container Name */
@@ -606,6 +588,8 @@ export interface components {
       ja_tags: string[];
       /** En Tags */
       en_tags: string[];
+      /** Account Name */
+      account_name: string;
       /**
        * Id
        * Format: uuid
@@ -618,6 +602,8 @@ export interface components {
       created_at: string;
       /** Tags */
       tags: string[];
+      /** Url */
+      url: string;
     };
     /** OAuthResponse */
     OAuthResponse: {
@@ -631,10 +617,10 @@ export interface components {
     };
     /** ResetPasswordRequest */
     ResetPasswordRequest: {
-      /** Password */
-      password: string;
       /** Token */
       token: string;
+      /** Password */
+      password: string;
     };
     /** Role */
     Role: {
@@ -705,21 +691,6 @@ export interface components {
       translations: {
         [key: string]: unknown;
       };
-    };
-    /** UploadImageRequest */
-    UploadImageRequest: {
-      /**
-       * File
-       * Format: binary
-       */
-      file: string;
-      /** Is Shared */
-      is_shared: boolean;
-      /**
-       * User Id
-       * Format: uuid
-       */
-      user_id: string;
     };
     /** UserProfile */
     UserProfile: {
@@ -1054,7 +1025,7 @@ export interface operations {
    * @description パスワード再設定
    *
    * Args:
-   *     password: 新しいパスワード
+   *     reset_data: パスワード再設定情報
    *     auth_service: 認証サービス
    *
    * Returns:
@@ -1088,7 +1059,7 @@ export interface operations {
    * @description メール送信
    *
    * Args:
-   *     email: メールアドレス
+   *     email_data: メールアドレス
    *     auth_service: 認証サービス
    *
    * Returns:
@@ -1453,8 +1424,7 @@ export interface operations {
    */
   get_images_images__get: {
     parameters: {
-      query: {
-        user_id: string;
+      query?: {
         is_shared?: boolean;
         lang?: string;
       };
@@ -1463,7 +1433,7 @@ export interface operations {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["ImageWithTags"][];
+          "application/json": components["schemas"]["ImageResponse"][];
         };
       };
       /** @description Validation Error */
@@ -1481,7 +1451,7 @@ export interface operations {
   upload_image_images_upload_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UploadImageRequest"];
+        "multipart/form-data": components["schemas"]["Body_upload_image_images_upload_post"];
       };
     };
     responses: {
@@ -1596,7 +1566,7 @@ export interface operations {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["Image"];
+          "application/json": components["schemas"]["ImageResponse"];
         };
       };
       /** @description Validation Error */
@@ -1630,14 +1600,14 @@ export interface operations {
   full_upload_image_images_full_upload_post: {
     requestBody: {
       content: {
-        "application/json": components["schemas"]["FullUploadImageRequest"];
+        "multipart/form-data": components["schemas"]["Body_full_upload_image_images_full_upload_post"];
       };
     };
     responses: {
       /** @description Successful Response */
       200: {
         content: {
-          "application/json": components["schemas"]["Image"];
+          "application/json": components["schemas"]["ImageResponse"];
         };
       };
       /** @description Validation Error */
@@ -1695,7 +1665,6 @@ export interface operations {
     parameters: {
       query: {
         is_shared: boolean;
-        user_id: string;
       };
       path: {
         blob_name: string;

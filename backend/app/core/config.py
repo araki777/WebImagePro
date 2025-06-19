@@ -20,6 +20,7 @@ class Settings:
         "AZURE_STORAGE_SHARED_CONTAINER_NAME"
     )
     AZURE_STORAGE_ACCOUNT_NAME: str = get_env_or_raise("AZURE_STORAGE_ACCOUNT_NAME")
+    AZURE_STORAGE_ACCOUNT_KEY: str = get_env_or_raise("AZURE_STORAGE_ACCOUNT_KEY")
 
     # Azure Vision API設定
     AZURE_COMPUTE_VISION_URL: str = get_env_or_raise("AZURE_COMPUTE_VISION_URL")
@@ -40,14 +41,13 @@ class Settings:
     # Supabase設定
     SUPABASE_URL: str = get_env_or_raise("SUPABASE_URL")
     SUPABASE_ANON_KEY: str = get_env_or_raise("SUPABASE_ANON_KEY")
+    SUPABASE_SERVICE_ROLE_KEY: str = get_env_or_raise("SUPABASE_SERVICE_ROLE_KEY")
+    SUPABASE_JWT_SECRET: str = get_env_or_raise("SUPABASE_JWT_SECRET")
 
     # Resend設定
     RESEND_API_KEY: str = get_env_or_raise("RESEND_API_KEY")
     RESEND_EMAIL_FROM: str = get_env_or_raise("RESEND_EMAIL_FROM")
     RESEND_EMAIL_TO: str = get_env_or_raise("RESEND_EMAIL_TO")
-
-    # 認証系
-    SUPABASE_JWT_SECRET: str = get_env_or_raise("SUPABASE_JWT_SECRET")
 
 
 settings = Settings()

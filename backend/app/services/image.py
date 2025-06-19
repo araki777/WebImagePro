@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
 from app.models.image import Image as ImageModel
-from app.schemas.image import Image, ImageCreate, ImageWithTags
+from app.schemas.image import Image, ImageCreate, ImageResponse
 from app.schemas.storage import BlobInfo
 from app.services.ai_vision import VisionService
 from app.services.storage import StorageService
@@ -22,7 +22,7 @@ class ImageService:
 
     async def get_images_with_tags(
         self, images: List[BlobInfo], lang: str = "ja"
-    ) -> List[ImageWithTags]:
+    ) -> List[ImageResponse]:
         """画像を取得
 
         Args:
@@ -32,36 +32,42 @@ class ImageService:
         Returns:
             List[ImageWithTags]: タグ付き画像のリスト
         """
-        # 画像情報をマッピング
-        tags_map = {}
+        result = []
 
-        # データベースから画像情報を取得
-        for image in images:
+        for blob_info in images:
+            # データベースから画像情報を取得
             db_image = (
                 self.db.query(ImageModel)
                 .filter(
-                    ImageModel.container_name == image.container_name,
-                    ImageModel.blob_name == image.blob_name,
+                    ImageModel.container_name == blob_info.container_name,
+                    ImageModel.blob_name == blob_info.blob_name,
+                    ImageModel.account_name == blob_info.account_name,
                 )
                 .first()
             )
 
             if db_image:
-                # データベースのタグ情報を使用
-                tags = getattr(db_image, f"{lang}_tags", [])
+                # データベースに存在する場合は、DBの情報を使用
+                image_with_tags = ImageResponse(
+                    id=UUID(str(db_image.id)),
+                    file_name=str(db_image.file_name),
+                    blob_name=str(db_image.blob_name),
+                    container_name=str(db_image.container_name),
+                    size=int(db_image.size),
+                    content_type=str(db_image.content_type),
+                    ja_tags=list(db_image.ja_tags) if db_image.ja_tags else [],
+                    en_tags=list(db_image.en_tags) if db_image.en_tags else [],
+                    created_at=db_image.created_at.isoformat(),
+                    account_name=str(db_image.account_name),
+                    url=blob_info.url,
+                    tags=db_image.ja_tags if lang == "ja" else db_image.en_tags,
+                )
 
-                tags_map[f"{image.container_name}/{image.blob_name}"] = tags
+                result.append(image_with_tags)
 
-        # ImageWithTags形式に変換
-        return [
-            ImageWithTags(
-                **Image.model_validate(image).model_dump(),
-                tags=tags_map.get(f"{image.container_name}/{image.blob_name}", []),
-            )
-            for image in images
-        ]
+        return result
 
-    def save_image(self, image_create: ImageCreate) -> Image:
+    def save_image(self, image_create: ImageCreate) -> ImageResponse:
         """画像情報をデータベースに保存"""
         image = ImageModel(
             file_name=image_create.file_name,
@@ -72,11 +78,16 @@ class ImageService:
             ja_tags=image_create.ja_tags,
             en_tags=image_create.en_tags,
             created_at=datetime.now(UTC),
+            account_name=image_create.account_name,
         )
         self.db.add(image)
         self.db.commit()
         self.db.refresh(image)
-        return Image.model_validate(image)
+        return ImageResponse(
+            **Image.model_validate(image).model_dump(),
+            url=f"https://{image.container_name}.blob.core.windows.net/{image.blob_name}",
+            tags=[],
+        )
 
     async def full_upload_image(
         self, file: UploadFile, is_shared: bool, user_id: UUID, target_langs: List[str]
@@ -100,6 +111,7 @@ class ImageService:
             content_type=result.content_type,
             ja_tags=translations.get("ja", []),
             en_tags=translations.get("en", []),
+            account_name=result.account_name,
         )
         return self.save_image(image_create)
 
