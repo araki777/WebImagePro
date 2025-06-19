@@ -75,14 +75,3 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
-
-
-def get_frontend_url() -> str:
-    """
-    フロントエンドのURLを取得する
-
-    Returns:
-        str: フロントエンドのURL
-    """
-    frontend_url = settings.FRONTEND_URL
-    return frontend_url
