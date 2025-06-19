@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import UploadFile
+from fastapi import Form, UploadFile
 from pydantic import BaseModel
 
 
@@ -17,6 +17,7 @@ class BlobUploadResult(BaseModel):
     file_name: str
     size: int
     content_type: str
+    account_name: str
 
 
 class BlobInfo(BaseModel):
@@ -24,3 +25,5 @@ class BlobInfo(BaseModel):
     size: int
     content_type: str
     container_name: str
+    account_name: str
+    url: str

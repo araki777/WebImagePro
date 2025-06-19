@@ -79,7 +79,7 @@ export default function ImageEditor2() {
 
   // 認証関連
   const searchParams = useSearchParams();
-  const { userProfiles, checkUser, signOut } = useAuthStore();
+  const { userProfiles, checkUser, signOut, isAuthenticated } = useAuthStore();
 
   // PIXI.jsの参照
   const pixiRefs = usePixiRefs();
@@ -670,8 +670,10 @@ export default function ImageEditor2() {
 
   // 認証状態の確認
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
   // グリッド表示の切り替えとサイズ変更
   useEffect(() => {
@@ -1071,10 +1073,9 @@ export default function ImageEditor2() {
       const file = new File([blob], fileName, { type: blob.type });
 
       const uploadResponse = await imagesApi.full_upload({
-        file: file.name,
+        file: file,
         target_langs: [...LANGUAGES],
         is_shared: isShared,
-        user_id: userProfiles?.id || "",
       });
 
       if (!uploadResponse) {

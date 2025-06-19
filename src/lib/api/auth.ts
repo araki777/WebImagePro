@@ -27,19 +27,19 @@ export const authApi = {
     return response;
   },
   signin: async (data: { email: string; password: string }) => {
-    const response = await apiClient<components["schemas"]["Token"]>(
-      "/auth/signin",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      }
-    );
+    const response = await apiClient<
+      | components["schemas"]["Token"]
+      | components["schemas"]["HTTPValidationError"]
+    >("/auth/signin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+      }),
+    });
     return response;
   },
   signout: async () => {
@@ -67,24 +67,32 @@ export const authApi = {
     return response;
   },
   resetPassword: async (
-    password: string
-  ): Promise<components["schemas"]["HTTPValidationError"]> => {
+    data: components["schemas"]["ResetPasswordRequest"]
+  ): Promise<
+    | components["schemas"]["HTTPValidationError"]
+    | components["schemas"]["ResetPasswordRequest"]
+  > => {
     const response = await apiClient<
-      components["schemas"]["HTTPValidationError"]
+      | components["schemas"]["HTTPValidationError"]
+      | components["schemas"]["ResetPasswordRequest"]
     >("/auth/reset-password", {
       method: "POST",
-      body: JSON.stringify({ password }),
+      body: JSON.stringify(data),
     });
     return response;
   },
   sendEmail: async (
-    email: string
-  ): Promise<components["schemas"]["HTTPValidationError"]> => {
+    data: components["schemas"]["SendEmailRequest"]
+  ): Promise<
+    | components["schemas"]["HTTPValidationError"]
+    | components["schemas"]["SendEmailRequest"]
+  > => {
     const response = await apiClient<
-      components["schemas"]["HTTPValidationError"]
+      | components["schemas"]["HTTPValidationError"]
+      | components["schemas"]["SendEmailRequest"]
     >("/auth/send-email", {
       method: "POST",
-      body: JSON.stringify({ email }),
+      body: JSON.stringify(data),
     });
     return response;
   },

@@ -14,6 +14,7 @@ export function ImageList({
   className,
 }: IImageListProps) {
   const t = useTranslations("ImageList");
+
   return (
     <div
       className={cn(
@@ -26,7 +27,7 @@ export function ImageList({
           <div className="p-4">
             <div className="aspect-video relative rounded-lg overflow-hidden mb-4">
               <Image
-                src={`https://${image.container_name}.blob.core.windows.net/${image.blob_name}`}
+                src={image.url}
                 alt={t("previewAlt", {
                   index: index + 1,
                   name: image.file_name,

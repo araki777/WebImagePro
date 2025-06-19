@@ -27,7 +27,7 @@ export function ImageGallery() {
   const t = useTranslations("ImageGallery");
   const router = useRouter();
   const [images, setImages] = useState<
-    components["schemas"]["ImageWithTags"][]
+    components["schemas"]["ImageResponse"][]
   >([]); // 画像データの状態
   const [loading, setLoading] = useState(true); // ローディング状態
   const [searchQuery, setSearchQuery] = useState(""); // 検索クエリ
@@ -94,13 +94,12 @@ export function ImageGallery() {
       setLoading(true);
       const response = await imagesApi.get_images({
         is_shared: viewMode === "shared",
-        user_id: userId || "0",
         lang: locale,
       });
       if ("detail" in response) {
         throw new Error(response.detail?.[0]?.msg || t("error.fetchFailed"));
       }
-      setImages(response as components["schemas"]["ImageWithTags"][]);
+      setImages(response as components["schemas"]["ImageResponse"][]);
     } catch (error: unknown) {
       console.error("画像一覧の取得エラー:", error);
       toast.error(t("error.fetchFailed"), {
@@ -117,27 +116,26 @@ export function ImageGallery() {
   }, [fetchImages]);
 
   const filteredImages = images.filter((image) => {
-    return image.tags.some((tag: string) => tag.includes(searchQuery));
+    if (locale === "ja") {
+      return image.tags.some((tag: string) => tag.includes(searchQuery));
+    } else {
+      return image.tags.some((tag: string) => tag.includes(searchQuery));
+    }
   });
 
   // 編集中の画像を設定する関数
-  const handleEditImage = (image: components["schemas"]["ImageWithTags"]) => {
-    router.push(
-      `/editor?url=${encodeURIComponent(
-        `https://${image.container_name}.blob.core.windows.net/${image.blob_name}`
-      )}`
-    );
+  const handleEditImage = (image: components["schemas"]["ImageResponse"]) => {
+    router.push(`/editor?url=${encodeURIComponent(image.url)}`);
   };
 
   // 画像をダウンロードする関数
   const handleDownload = async (
-    image: components["schemas"]["ImageWithTags"]
+    image: components["schemas"]["ImageResponse"]
   ) => {
     try {
       const blob = await imagesApi.get_image({
         blob_name: image.blob_name,
         is_shared: viewMode === "shared",
-        user_id: userId || "0",
       });
 
       if (!(blob instanceof Blob)) {
@@ -160,7 +158,7 @@ export function ImageGallery() {
 
   // 画像を削除する関数
   const handleDelete = async (
-    image: components["schemas"]["ImageWithTags"]
+    image: components["schemas"]["ImageResponse"]
   ) => {
     try {
       const response = await imagesApi.delete(image.id);

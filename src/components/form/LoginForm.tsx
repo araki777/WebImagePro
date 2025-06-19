@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/routing";
 import { OAUTH_PROVIDERS } from "@/lib/constants";
-import { loginSchema } from "@/lib/validation/loginSchema";
+import { loginSchema } from "@/lib/validation/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Chrome, Github } from "lucide-react";

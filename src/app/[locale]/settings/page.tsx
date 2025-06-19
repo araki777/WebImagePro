@@ -27,7 +27,7 @@ import { toast } from "sonner";
 function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
-  const { userSettings } = useAuthStore();
+  const { userSettings, updateUserSettings } = useAuthStore();
 
   const locales = LANGUAGES.map((lang) => ({
     code: lang,
@@ -35,10 +35,13 @@ function LanguageSwitcher() {
   }));
 
   const handleLanguageChange = async (code: string) => {
-    await userSettingsApi.update({
+    const updateResponse = await userSettingsApi.update({
       theme: userSettings?.theme || "light",
       language: code,
     });
+    if (updateResponse && "id" in updateResponse) {
+      updateUserSettings(updateResponse);
+    }
     // 言語切り替え後にページ遷移
     router.push(pathname, { locale: code });
   };
@@ -64,7 +67,14 @@ function LanguageSwitcher() {
 
 function SettingsContent() {
   const t = useTranslations("Settings");
-  const { userProfiles, userSettings, signOut, checkUser } = useAuthStore();
+  const {
+    userProfiles,
+    userSettings,
+    signOut,
+    checkUser,
+    updateUserSettings,
+    isAuthenticated,
+  } = useAuthStore();
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
 
@@ -72,10 +82,13 @@ function SettingsContent() {
   const handleThemeChange = async (checked: boolean) => {
     const newTheme = checked ? "dark" : "light";
     setTheme(newTheme);
-    await userSettingsApi.update({
+    const updateResponse = await userSettingsApi.update({
       theme: newTheme,
       language: userSettings?.language || DEFAULT_LANGUAGE,
     });
+    if (updateResponse && "id" in updateResponse) {
+      updateUserSettings(updateResponse);
+    }
   };
 
   // 初期テーマの設定
@@ -141,10 +154,12 @@ function SettingsContent() {
   };
 
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
-  if (!userProfiles) {
+  if (!userSettings) {
     return null;
   }
 
