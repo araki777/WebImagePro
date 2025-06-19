@@ -19,8 +19,14 @@ import { toast } from "sonner";
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
-  const { userProfiles, signOut, checkUser, userEmail, updateUserProfiles } =
-    useAuthStore();
+  const {
+    userProfiles,
+    signOut,
+    checkUser,
+    userEmail,
+    updateUserProfiles,
+    isAuthenticated,
+  } = useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
     display_name: userProfiles?.display_name || "",
@@ -29,8 +35,10 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
   useEffect(() => {
     if (userProfiles) {

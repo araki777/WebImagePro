@@ -67,8 +67,14 @@ function LanguageSwitcher() {
 
 function SettingsContent() {
   const t = useTranslations("Settings");
-  const { userProfiles, userSettings, signOut, checkUser, updateUserSettings } =
-    useAuthStore();
+  const {
+    userProfiles,
+    userSettings,
+    signOut,
+    checkUser,
+    updateUserSettings,
+    isAuthenticated,
+  } = useAuthStore();
   const { theme, setTheme } = useTheme();
   const searchParams = useSearchParams();
 
@@ -148,8 +154,10 @@ function SettingsContent() {
   };
 
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
   if (!userSettings) {
     return null;

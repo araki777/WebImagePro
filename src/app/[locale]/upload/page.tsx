@@ -16,7 +16,7 @@ const Footer = dynamic(() =>
 
 export default function UploadPage() {
   const t = useTranslations("Upload");
-  const { userProfiles, signOut, checkUser } = useAuthStore();
+  const { userProfiles, signOut, checkUser, isAuthenticated } = useAuthStore();
 
   const steps: Step[] = [
     {
@@ -40,8 +40,10 @@ export default function UploadPage() {
   ];
 
   useEffect(() => {
-    checkUser();
-  }, [checkUser]);
+    if (!isAuthenticated) {
+      checkUser();
+    }
+  }, [checkUser, isAuthenticated]);
 
   if (!userProfiles) {
     return (
