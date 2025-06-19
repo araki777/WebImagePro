@@ -30,7 +30,7 @@ export const imagesApi = {
     is_shared: boolean;
     lang: string;
   }): Promise<
-    | components["schemas"]["ImageWithTags"][]
+    | components["schemas"]["ImageResponse"][]
     | components["schemas"]["HTTPValidationError"]
   > => {
     const queryParams = new URLSearchParams({
@@ -38,7 +38,7 @@ export const imagesApi = {
       lang,
     });
     const response = await apiClient<
-      | components["schemas"]["ImageWithTags"][]
+      | components["schemas"]["ImageResponse"][]
       | components["schemas"]["HTTPValidationError"]
     >(`/images?${queryParams.toString()}`, {
       method: "GET",
