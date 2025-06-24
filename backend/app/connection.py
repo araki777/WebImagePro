@@ -15,11 +15,11 @@ def get_database_url() -> str:
         str: データベース接続文字列
     """
     # 環境変数から必要な情報を取得（デフォルト値を設定）
-    db_user = settings.DB_USER
-    db_password = settings.DB_PASSWORD
-    db_host = settings.DB_HOST
-    db_port = settings.DB_PORT
-    db_name = settings.DB_NAME
+    db_user = settings.database.user
+    db_password = settings.database.password
+    db_host = settings.database.host
+    db_port = settings.database.port
+    db_name = settings.database.name
 
     # 接続文字列を生成
     database_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
@@ -34,8 +34,8 @@ def get_supabase_client() -> Client:
     Returns:
         Client: Supabaseクライアント
     """
-    supabase_url = settings.SUPABASE_URL
-    supabase_key = settings.SUPABASE_ANON_KEY
+    supabase_url = settings.supabase.url
+    supabase_key = settings.supabase.anon_key
 
     if not supabase_url or not supabase_key:
         raise ValueError(
@@ -52,8 +52,8 @@ def get_supabase_admin_client() -> Client:
     Returns:
         Client: Supabase管理クライアント
     """
-    supabase_url = settings.SUPABASE_URL
-    supabase_key = settings.SUPABASE_SERVICE_ROLE_KEY
+    supabase_url = settings.supabase.url
+    supabase_key = settings.supabase.service_role_key
 
     return create_client(supabase_url, supabase_key)
 

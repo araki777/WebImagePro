@@ -7,13 +7,13 @@ from app.utils.email_templates import generate_contact_email_html
 
 load_dotenv()
 
-resend.api_key = settings.RESEND_API_KEY
+resend.api_key = settings.email.api_key
 
 
 class EmailService:
     def __init__(self):
-        self.from_email = settings.RESEND_EMAIL_FROM
-        self.admin_email = settings.RESEND_EMAIL_TO
+        self.from_email = settings.email.resend_email_from
+        self.admin_email = settings.email.resend_email_to
 
     def send_contact_emails(self, contact: ContactModel) -> None:
         """問い合わせに関するメールを送信"""

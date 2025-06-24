@@ -2,7 +2,6 @@ import json
 import logging
 import sys
 from datetime import datetime
-from typing import Any, Dict
 
 from app.core.config import settings
 
@@ -59,13 +58,13 @@ file_handler.setFormatter(simple_formatter)
 
 # ルートロガーの設定
 root_logger = logging.getLogger()
-root_logger.setLevel(settings.LOG_LEVEL)
+root_logger.setLevel(settings.log_level)
 root_logger.addHandler(console_handler)
 root_logger.addHandler(file_handler)
 
 # アプリケーションロガー
 logger = logging.getLogger("webimagepro")
-logger.setLevel(settings.LOG_LEVEL)
+logger.setLevel(settings.log_level)
 
 # サードパーティライブラリのログレベルを調整
 logging.getLogger("httpx").setLevel(logging.INFO)

@@ -8,9 +8,9 @@ from app.core.config import settings
 
 class TranslateService:
     def __init__(self):
-        self.translation_url = settings.AZURE_TRANSLATION_URL
-        self.translation_key = settings.AZURE_TRANSLATION_KEY
-        self.translation_region = settings.AZURE_TRANSLATION_REGION
+        self.translation_url = settings.azure.translation_url
+        self.translation_key = settings.azure.translation_key
+        self.translation_region = settings.azure.translation_region
 
     def translate(
         self, texts: List[str], target_langs: List[str]

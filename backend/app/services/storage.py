@@ -12,10 +12,10 @@ from app.schemas.storage import BlobInfo, BlobUploadResult
 
 class StorageService:
     def __init__(self):
-        self.connection_string = settings.AZURE_STORAGE_CONNECTION_STRING
-        self.shared_container = settings.AZURE_STORAGE_SHARED_CONTAINER_NAME
-        self.account_name = settings.AZURE_STORAGE_ACCOUNT_NAME
-        self.account_key = settings.AZURE_STORAGE_ACCOUNT_KEY
+        self.connection_string = settings.azure.storage_connection_string
+        self.shared_container = settings.azure.storage_shared_container_name
+        self.account_name = settings.azure.storage_account_name
+        self.account_key = settings.azure.storage_account_key
 
     def _get_container_name(self, is_shared: bool, user_id: UUID) -> str:
         """コンテナ名を取得"""
