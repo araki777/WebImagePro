@@ -7,8 +7,8 @@ from app.core.config import settings
 
 class VisionService:
     def __init__(self):
-        self.vision_url = settings.AZURE_COMPUTE_VISION_URL
-        self.vision_key = settings.AZURE_COMPUTE_VISION_KEY
+        self.vision_url = settings.azure.compute_vision_url
+        self.vision_key = settings.azure.compute_vision_key
 
     def get_tags(self, blob_url: str) -> List[str]:
         """画像のタグを取得"""

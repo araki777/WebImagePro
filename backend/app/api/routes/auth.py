@@ -154,7 +154,7 @@ async def github_auth(
     Raises:
         HTTPException: 認証エラーまたはサーバーエラー
     """
-    frontend_url = settings.FRONTEND_URL
+    frontend_url = settings.frontend_url
     if not frontend_url:
         raise ValueError("FRONTEND_URLが設定されていません")
     return await auth_service.get_oauth_url(OAUTH_PROVIDER["github"], frontend_url)
@@ -177,7 +177,7 @@ async def google_auth(
     Raises:
         HTTPException: 認証エラーまたはサーバーエラー
     """
-    frontend_url = settings.FRONTEND_URL
+    frontend_url = settings.frontend_url
     if not frontend_url:
         raise ValueError("FRONTEND_URLが設定されていません")
     return await auth_service.get_oauth_url(OAUTH_PROVIDER["google"], frontend_url)

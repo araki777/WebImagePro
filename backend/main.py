@@ -17,14 +17,14 @@ app = FastAPI(
     title="WebImagePro API",
     description="WebImagePro API",
     version="1.0.0",
-    docs_url="/docs" if settings.IS_DEVELOPMENT else None,
-    redoc_url="/redoc" if settings.IS_DEVELOPMENT else None,
+    docs_url="/docs" if settings.is_development else None,
+    redoc_url="/redoc" if settings.is_development else None,
     route_class=LoggingRoute,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
+    allow_origins=[settings.frontend_url],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

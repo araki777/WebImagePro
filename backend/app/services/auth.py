@@ -30,7 +30,7 @@ class AuthService:
         try:
             payload = jwt.decode(
                 token,
-                settings.SUPABASE_JWT_SECRET,
+                settings.supabase.jwt_secret,
                 algorithms=["HS256"],
                 options={"verify_aud": False},
             )
@@ -125,7 +125,7 @@ class AuthService:
             # JWTトークンからユーザーIDを取得
             payload = jwt.decode(
                 token,
-                settings.SUPABASE_JWT_SECRET,
+                settings.supabase.jwt_secret,
                 algorithms=["HS256"],
                 options={"verify_aud": False},
             )
@@ -170,6 +170,6 @@ class AuthService:
         """
         self.supabase.auth.reset_password_for_email(
             email,
-            options={"redirect_to": f"{settings.FRONTEND_URL}/resetPassword"},
+            options={"redirect_to": f"{settings.frontend_url}/resetPassword"},
         )
         return {"message": "パスワード再設定メールを送信しました"}
